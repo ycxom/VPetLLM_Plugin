@@ -59,6 +59,12 @@ public interface IVPetLLMPlugin
     // 这对于 AI 理解如何正确构造函数参数至关重要。
     string Parameters { get; }
 
+    // 控制插件是否启用
+    bool Enabled { get; set; }
+
+    // 插件文件的路径
+    string FilePath { get; set; }
+
     // 插件的核心功能实现。
     // 当 AI 调用此插件时，这个异步方法将被执行。
     // 'arguments' 参数是 AI 根据 'Parameters' 定义生成的 JSON 字符串。
@@ -155,6 +161,22 @@ namespace SystemInfoPlugin
 ## AI 如何调用插件
 
 为了让 AI 能够调用你的插件，你需要在给 AI 的 `system prompt` (角色设定) 中，明确告知它有哪些插件可用，以及如何调用它们。
+
+### 通过 UI 管理插件
+
+你可以在 VPetLLM 的设置窗口中，通过“插件”选项卡来管理插件：
+*   **导入**: 点击“导入插件”按钮，选择你的 `.dll` 文件。
+*   **启用/禁用**: 通过勾选插件列表中的复选框来启用或禁用插件。
+*   **卸载**: 选择一个插件，然后点击“卸载插件”按钮来删除它。
+
+### 通过指令管理插件
+
+你也可以通过在聊天中发送指令来管理插件：
+*   **启用插件**: `[:plugin(enable:插件名称)]`
+*   **禁用插件**: `[:plugin(disable:插件名称)]`
+*   **删除插件**: `[:plugin(delete:插件名称)]`
+
+### 调用插件
 
 调用插件的格式为：`[:plugin(插件名称(参数))]`
 

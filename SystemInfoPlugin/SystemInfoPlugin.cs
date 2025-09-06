@@ -8,6 +8,8 @@ public class SystemInfoPlugin : IActionPlugin
     public string Name => "system_info";
     public string Description => "获取当前操作系统的版本信息。";
     public string Parameters => "{}"; // 这个插件不需要任何参数
+    public bool Enabled { get; set; } = true;
+    public string FilePath { get; set; }
 
     private VPetLLM.VPetLLM _vpetLLM;
 

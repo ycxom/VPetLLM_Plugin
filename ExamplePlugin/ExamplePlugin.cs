@@ -7,6 +7,8 @@ public class ExamplePlugin : IActionPlugin
     public string Name => "example_plugin";
     public string Description => "一个简单的示例插件，当被调用时，它会返回一段固定的问候语。";
     public string Parameters => "{}"; // 这个插件不需要任何参数
+    public bool Enabled { get; set; } = true;
+    public string FilePath { get; set; }
 
     private VPetLLM.VPetLLM _vpetLLM;
 
