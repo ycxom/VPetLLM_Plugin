@@ -1,5 +1,11 @@
 # VPetLLM 插件开发指南
 
+## 至普通用户
+
+- 在 VPetLLM_Plugin\ExamplePlugin\plugin\ExamplePlugin.dll 内及是插件文件，将其下载即可
+- 以此类推，进入目录下载其他插件即可
+
+
 欢迎来到 VPetLLM 的插件开发！通过插件，您可以扩展 VPetLLM 的功能，让您的桌宠更加智能和强大。
 
 ## 目录
