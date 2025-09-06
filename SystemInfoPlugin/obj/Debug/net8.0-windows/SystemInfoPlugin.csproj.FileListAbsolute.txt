@@ -1,0 +1,12 @@
+D:\CodeDesk\VPetLLM\SystemInfoPlugin\bin\Debug\net8.0-windows\SystemInfoPlugin.deps.json
+D:\CodeDesk\VPetLLM\SystemInfoPlugin\bin\Debug\net8.0-windows\SystemInfoPlugin.dll
+D:\CodeDesk\VPetLLM\SystemInfoPlugin\bin\Debug\net8.0-windows\SystemInfoPlugin.pdb
+D:\CodeDesk\VPetLLM\SystemInfoPlugin\obj\Debug\net8.0-windows\SystemInfoPlugin.csproj.AssemblyReference.cache
+D:\CodeDesk\VPetLLM\SystemInfoPlugin\obj\Debug\net8.0-windows\SystemInfoPlugin.GeneratedMSBuildEditorConfig.editorconfig
+D:\CodeDesk\VPetLLM\SystemInfoPlugin\obj\Debug\net8.0-windows\SystemInfoPlugin.AssemblyInfoInputs.cache
+D:\CodeDesk\VPetLLM\SystemInfoPlugin\obj\Debug\net8.0-windows\SystemInfoPlugin.AssemblyInfo.cs
+D:\CodeDesk\VPetLLM\SystemInfoPlugin\obj\Debug\net8.0-windows\SystemInfoPlugin.csproj.CoreCompileInputs.cache
+D:\CodeDesk\VPetLLM\SystemInfoPlugin\obj\Debug\net8.0-windows\SystemInfoPlugin.dll
+D:\CodeDesk\VPetLLM\SystemInfoPlugin\obj\Debug\net8.0-windows\refint\SystemInfoPlugin.dll
+D:\CodeDesk\VPetLLM\SystemInfoPlugin\obj\Debug\net8.0-windows\SystemInfoPlugin.pdb
+D:\CodeDesk\VPetLLM\SystemInfoPlugin\obj\Debug\net8.0-windows\ref\SystemInfoPlugin.dll

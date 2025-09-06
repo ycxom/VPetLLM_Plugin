@@ -1,0 +1,12 @@
+D:\CodeDesk\VPetLLM\ExamplePlugin\obj\Debug\net8.0-windows\ExamplePlugin.csproj.AssemblyReference.cache
+D:\CodeDesk\VPetLLM\ExamplePlugin\obj\Debug\net8.0-windows\ExamplePlugin.GeneratedMSBuildEditorConfig.editorconfig
+D:\CodeDesk\VPetLLM\ExamplePlugin\obj\Debug\net8.0-windows\ExamplePlugin.AssemblyInfoInputs.cache
+D:\CodeDesk\VPetLLM\ExamplePlugin\obj\Debug\net8.0-windows\ExamplePlugin.AssemblyInfo.cs
+D:\CodeDesk\VPetLLM\ExamplePlugin\obj\Debug\net8.0-windows\ExamplePlugin.csproj.CoreCompileInputs.cache
+D:\CodeDesk\VPetLLM\ExamplePlugin\bin\Debug\net8.0-windows\ExamplePlugin.deps.json
+D:\CodeDesk\VPetLLM\ExamplePlugin\bin\Debug\net8.0-windows\ExamplePlugin.dll
+D:\CodeDesk\VPetLLM\ExamplePlugin\bin\Debug\net8.0-windows\ExamplePlugin.pdb
+D:\CodeDesk\VPetLLM\ExamplePlugin\obj\Debug\net8.0-windows\ExamplePlugin.dll
+D:\CodeDesk\VPetLLM\ExamplePlugin\obj\Debug\net8.0-windows\refint\ExamplePlugin.dll
+D:\CodeDesk\VPetLLM\ExamplePlugin\obj\Debug\net8.0-windows\ExamplePlugin.pdb
+D:\CodeDesk\VPetLLM\ExamplePlugin\obj\Debug\net8.0-windows\ref\ExamplePlugin.dll
