@@ -98,52 +98,132 @@ public interface IActionPlugin : IVPetLLMPlugin
 
 ## 插件示例
 
+### SystemInfoPlugin
 下面是一个获取当前系统信息的简单插件示例 (`SystemInfoPlugin`)：
 
 ```csharp
 using System;
 using System.Threading.Tasks;
+using VPetLLM;
 using VPetLLM.Core;
 
-namespace SystemInfoPlugin
+public class SystemInfoPlugin : IActionPlugin
 {
-    public class SystemInfoPlugin : IActionPlugin
+    public string Name => "system_info";
+    public string Description => "获取当前操作系统的版本信息。";
+    public string Parameters => "{}"; // 这个插件不需要任何参数
+    public bool Enabled { get; set; } = true;
+    public string FilePath { get; set; } = "";
+
+    private VPetLLM.VPetLLM? _vpetLLM;
+
+    public void Initialize(VPetLLM.VPetLLM plugin)
     {
-        private VPetLLM _plugin;
+        _vpetLLM = plugin;
+        FilePath = plugin.PluginPath;
+        VPetLLM.Utils.Logger.Log("System Info Plugin Initialized!");
+    }
 
-        public string Name => "system_info";
-        public string Description => "获取当前操作系统的版本信息。";
-        public string Parameters => "{}"; // 此插件不需要参数
+    public Task<string> Function(string arguments)
+    {
+        var osInfo = Environment.OSVersion.VersionString;
+        if (_vpetLLM == null) return Task.FromResult("VPetLLM instance is not initialized.");
+        _vpetLLM.Log($"SystemInfoPlugin: Function called. Returning OSVersion: {osInfo}");
+        return Task.FromResult(osInfo);
+    }
 
-        public Task<string> Function(string arguments)
-        {
-            var osVersion = Environment.OSVersion.ToString();
-            Log($"Function called. Returning OSVersion: {osVersion}");
-            return Task.FromResult(osVersion);
-        }
+    public void Invoke()
+    {
+        // 这个方法现在可以被保留，或者在未来用于无参数的、手动的调用
+    }
 
-        public void Initialize(VPetLLM plugin)
-        {
-            _plugin = plugin;
-            Log("System Info Plugin Initialized!");
-        }
+    public void Unload()
+    {
+        VPetLLM.Utils.Logger.Log("System Info Plugin Unloaded!");
+    }
 
-        public void Unload()
-        {
-            Log("System Info Plugin Unloaded.");
-        }
+    public void Log(string message)
+    {
+        if (_vpetLLM == null) return;
+        _vpetLLM.Log(message);
+    }
+}
+```
 
-        public void Invoke()
+### ReminderPlugin
+下面是一个定时提醒的插件示例 (`ReminderPlugin`)：
+
+```csharp
+using System;
+using System.Threading.Tasks;
+using VPetLLM;
+using VPetLLM.Core;
+
+public class ReminderPlugin : IActionPlugin
+{
+    public string Name => "reminder";
+    public string Description => "设置一个定时提醒。";
+    public string Parameters => "{\"time_in_minutes\": \"提醒的分钟数\", \"message\": \"提醒的内容\"}";
+    public bool Enabled { get; set; } = true;
+    public string FilePath { get; set; } = "";
+
+    private VPetLLM.VPetLLM? _vpetLLM;
+
+    public void Initialize(VPetLLM.VPetLLM plugin)
+    {
+        _vpetLLM = plugin;
+        FilePath = plugin.PluginPath;
+        VPetLLM.Utils.Logger.Log("Reminder Plugin Initialized!");
+    }
+
+    public Task<string> Function(string arguments)
+    {
+        try
         {
-            // 对于此插件，同步调用时也返回系统信息
-            var result = Function("").Result;
-            _plugin.MW.Main.Say(result);
+            var args = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(arguments);
+            if (args == null)
+            {
+                return Task.FromResult("创建提醒失败：无效的参数。");
+            }
+            int minutes = args.time_in_minutes;
+            string message = args.message;
+
+            // 启动一个后台任务来处理延迟和提醒，不要 await 它
+            _ = ReminderTask(minutes, message);
+
+            return Task.FromResult($"好的，我会在 {minutes} 分钟后提醒你: {message}");
         }
-        
-        public void Log(string message)
+        catch (Exception e)
         {
-            _plugin.Log(message);
+            return Task.FromResult($"创建提醒失败，请检查参数: {e.Message}");
         }
+    }
+
+    private async Task ReminderTask(int minutes, string message)
+    {
+        if (_vpetLLM == null) return;
+        await Task.Delay(TimeSpan.FromMinutes(minutes));
+
+        // 使用Dispatcher在UI线程上显示提醒
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        {
+            _vpetLLM.MW.Main.Say($"叮咚！提醒时间到啦：{message}");
+        });
+    }
+
+    public void Invoke()
+    {
+    }
+
+    public void Unload()
+    {
+        VPetLLM.Utils.Logger.Log("Reminder Plugin Unloaded!");
+    }
+
+    public void Log(string message)
+    {
+        if (_vpetLLM == null) return;
+        _vpetLLM.Log(message);
     }
 }
 ```
@@ -186,6 +266,6 @@ namespace SystemInfoPlugin
 >
 > **可用插件**:
 > *   `system_info`: 获取操作系统信息。调用方法: `[:plugin(system_info())]`
-> *   `get_weather(city: string)`: 获取指定城市的天气。调用方法: `[:plugin(get_weather(city: "北京"))]`
+> *   `reminder(time_in_minutes: int, message: string)`: 设置一个定时提醒。调用方法: `[:plugin(reminder(time_in_minutes: 3, message: "开发plugin"))]`
 
 通过这样的设定，AI 在需要时，就会在它的回复中包含特定的插件调用指令，从而触发你的插件功能。

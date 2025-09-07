@@ -9,19 +9,21 @@ public class SystemInfoPlugin : IActionPlugin
     public string Description => "获取当前操作系统的版本信息。";
     public string Parameters => "{}"; // 这个插件不需要任何参数
     public bool Enabled { get; set; } = true;
-    public string FilePath { get; set; }
+    public string FilePath { get; set; } = "";
 
-    private VPetLLM.VPetLLM _vpetLLM;
+    private VPetLLM.VPetLLM? _vpetLLM;
 
     public void Initialize(VPetLLM.VPetLLM plugin)
     {
         _vpetLLM = plugin;
+        FilePath = plugin.PluginPath;
         VPetLLM.Utils.Logger.Log("System Info Plugin Initialized!");
     }
 
     public Task<string> Function(string arguments)
     {
         var osInfo = Environment.OSVersion.VersionString;
+        if (_vpetLLM == null) return Task.FromResult("VPetLLM instance is not initialized.");
         _vpetLLM.Log($"SystemInfoPlugin: Function called. Returning OSVersion: {osInfo}");
         return Task.FromResult(osInfo);
     }
@@ -38,6 +40,7 @@ public class SystemInfoPlugin : IActionPlugin
 
     public void Log(string message)
     {
+        if (_vpetLLM == null) return;
         _vpetLLM.Log(message);
     }
 }
