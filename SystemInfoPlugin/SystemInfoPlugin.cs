@@ -6,8 +6,9 @@ using VPetLLM.Core;
 public class SystemInfoPlugin : IActionPlugin
 {
     public string Name => "system_info";
-    public string Description => "获取当前操作系统的版本信息。";
-    public string Parameters => "{}"; // 这个插件不需要任何参数
+    public string Description => "获取当前操作系统的版本信息。";  // 显示在 插件 列表介绍，也用于告知ai 这是个什么工具
+    public string Parameters => ""; // 不用传参留空
+    public string Examples => "Example: `[:plugin(system_info())]`";   //  给ai一个示例，用于帮助ai调用
     public bool Enabled { get; set; } = true;
     public string FilePath { get; set; } = "";
 
@@ -28,10 +29,6 @@ public class SystemInfoPlugin : IActionPlugin
         return Task.FromResult(osInfo);
     }
 
-    public void Invoke()
-    {
-        // 这个方法现在可以被保留，或者在未来用于无参数的、手动的调用
-    }
 
     public void Unload()
     {

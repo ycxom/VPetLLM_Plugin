@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using VPetLLM;
 using VPetLLM.Core;
@@ -7,7 +8,8 @@ public class ReminderPlugin : IActionPlugin
 {
     public string Name => "reminder";
     public string Description => "设置一个定时提醒。";
-    public string Parameters => "{\"time_in_minutes\": \"提醒的分钟数\", \"message\": \"提醒的内容\"}";
+    public string Examples => "Example: `[:plugin(reminder(time(10), unit(minutes), event(\"study\")))]`";
+    public string Parameters => "time(int), unit(string, optional: seconds/minutes), event(string)";
     public bool Enabled { get; set; } = true;
     public string FilePath { get; set; } = "";
 
@@ -24,18 +26,36 @@ public class ReminderPlugin : IActionPlugin
     {
         try
         {
-            var args = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(arguments);
-            if (args == null)
+            var timeMatch = new Regex(@"time\((\d+)\)").Match(arguments);
+            var unitMatch = new Regex(@"unit\((\w+)\)").Match(arguments);
+            var eventMatch = new Regex(@"event\(""(.*)""\)").Match(arguments);
+
+            if (!timeMatch.Success || !eventMatch.Success)
             {
-                return Task.FromResult("创建提醒失败：无效的参数。");
+                return Task.FromResult("创建提醒失败：缺少 'time' 或 'event' 参数。");
             }
-            int minutes = args.time_in_minutes;
-            string message = args.message;
 
-            // 启动一个后台任务来处理延迟和提醒，不要 await 它
-            _ = ReminderTask(minutes, message);
+            var timeValue = int.Parse(timeMatch.Groups[1].Value);
+            var unit = unitMatch.Success ? unitMatch.Groups[1].Value.ToLower() : "seconds";
+            var message = eventMatch.Groups[1].Value;
 
-            return Task.FromResult($"好的，我会在 {minutes} 分钟后提醒你: {message}");
+            TimeSpan delay;
+            switch (unit)
+            {
+                case "minute":
+                case "minutes":
+                    delay = TimeSpan.FromMinutes(timeValue);
+                    break;
+                case "second":
+                case "seconds":
+                default:
+                    delay = TimeSpan.FromSeconds(timeValue);
+                    break;
+            }
+
+            _ = ReminderTask(delay, message);
+
+            return Task.FromResult($" 定时任务设置成功， {timeValue} {unit} 后触发提醒: {message}");
         }
         catch (Exception e)
         {
@@ -43,15 +63,16 @@ public class ReminderPlugin : IActionPlugin
         }
     }
 
-    private async Task ReminderTask(int minutes, string message)
+    private async Task ReminderTask(TimeSpan delay, string message)
     {
         if (_vpetLLM == null) return;
-        await Task.Delay(TimeSpan.FromMinutes(minutes));
+        await Task.Delay(delay);
 
         // 使用Dispatcher在UI线程上显示提醒
-        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        System.Windows.Application.Current.Dispatcher.Invoke(async () =>
         {
-            _vpetLLM.MW.Main.Say($"叮咚！提醒时间到啦：{message}");
+            var response = $"reminder_finished, Task: \"{message}\"";
+            await _vpetLLM.ChatCore.Chat(response, true);
         });
     }
 

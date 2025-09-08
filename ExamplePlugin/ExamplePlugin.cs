@@ -5,8 +5,9 @@ using VPetLLM.Core;
 public class ExamplePlugin : IActionPlugin
 {
     public string Name => "example_plugin";
-    public string Description => "一个简单的示例插件，当被调用时，它会返回一段固定的问候语。";
-    public string Parameters => "{}"; // 这个插件不需要任何参数
+    public string Description => "A simple example plugin that returns a fixed greeting when called.";
+    public string Parameters => ""; // This plugin does not require any parameters.
+    public string Examples => "Example: `[:plugin(example_plugin())]`";
     public bool Enabled { get; set; } = true;
     public string FilePath { get; set; } = "";
 
@@ -22,14 +23,9 @@ public class ExamplePlugin : IActionPlugin
     public Task<string> Function(string arguments)
     {
         if (_vpetLLM == null) return Task.FromResult("VPetLLM instance is not initialized.");
-        var result = "你好，我是示例插件！";
+        var result = "Hello, I am an example plugin!";
         _vpetLLM.Log($"ExamplePlugin: Function called. Returning: {result}");
         return Task.FromResult(result);
-    }
-
-    public void Invoke()
-    {
-        // 这个方法现在可以被保留，或者在未来用于无参数的、手动的调用
     }
 
     public void Unload()
