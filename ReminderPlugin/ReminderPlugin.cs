@@ -28,7 +28,7 @@ public class ReminderPlugin : IActionPlugin
         {
             var timeMatch = new Regex(@"time\((\d+)\)").Match(arguments);
             var unitMatch = new Regex(@"unit\((\w+)\)").Match(arguments);
-            var eventMatch = new Regex(@"event\(""(.*)""\)").Match(arguments);
+            var eventMatch = new Regex(@"event\(""(.*?)""\)").Match(arguments);
 
             if (!timeMatch.Success || !eventMatch.Success)
             {
@@ -55,7 +55,7 @@ public class ReminderPlugin : IActionPlugin
 
             _ = ReminderTask(delay, message);
 
-            return Task.FromResult($" 定时任务设置成功， {timeValue} {unit} 后触发提醒: {message}");
+            return Task.FromResult($"定时任务设置成功，{timeValue} {unit} 后提醒你告知用户 '{message}'");
         }
         catch (Exception e)
         {
