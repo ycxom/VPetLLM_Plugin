@@ -1,0 +1,35 @@
+{
+    "MoneyManagerPlugin": {
+        "Name": "money_manager",
+        "Description": {
+            "ja": "卓球の金を管理します。",
+            "zh-hans": "控制桌宠的金钱。",
+            "zh-hant": "控制桌寵的金錢。",
+            "en": "Control the pet's money."
+        },
+        "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MoneyManagerPlugin/plugin/MoneyManagerPlugin.dll",
+        "SHA256": "eb37344ed6607eb7e78db28ac2835ce70c9e5ae5f8a3c150ab0313bfd4188f94"
+    },
+    "ReminderPlugin": {
+        "Name": "reminder",
+        "Description": {
+            "ja": "タイマーリマインダーを設定します。",
+            "zh-hans": "设置一个定时提醒。",
+            "zh-hant": "設置一個定時提醒。",
+            "en": "Set a timed reminder."
+        },
+        "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ReminderPlugin/plugin/ReminderPlugin.dll",
+        "SHA256": "662691b694b5c610ddf96cf0150b88899edfb7110352f869ba94d76e58bd9bd3"
+    },
+    "SystemInfoPlugin": {
+        "Name": "system_info",
+        "Description": {
+            "ja": "現在のオペレーティングシステムのバージョン情報を取得します。",
+            "zh-hans": "获取当前操作系统的版本信息。",
+            "zh-hant": "獲取當前操作系統的版本信息。",
+            "en": "Get the current operating system's version information."
+        },
+        "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/SystemInfoPlugin/plugin/SystemInfoPlugin.dll",
+        "SHA256": "3e7d89403cc7aa86982cdb9417bf6d3faa20308f786f47e500d47591ca64a654"
+    }
+}
