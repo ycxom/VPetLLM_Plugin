@@ -3,13 +3,13 @@
     "Name": "money_manager",
     "Author": "ycxom",
     "Description": {
-      "ja": "卓球の金を管理します。",
-      "zh-hans": "控制桌宠的金钱。",
-      "zh-hant": "控制桌寵的金錢。",
-      "en": "Control the pet's money."
+      "ja": "休日にはロリコンにお年玉をあげましょう！",
+      "zh-hans": "节日里给萝莉斯包红包！",
+      "zh-hant": "節日裡給蘿莉斯包紅包！",
+      "en": "Give red envelopes to lolisi on holidays!"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MoneyManagerPlugin/plugin/MoneyManagerPlugin.dll",
-    "SHA256": "41abeacf9f527a9079385a4cd4a1ecc2abb9baccc3fe72e5a3b0006fb5bdf644"
+    "SHA256": "60e6ff2078d15ac69c3b9c72d323f5b0368fb61a3d095a39cd7a7ec00aa54d3c"
   },
   "ReminderPlugin": {
     "Name": "reminder",

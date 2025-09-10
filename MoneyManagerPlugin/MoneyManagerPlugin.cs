@@ -12,18 +12,18 @@ public class MoneyManagerPlugin : IActionPlugin
     {
         get
         {
-            if (_vpetLLM == null) return "控制桌宠的金钱。";
+            if (_vpetLLM == null) return "节日里给萝莉斯包红包！";
             switch (_vpetLLM.Settings.Language)
             {
                 case "ja":
-                    return "卓球の金を管理します。";
+                    return "休日にはロリコンにお年玉をあげましょう！";
                 case "zh-hans":
-                    return "控制桌宠的金钱。";
+                    return "节日里给萝莉斯包红包！";
                 case "zh-hant":
-                    return "控制桌寵的金錢。";
+                    return "節日裡給蘿莉斯包紅包！";
                 case "en":
                 default:
-                    return "Control the pet's money.";
+                    return "Give red envelopes to lolisi on holidays!";
             }
         }
     }
@@ -65,8 +65,37 @@ public class MoneyManagerPlugin : IActionPlugin
             switch (action)
             {
                 case "add":
-                    _vpetLLM.MW.Core.Save.Money += amount;
-                    resultMessage = $"成功增加 {amount:f2} 金钱，当前总额: {_vpetLLM.MW.Core.Save.Money:f2}。";
+                    var today = DateTime.Today;
+                    var isHoliday = IsHoliday(today);
+                    var isThursday = today.DayOfWeek == DayOfWeek.Thursday;
+
+                    if (isHoliday)
+                    {
+                        if (amount > 500)
+                        {
+                            return Task.FromResult("节假日红包也不能太大哦，最大500元！");
+                        }
+                        _vpetLLM.MW.Core.Save.Money += amount;
+                        resultMessage = $"今天是节假日，额外奖励！成功增加 {amount:f2} 金钱，当前总额: {_vpetLLM.MW.Core.Save.Money:f2}。";
+                    }
+                    else if (isThursday)
+                    {
+                        if (amount > 50)
+                        {
+                            return Task.FromResult("今天是疯狂星期四，但也不能超过50元！");
+                        }
+                        _vpetLLM.MW.Core.Save.Money += amount;
+                        resultMessage = $"疯狂星期四V我50！成功增加 {amount:f2} 金钱，当前总额: {_vpetLLM.MW.Core.Save.Money:f2}。";
+                    }
+                    else
+                    {
+                        if (amount > 10)
+                        {
+                            return Task.FromResult("平时没事不要找萝莉斯要太多钱，会被讨厌的！不能超过10元！");
+                        }
+                        _vpetLLM.MW.Core.Save.Money += amount;
+                        resultMessage = $"成功增加 {amount:f2} 金钱，当前总额: {_vpetLLM.MW.Core.Save.Money:f2}。";
+                    }
                     break;
                 case "sub":
                 case "subtract":
@@ -90,6 +119,49 @@ public class MoneyManagerPlugin : IActionPlugin
         {
             return Task.FromResult($"操作金钱失败，请检查参数: {e.Message}");
         }
+    }
+
+    private bool IsHoliday(DateTime date)
+    {
+        // 固定的公历假日
+        var fixedHolidays = new[]
+        {
+            (month: 1, day: 1),   // 元旦
+            (month: 5, day: 1),   // 劳动节
+            (month: 10, day: 1),  // 国庆节
+            (month: 10, day: 2),
+            (month: 10, day: 3),
+            (month: 10, day: 4),
+            (month: 10, day: 5),
+            (month: 10, day: 6),
+            (month: 10, day: 7),
+        };
+
+        if (Array.Exists(fixedHolidays, h => h.month == date.Month && h.day == date.Day))
+        {
+            return true;
+        }
+
+        // 农历假日 (这里简化处理，只判断除夕、春节、端午、中秋)
+        try
+        {
+            var chineseCalendar = new System.Globalization.ChineseLunisolarCalendar();
+            var chineseMonth = chineseCalendar.GetMonth(date);
+            var chineseDay = chineseCalendar.GetDayOfMonth(date);
+            var isLeapMonth = chineseCalendar.IsLeapMonth(chineseCalendar.GetYear(date), chineseMonth);
+
+            // 春节 (正月初一)
+            if (!isLeapMonth && chineseMonth == 1 && chineseDay == 1) return true;
+            // 端午 (五月初五)
+            if (!isLeapMonth && chineseMonth == 5 && chineseDay == 5) return true;
+            // 中秋 (八月十五)
+            if (!isLeapMonth && chineseMonth == 8 && chineseDay == 15) return true;
+        }
+        catch
+        {
+            // 如果日历转换失败，就当不是节假日
+        }
+        return false;
     }
 
     public void Unload()
