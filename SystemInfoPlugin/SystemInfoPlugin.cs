@@ -6,6 +6,7 @@ using VPetLLM.Core;
 public class SystemInfoPlugin : IActionPlugin
 {
     public string Name => "system_info";
+    public string Author => "ycxom";
     public string Description
     {
         get

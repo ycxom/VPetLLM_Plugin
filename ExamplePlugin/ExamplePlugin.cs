@@ -5,6 +5,7 @@ using VPetLLM.Core;
 public class ExamplePlugin : IActionPlugin
 {
     public string Name => "example_plugin";
+    public string Author => "ycxom";
     public string Description
     {
         get

@@ -1,6 +1,7 @@
 ﻿{
   "MoneyManagerPlugin": {
     "Name": "money_manager",
+    "Author": "ycxom",
     "Description": {
       "ja": "卓球の金を管理します。",
       "zh-hans": "控制桌宠的金钱。",
@@ -8,10 +9,11 @@
       "en": "Control the pet's money."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MoneyManagerPlugin/plugin/MoneyManagerPlugin.dll",
-    "SHA256": "785a47b6db3d7ff6988d2e003d4341f3a0ea416e10d41822fe6d801c27a282f3"
+    "SHA256": "6e2b1de3d984776cf31335b168e874d6d10a46f26cd57fd4111d64cd125ee9e7"
   },
   "ReminderPlugin": {
     "Name": "reminder",
+    "Author": "ycxom",
     "Description": {
       "ja": "タイマーリマインダーを設定します。",
       "zh-hans": "设置一个定时提醒。",
@@ -19,10 +21,11 @@
       "en": "Set a timed reminder."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ReminderPlugin/plugin/ReminderPlugin.dll",
-    "SHA256": "19faef299cebf1f406d97d16ac9e0f73cb5b3c3f293e9e58f2abfd2a6a25eed9"
+    "SHA256": "b9e980fb61af26495619d75f2db7ffd4129baf7a1675cca141b9443bfddc4f0e"
   },
   "SystemInfoPlugin": {
     "Name": "system_info",
+    "Author": "ycxom",
     "Description": {
       "ja": "現在のオペレーティングシステムのバージョン情報を取得します。",
       "zh-hans": "获取当前操作系统的版本信息。",
@@ -30,6 +33,6 @@
       "en": "Get the current operating system's version information."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/SystemInfoPlugin/plugin/SystemInfoPlugin.dll",
-    "SHA256": "a272b11b34e6772c5027d7513ec43c898f9bc2fe7ba47b2d10ed7b3a38c6f9b9"
+    "SHA256": "4c4bc6f229a30a8d365b773281a25a8f13457ea5d112e396cef6c2b42f83adaf"
   }
 }

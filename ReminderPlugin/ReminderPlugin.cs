@@ -7,6 +7,7 @@ using VPetLLM.Core;
 public class ReminderPlugin : IActionPlugin
 {
     public string Name => "reminder";
+    public string Author => "ycxom";
     public string Description
     {
         get

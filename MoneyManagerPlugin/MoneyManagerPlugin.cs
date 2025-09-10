@@ -7,6 +7,7 @@ using VPetLLM.Core;
 public class MoneyManagerPlugin : IActionPlugin
 {
     public string Name => "money_manager";
+    public string Author => "ycxom";
     public string Description
     {
         get
