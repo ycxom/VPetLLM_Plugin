@@ -9,7 +9,7 @@
       "en": "Control the pet's money."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MoneyManagerPlugin/plugin/MoneyManagerPlugin.dll",
-    "SHA256": "6e2b1de3d984776cf31335b168e874d6d10a46f26cd57fd4111d64cd125ee9e7"
+    "SHA256": "3b8c5ca68f3b7a28093d205fda3bf6508692c15f6370711d4544dc77d6adc47e"
   },
   "ReminderPlugin": {
     "Name": "reminder",
@@ -21,7 +21,7 @@
       "en": "Set a timed reminder."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ReminderPlugin/plugin/ReminderPlugin.dll",
-    "SHA256": "b9e980fb61af26495619d75f2db7ffd4129baf7a1675cca141b9443bfddc4f0e"
+    "SHA256": "f71a1e538e0e96619827a5c8b47ca75e79bb171e50af9e5427be27338f0e3840"
   },
   "SystemInfoPlugin": {
     "Name": "system_info",
@@ -33,6 +33,6 @@
       "en": "Get the current operating system's version information."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/SystemInfoPlugin/plugin/SystemInfoPlugin.dll",
-    "SHA256": "4c4bc6f229a30a8d365b773281a25a8f13457ea5d112e396cef6c2b42f83adaf"
+    "SHA256": "2c72048ffd1dd5aaa3ef114b9e81e86dee488316c5270f627fb4b15045c81c77"
   }
 }
