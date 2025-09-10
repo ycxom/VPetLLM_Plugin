@@ -9,7 +9,7 @@
       "en": "Control the pet's money."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MoneyManagerPlugin/plugin/MoneyManagerPlugin.dll",
-    "SHA256": "3b8c5ca68f3b7a28093d205fda3bf6508692c15f6370711d4544dc77d6adc47e"
+    "SHA256": "a2f33f0fead416b05ee99d33217e9b443c4b579590a0ac4d570245d6266b72e8"
   },
   "ReminderPlugin": {
     "Name": "reminder",
