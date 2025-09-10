@@ -27,4 +27,19 @@
     <Copy SourceFiles="@(PluginFiles)" DestinationFolder="plugin" />
   </Target>
 
+  <Target Name="UpdateSHA" AfterTargets="CopyPlugin">
+    <PropertyGroup>
+      <HelperProject>$(MSBuildProjectDirectory)\..\UpdateSHA_Helper\UpdateSHA_Helper.csproj</HelperProject>
+      <HelperExe>$(MSBuildProjectDirectory)\..\UpdateSHA_Helper\bin\$(Configuration)\net8.0\UpdateSHA_Helper.exe</HelperExe>
+      <PluginListPath>$(MSBuildProjectDirectory)\..\PluginList.json</PluginListPath>
+      <TargetDllPath>$(ProjectDir)plugin\$(TargetName).dll</TargetDllPath>
+      <BuildHelperCommand>dotnet build "$(HelperProject)" -c $(Configuration)</BuildHelperCommand>
+      <ExecHelperCommand>"$(HelperExe)" "$(ProjectName)" "$(TargetDllPath)" "$(PluginListPath)"</ExecHelperCommand>
+    </PropertyGroup>
+    <Message Text="Building SHA Helper..." Importance="high" />
+    <Exec Command="$(BuildHelperCommand)" />
+    <Message Text="Executing SHA Helper: $(ExecHelperCommand)" Importance="high" />
+    <Exec Command="$(ExecHelperCommand)" />
+  </Target>
+
 </Project>
