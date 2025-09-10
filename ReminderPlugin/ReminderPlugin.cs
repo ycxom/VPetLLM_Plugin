@@ -7,8 +7,27 @@ using VPetLLM.Core;
 public class ReminderPlugin : IActionPlugin
 {
     public string Name => "reminder";
-    public string Description => "设置一个定时提醒。";
+    public string Description
+    {
+        get
+        {
+            if (_vpetLLM == null) return "设置一个定时提醒。";
+            switch (_vpetLLM.Settings.Language)
+            {
+                case "ja":
+                    return "タイマーリマインダーを設定します。";
+                case "zh-hans":
+                    return "设置一个定时提醒。";
+                case "zh-hant":
+                    return "設置一個定時提醒。";
+                case "en":
+                default:
+                    return "Set a timed reminder.";
+            }
+        }
+    }
     public string Examples => "Example: `[:plugin(reminder(time(10), unit(minutes), event(\"study\")))]`";
+
     public string Parameters => "time(int), unit(string, optional: seconds/minutes), event(string)";
     public bool Enabled { get; set; } = true;
     public string FilePath { get; set; } = "";
@@ -55,7 +74,7 @@ public class ReminderPlugin : IActionPlugin
 
             _ = ReminderTask(delay, message);
 
-            return Task.FromResult($"定时任务设置成功，{timeValue} {unit} 后提醒你告知用户 '{message}'");
+            return Task.FromResult($"好的，我会在 {timeValue} {unit} 后提醒你 '{message}'");
         }
         catch (Exception e)
         {
@@ -68,12 +87,33 @@ public class ReminderPlugin : IActionPlugin
         if (_vpetLLM == null) return;
         await Task.Delay(delay);
 
-        // 使用Dispatcher在UI线程上显示提醒
-        System.Windows.Application.Current.Dispatcher.Invoke(async () =>
+        var aiName = _vpetLLM.Settings.AiName;
+        var notificationTitle = $"{aiName} 提醒你";
+        var notificationMessage = $"该 “{message}” 了";
+
+        // 使用Dispatcher在UI线程上执行UI操作
+        await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
         {
-            var response = $"reminder_finished, Task: \"{message}\"";
-            await _vpetLLM.ChatCore.Chat(response, true);
+            // 2. 先让VPet窗口置顶
+            var mainWindow = System.Windows.Application.Current.MainWindow;
+            if (mainWindow != null)
+            {
+                mainWindow.Activate();
+                mainWindow.Topmost = true;
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(3000); // 置顶3秒
+                    await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => mainWindow.Topmost = false);
+                });
+            }
+            
+            // 1. 再弹出通知 (MessageBox会阻塞UI线程，所以置顶操作要放在它前面)
+            System.Windows.MessageBox.Show(notificationMessage, notificationTitle, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
         });
+
+        // 3. 让桌宠说话
+        var response = $"reminder_finished, Task: \"{message}\"";
+        await _vpetLLM.ChatCore.Chat(response, true);
     }
 
     public void Invoke()

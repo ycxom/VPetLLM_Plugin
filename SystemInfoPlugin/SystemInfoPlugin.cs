@@ -6,7 +6,25 @@ using VPetLLM.Core;
 public class SystemInfoPlugin : IActionPlugin
 {
     public string Name => "system_info";
-    public string Description => "获取当前操作系统的版本信息。";  // 显示在 插件 列表介绍，也用于告知ai 这是个什么工具
+    public string Description
+    {
+        get
+        {
+            if (_vpetLLM == null) return "获取当前操作系统的版本信息。";  // 显示在 插件 列表介绍，也用于告知ai 这是个什么工具
+            switch (_vpetLLM.Settings.Language)
+            {
+                case "ja":
+                    return "現在のオペレーティングシステムのバージョン情報を取得します。";
+                case "zh-hans":
+                    return "获取当前操作系统的版本信息。";
+                case "zh-hant":
+                    return "獲取當前操作系統的版本信息。";
+                case "en":
+                default:
+                    return "Get the current operating system's version information.";
+            }
+        }
+    }
     public string Parameters => ""; // 不用传参留空
     public string Examples => "Example: `[:plugin(system_info())]`";   //  给ai一个示例，用于帮助ai调用
     public bool Enabled { get; set; } = true;
