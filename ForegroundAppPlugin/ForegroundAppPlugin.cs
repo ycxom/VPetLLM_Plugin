@@ -50,7 +50,7 @@ namespace ForegroundAppPlugin
         public class Setting
         {
             [JsonProperty("jitter_delay")]
-            public int JitterDelay { get; set; } = 3000;
+            public int JitterDelay { get; set; } = 30000;
         }
 
         [DllImport("user32.dll")]
@@ -82,9 +82,14 @@ namespace ForegroundAppPlugin
 
                     if (currentAppName != lastAppName)
                     {
+                        if (currentAppName == "VPet-Simulator.Windows")
+                        {
+                            continue;
+                        }
                         lastAppName = currentAppName;
                         _currentForegroundAppName = currentAppName;
                         _vpetLLM?.Log($"New foreground app detected: {currentAppName}");
+                        _vpetLLM?.SendChat($"The user is now using the application: {currentAppName}, Time: {DateTime.Now}");
                     }
                 }
                 catch (Exception ex)

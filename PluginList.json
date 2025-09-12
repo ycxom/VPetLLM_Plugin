@@ -45,6 +45,6 @@
       "en": "Monitors the foreground application and provides the name to the AI."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ForegroundAppPlugin/plugin/ForegroundAppPlugin.dll",
-    "SHA256": "b29a4b34bb0f8b3efe81629f9ad18687a8c68a04b5e3e4261b3e801c9badeaa3"
+    "SHA256": "937ece0e82d7d58613a9b5a1e6ef4607fca36a319bc026233b98e364d8b34738"
   }
 }
