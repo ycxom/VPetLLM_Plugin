@@ -9,7 +9,7 @@ using System.Windows;
 using Newtonsoft.Json;
 using VPetLLM.Core;
 
-public class ForegroundAppPlugin : IDynamicInfoPlugin
+public class ForegroundAppPlugin : IDynamicInfoPlugin, IActionPlugin
 {
     public string Name => "ForegroundAppWatcher";
     public string Author => "ycxom";
@@ -117,6 +117,24 @@ public class ForegroundAppPlugin : IDynamicInfoPlugin
         _vpetLLM.Log(message);
     }
 
+    public Task<string> Function(string arguments)
+    {
+        var actionMatch = new Regex(@"action\((\w+)\)").Match(arguments);
+        if (actionMatch.Success)
+        {
+            var action = actionMatch.Groups[1].Value.ToLower();
+            if (action == "setting")
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var settingWindow = new VPetLLM.winForegroundAppSetting(this);
+                    settingWindow.Show();
+                });
+                return Task.FromResult("Setting window opened.");
+            }
+        }
+        return Task.FromResult("Invalid action.");
+    }
 
     public void SaveSetting()
     {
