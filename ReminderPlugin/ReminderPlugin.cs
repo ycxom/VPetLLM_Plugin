@@ -38,7 +38,6 @@ public class ReminderPlugin : IActionPlugin
     public void Initialize(VPetLLM.VPetLLM plugin)
     {
         _vpetLLM = plugin;
-        FilePath = plugin.PluginPath;
         VPetLLM.Utils.Logger.Log("Reminder Plugin Initialized!");
     }
 

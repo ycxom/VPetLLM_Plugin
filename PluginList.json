@@ -21,7 +21,7 @@
       "en": "Set a timed reminder."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ReminderPlugin/plugin/ReminderPlugin.dll",
-    "SHA256": "144340af276af3d11d5d8b7d6911a421273cbf64792c33ad0376dd1952f8b645"
+    "SHA256": "2839953c23d16ba7fe1c6e482feaa3144e1bfad33364108968d64e06ac766964"
   },
   "SystemInfoPlugin": {
     "Name": "system_info",
@@ -33,6 +33,18 @@
       "en": "Get the current operating system's version information."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/SystemInfoPlugin/plugin/SystemInfoPlugin.dll",
-    "SHA256": "68c7056cf93aa4f50df20b1f27cacdd9830a0f40594ada5f3fb54b34b9fd52f3"
+    "SHA256": "ad59e8dcc5a048a2b8264cb02d96801f4e5ae7ced257a54b02fa38593e38f2bf"
+  },
+  "ForegroundAppPlugin": {
+    "Name": "ForegroundAppWatcher",
+    "Author": "ycxom",
+    "Description": {
+      "ja": "フォアグラウンドアプリケーションを監視し、その名前をAIに提供します。",
+      "zh-hans": "监视前台应用程序并将其名称提供给 AI。",
+      "zh-hant": "監視前臺應用程序並將其名稱提供給 AI。",
+      "en": "Monitors the foreground application and provides the name to the AI."
+    },
+    "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ForegroundAppPlugin/plugin/ForegroundAppPlugin.dll",
+    "SHA256": "cb91d7329ffff192c9db74df16a5aecabafc29f11859dd2eab371e837cf70a86"
   }
 }
