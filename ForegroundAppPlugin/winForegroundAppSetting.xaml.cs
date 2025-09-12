@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace VPetLLM
+namespace ForegroundAppPlugin
 {
     public partial class winForegroundAppSetting : Window
     {
