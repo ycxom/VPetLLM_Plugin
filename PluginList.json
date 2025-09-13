@@ -9,7 +9,7 @@
       "en": "Give red envelopes to lolisi on holidays!"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MoneyManagerPlugin/plugin/MoneyManagerPlugin.dll",
-    "SHA256": "60e6ff2078d15ac69c3b9c72d323f5b0368fb61a3d095a39cd7a7ec00aa54d3c"
+    "SHA256": "62f6002b831e7b2cecddf631e51ba56768ccfb7d1a29c97f33f8649a35ca9bd6"
   },
   "ReminderPlugin": {
     "Name": "reminder",
@@ -21,7 +21,7 @@
       "en": "Set a timed reminder."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ReminderPlugin/plugin/ReminderPlugin.dll",
-    "SHA256": "2839953c23d16ba7fe1c6e482feaa3144e1bfad33364108968d64e06ac766964"
+    "SHA256": "b58d4a05e66b64727db204ed632d26390cfb886482b7c0d9e4217a0f66bec5e1"
   },
   "SystemInfoPlugin": {
     "Name": "system_info",
@@ -33,7 +33,7 @@
       "en": "Get the current operating system's version information."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/SystemInfoPlugin/plugin/SystemInfoPlugin.dll",
-    "SHA256": "ad59e8dcc5a048a2b8264cb02d96801f4e5ae7ced257a54b02fa38593e38f2bf"
+    "SHA256": "272b4a0b7d3988ec7e80bcf1975553972fd920f31f0dc9cd9032c6ec42a83d72"
   },
   "ForegroundAppPlugin": {
     "Name": "ForegroundAppWatcher",
@@ -45,6 +45,6 @@
       "en": "Monitors the foreground application and provides the name to the AI."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ForegroundAppPlugin/plugin/ForegroundAppPlugin.dll",
-    "SHA256": "937ece0e82d7d58613a9b5a1e6ef4607fca36a319bc026233b98e364d8b34738"
+    "SHA256": "7efa358a307b5a5e45f89050f992e776e3f04a7ea73fe2c6c9cd88c62212b46e"
   }
 }
