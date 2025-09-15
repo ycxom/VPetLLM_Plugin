@@ -21,7 +21,7 @@
       "en": "Set a timed reminder."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ReminderPlugin/plugin/ReminderPlugin.dll",
-    "SHA256": "b58d4a05e66b64727db204ed632d26390cfb886482b7c0d9e4217a0f66bec5e1"
+    "SHA256": "e693c140770d95d300882f863ef6876c508c19db6d2971ef0aae18238eb14d1c"
   },
   "SystemInfoPlugin": {
     "Name": "system_info",
@@ -33,7 +33,7 @@
       "en": "Get the current operating system's version information."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/SystemInfoPlugin/plugin/SystemInfoPlugin.dll",
-    "SHA256": "272b4a0b7d3988ec7e80bcf1975553972fd920f31f0dc9cd9032c6ec42a83d72"
+    "SHA256": "7e0b54bf270a6169c5ea6b45ba2f7b8dfd4c20a2d72407be170e87bf32f2b65e"
   },
   "ForegroundAppPlugin": {
     "Name": "ForegroundAppWatcher",
