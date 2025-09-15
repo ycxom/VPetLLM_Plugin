@@ -9,7 +9,7 @@
       "en": "Give red envelopes to lolisi on holidays!"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MoneyManagerPlugin/plugin/MoneyManagerPlugin.dll",
-    "SHA256": "62f6002b831e7b2cecddf631e51ba56768ccfb7d1a29c97f33f8649a35ca9bd6"
+    "SHA256": "7591ee073a117d2b8bdf2bd81123b971fdd9f57b97d1e95c8af95362bcee7a76"
   },
   "ReminderPlugin": {
     "Name": "reminder",
