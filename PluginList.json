@@ -21,7 +21,7 @@
       "en": "Set a timed reminder."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ReminderPlugin/plugin/ReminderPlugin.dll",
-    "SHA256": "e693c140770d95d300882f863ef6876c508c19db6d2971ef0aae18238eb14d1c"
+    "SHA256": "afee5d3be20bc43861724479cdde9b3cdd6b78e12956780c45bf7241ef498118"
   },
   "SystemInfoPlugin": {
     "Name": "system_info",
