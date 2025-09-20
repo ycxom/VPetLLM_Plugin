@@ -13,7 +13,7 @@ namespace ForegroundAppPlugin
 {
     public class ForegroundAppPlugin : IVPetLLMPlugin, IDynamicInfoPlugin, IActionPlugin, IPluginWithData
     {
-        public string Name => "ForegroundAppWatcher";
+        public string Name => "ForegroundAppPlugin";
         public string Author => "ycxom";
         public string Description
         {
