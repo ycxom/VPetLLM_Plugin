@@ -19,18 +19,18 @@ namespace ForegroundAppPlugin
         {
             get
             {
-                if (_vpetLLM == null) return "监视前台应用程序并将其名称提供给 AI。";
+                if (_vpetLLM == null) return "监视前台应用程序并将其详细信息（包括窗口标题）提供给 AI。";
                 switch (_vpetLLM.Settings.Language)
                 {
                     case "ja":
-                        return "フォアグラウンドアプリケーションを監視し、その名前をAIに提供します。";
+                        return "フォアグラウンドアプリケーションを監視し、その詳細情報（ウィンドウタイトルを含む）をAIに提供します。";
                     case "zh-hans":
-                        return "监视前台应用程序并将其名称提供给 AI。";
+                        return "监视前台应用程序并将其详细信息（包括窗口标题）提供给 AI。";
                     case "zh-hant":
-                        return "監視前臺應用程序並將其名稱提供給 AI。";
+                        return "監視前臺應用程序並將其詳細信息（包括窗口標題）提供給 AI。";
                     case "en":
                     default:
-                        return "Monitors the foreground application and provides the name to the AI.";
+                        return "Monitors the foreground application and provides detailed information (including window title) to the AI.";
                 }
             }
         }
@@ -59,6 +59,29 @@ namespace ForegroundAppPlugin
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern int GetWindowTextLength(IntPtr hWnd);
+
+        private string GetWindowTitle(IntPtr hWnd)
+        {
+            try
+            {
+                int length = GetWindowTextLength(hWnd);
+                if (length == 0) return string.Empty;
+
+                var sb = new System.Text.StringBuilder(length + 1);
+                GetWindowText(hWnd, sb, sb.Capacity);
+                return sb.ToString();
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
         public void Initialize(VPetLLM.VPetLLM plugin)
         {
             _vpetLLM = plugin;
@@ -70,26 +93,51 @@ namespace ForegroundAppPlugin
 
         private async Task MonitorForegroundApp(CancellationToken token)
         {
-            string lastAppName = string.Empty;
+            string lastAppInfo = string.Empty;
             while (!token.IsCancellationRequested)
             {
                 try
                 {
                     IntPtr hWnd = GetForegroundWindow();
+                    if (hWnd == IntPtr.Zero) continue;
+
                     GetWindowThreadProcessId(hWnd, out uint processId);
                     Process proc = Process.GetProcessById((int)processId);
-                    string currentAppName = proc.ProcessName;
+                    string processName = proc.ProcessName;
+                    string windowTitle = GetWindowTitle(hWnd);
 
-                    if (currentAppName != lastAppName)
+                    // 构建详细的应用信息
+                    string currentAppInfo;
+                    if (!string.IsNullOrWhiteSpace(windowTitle))
                     {
-                        if (currentAppName == "VPet-Simulator.Windows")
+                        currentAppInfo = $"{processName}: {windowTitle}";
+                    }
+                    else
+                    {
+                        currentAppInfo = processName;
+                    }
+
+                    if (currentAppInfo != lastAppInfo)
+                    {
+                        if (processName == "VPet-Simulator.Windows")
                         {
                             continue;
                         }
-                        lastAppName = currentAppName;
-                        _currentForegroundAppName = currentAppName;
-                        _vpetLLM?.Log($"New foreground app detected: {currentAppName}");
-                        _vpetLLM?.SendChat($"The user is now using the application: {currentAppName}, Time: {DateTime.Now}");
+                        lastAppInfo = currentAppInfo;
+                        _currentForegroundAppName = currentAppInfo;
+                        _vpetLLM?.Log($"New foreground app detected: {currentAppInfo}");
+                        
+                        // 发送更详细的信息给AI
+                        string chatMessage;
+                        if (!string.IsNullOrWhiteSpace(windowTitle))
+                        {
+                            chatMessage = $"The user is now using the application: {processName} with window title: \"{windowTitle}\", Time: {DateTime.Now}";
+                        }
+                        else
+                        {
+                            chatMessage = $"The user is now using the application: {processName}, Time: {DateTime.Now}";
+                        }
+                        _vpetLLM?.SendChat(chatMessage);
                     }
                 }
                 catch (Exception ex)
@@ -105,7 +153,16 @@ namespace ForegroundAppPlugin
         {
             if (!string.IsNullOrEmpty(_currentForegroundAppName) && _currentForegroundAppName != "Unknown")
             {
-                return $"The user is currently using the application: {_currentForegroundAppName}";
+                // 如果包含窗口标题信息，提供更详细的描述
+                if (_currentForegroundAppName.Contains(": "))
+                {
+                    var parts = _currentForegroundAppName.Split(new[] { ": " }, 2, StringSplitOptions.None);
+                    return $"The user is currently using the application: {parts[0]} with window title: \"{parts[1]}\"";
+                }
+                else
+                {
+                    return $"The user is currently using the application: {_currentForegroundAppName}";
+                }
             }
             return string.Empty;
         }
