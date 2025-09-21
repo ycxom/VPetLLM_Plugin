@@ -35,8 +35,8 @@ namespace AppLauncherPlugin
                 }
             }
         }
-        public string Parameters => "app_name|setting";
-        public string Examples => "Examples: `[:plugin(AppLauncher(notepad))]`, `[:plugin(AppLauncher(setting))]`";
+        public string Parameters => "app_name|action(setting)";
+        public string Examples => "Examples: `[:plugin(AppLauncher(notepad))]`, `[:plugin(AppLauncher(action(setting)))]`";
         public bool Enabled { get; set; } = true;
         public string FilePath { get; set; } = "";
         public string PluginDataDir { get; set; } = "";
@@ -164,7 +164,32 @@ namespace AppLauncherPlugin
         {
             try
             {
-                // 检查是否是设置命令
+                // 检查是否是action(setting)格式的设置命令
+                var actionMatch = new Regex(@"action\((\w+)\)").Match(arguments);
+                if (actionMatch.Success)
+                {
+                    var action = actionMatch.Groups[1].Value.ToLower();
+                    if (action == "setting")
+                    {
+                        try
+                        {
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                var settingWindow = new winAppLauncherSetting(this);
+                                settingWindow.Show();
+                            });
+                            return Task.FromResult("设置窗口已打开。");
+                        }
+                        catch (Exception ex)
+                        {
+                            _vpetLLM?.Log($"AppLauncher: Error opening settings: {ex.Message}");
+                            return Task.FromResult($"打开设置窗口失败: {ex.Message}");
+                        }
+                    }
+                    return Task.FromResult("无效的操作。");
+                }
+
+                // 检查是否是直接的setting命令（向后兼容）
                 if (arguments.Trim().ToLower() == "setting")
                 {
                     try

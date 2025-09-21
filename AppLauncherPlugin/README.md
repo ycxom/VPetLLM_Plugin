@@ -27,14 +27,16 @@ AppLauncherPlugin 是一个强大的应用启动器插件，允许AI助手启动
 ### 基本语法
 ```
 [:plugin(AppLauncher(应用名称))]
+[:plugin(AppLauncher(action(setting)))]
 ```
 
 ### 使用示例
 ```
-[:plugin(AppLauncher(notepad))]        # 启动记事本
-[:plugin(AppLauncher(calculator))]     # 启动计算器
-[:plugin(AppLauncher(chrome))]         # 启动Chrome浏览器（如果已配置）
-[:plugin(AppLauncher(setting))]        # 打开设置界面
+[:plugin(AppLauncher(notepad))]           # 启动记事本
+[:plugin(AppLauncher(calculator))]        # 启动计算器
+[:plugin(AppLauncher(chrome))]            # 启动Chrome浏览器（如果已配置）
+[:plugin(AppLauncher(action(setting)))]   # 打开设置界面
+[:plugin(AppLauncher(setting))]           # 打开设置界面（向后兼容）
 ```
 
 ## 内置系统应用
@@ -63,6 +65,10 @@ AppLauncherPlugin 是一个强大的应用启动器插件，允许AI助手启动
 ## 配置管理
 
 ### 打开设置界面
+```
+[:plugin(AppLauncher(action(setting)))]
+```
+或者使用向后兼容的方式：
 ```
 [:plugin(AppLauncher(setting))]
 ```
