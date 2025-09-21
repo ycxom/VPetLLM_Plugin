@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using VPetLLM.Core;
@@ -166,12 +167,20 @@ namespace AppLauncherPlugin
                 // 检查是否是设置命令
                 if (arguments.Trim().ToLower() == "setting")
                 {
-                    Application.Current.Dispatcher.Invoke(() =>
+                    try
                     {
-                        var settingWindow = new winAppLauncherSetting(this);
-                        settingWindow.Show();
-                    });
-                    return Task.FromResult("设置窗口已打开。");
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            var settingWindow = new winAppLauncherSetting(this);
+                            settingWindow.Show();
+                        });
+                        return Task.FromResult("设置窗口已打开。");
+                    }
+                    catch (Exception ex)
+                    {
+                        _vpetLLM?.Log($"AppLauncher: Error opening settings: {ex.Message}");
+                        return Task.FromResult($"打开设置窗口失败: {ex.Message}");
+                    }
                 }
 
                 // 解析应用名称
@@ -420,6 +429,8 @@ namespace AppLauncherPlugin
         {
             VPetLLM.Utils.Logger.Log("App Launcher Plugin Unloaded!");
         }
+
+
 
         public void Log(string message)
         {

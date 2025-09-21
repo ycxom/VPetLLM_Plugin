@@ -15,6 +15,8 @@
     <PackageReference Include="VPet-Simulator.Windows.Interface" Version="1.1.0.50" />
   </ItemGroup>
 
+
+
   <ItemGroup>
     <Reference Include="VPetLLM">
       <HintPath>D:\CodeDesk\VPetLLM\VPetLLM\3000_VPetLLM\plugin\VPetLLM.dll</HintPath>
@@ -24,6 +26,7 @@
 
   <ItemGroup>
     <Compile Include="AppLauncherPlugin.cs" />
+    <Compile Include="TestWindow.cs" />
     <Compile Include="winAppLauncherSetting.xaml.cs">
       <DependentUpon>winAppLauncherSetting.xaml</DependentUpon>
     </Compile>

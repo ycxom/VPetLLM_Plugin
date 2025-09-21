@@ -57,6 +57,6 @@
       "en": "Allows AI to launch applications with support for custom app paths and automatic system app recognition."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/AppLauncherPlugin/plugin/AppLauncherPlugin.dll",
-    "SHA256": "2500a2aee2c061bd9fd12618fd8ff7ee32e75e81e715cde873f5cfe1f701d752"
+    "SHA256": "dbaf7c4ffbba1ea30d256b0968f0125b44b25a91803c40019414d7f63ba4e11a"
   }
 }
