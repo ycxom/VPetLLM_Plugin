@@ -15,8 +15,12 @@
             <StackPanel Margin="10">
                 <CheckBox Name="chkEnableStartMenu" Content="启用开始菜单应用扫描" Margin="0,5"/>
                 <CheckBox Name="chkEnableSystemApps" Content="启用系统应用" Margin="0,5"/>
+                <CheckBox Name="chkEnableSteamGames" Content="启用Steam游戏支持" Margin="0,5"/>
                 <CheckBox Name="chkLogLaunches" Content="记录应用启动日志" Margin="0,5"/>
-                <Button Name="btnRefreshApps" Content="刷新应用列表" Width="120" HorizontalAlignment="Left" Margin="0,10,0,0" Click="btnRefreshApps_Click"/>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <Button Name="btnRefreshApps" Content="刷新应用列表" Width="120" Margin="0,0,10,0" Click="btnRefreshApps_Click"/>
+                    <Button Name="btnViewSteamGames" Content="查看Steam游戏" Width="120" Click="btnViewSteamGames_Click"/>
+                </StackPanel>
             </StackPanel>
         </GroupBox>
         

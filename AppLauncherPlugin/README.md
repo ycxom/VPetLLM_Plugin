@@ -9,16 +9,20 @@ AppLauncherPlugin 是一个强大的应用启动器插件，允许AI助手启动
 ### 1. 多种应用支持
 - **自定义应用**: 用户可以添加自己的应用程序，指定名称、路径和启动参数
 - **系统应用**: 自动识别常见的Windows系统应用程序
+- **Steam游戏**: 自动扫描Steam游戏库，支持通过Steam协议启动游戏
 - **开始菜单应用**: 自动扫描Windows开始菜单中的应用程序
 
 ### 2. 智能识别
 - 自动扫描 `C:\Users\ycxom\AppData\Roaming\Microsoft\Windows\Start Menu\Programs` 目录
 - 支持公共开始菜单应用识别
 - 内置常见系统应用程序列表
+- 自动检测Steam安装路径并扫描游戏库
+- 支持常见Steam游戏的快速启动（CS2、Dota2、TF2等）
 
 ### 3. 灵活配置
 - 可开启/关闭开始菜单扫描功能
 - 可开启/关闭系统应用功能
+- 可开启/关闭Steam游戏支持
 - 支持启动日志记录
 - 完整的设置界面
 
@@ -32,9 +36,19 @@ AppLauncherPlugin 是一个强大的应用启动器插件，允许AI助手启动
 
 ### 使用示例
 ```
+# 启动系统应用
 [:plugin(AppLauncher(notepad))]           # 启动记事本
 [:plugin(AppLauncher(calculator))]        # 启动计算器
+
+# 启动自定义应用
 [:plugin(AppLauncher(chrome))]            # 启动Chrome浏览器（如果已配置）
+
+# 启动Steam游戏
+[:plugin(AppLauncher(cs2))]               # 启动Counter-Strike 2
+[:plugin(AppLauncher(dota2))]             # 启动Dota 2
+[:plugin(AppLauncher(steam))]             # 打开Steam客户端
+
+# 打开设置界面
 [:plugin(AppLauncher(action(setting)))]   # 打开设置界面
 [:plugin(AppLauncher(setting))]           # 打开设置界面（向后兼容）
 ```
@@ -61,6 +75,36 @@ AppLauncherPlugin 是一个强大的应用启动器插件，允许AI助手启动
 | osk | 屏幕键盘 | osk.exe |
 | snip | 截图工具 | ms-screenclip: |
 | settings | Windows设置 | ms-settings: |
+
+## Steam游戏支持
+
+插件支持自动检测和启动Steam游戏：
+
+### 自动检测功能
+- 自动查找Steam安装路径
+- 扫描Steam游戏库中已安装的游戏
+- 从ACF文件中提取游戏ID信息
+
+### 内置常见游戏
+| 游戏名称 | 别名 | Steam ID |
+|---------|------|----------|
+| Counter-Strike 2 | cs2 | 730 |
+| Dota 2 | dota2 | 570 |
+| Team Fortress 2 | tf2 | 440 |
+| Left 4 Dead 2 | l4d2 | 550 |
+| Portal 2 | - | 620 |
+| Half-Life 2 | - | 220 |
+| Garry's Mod | gmod | 4000 |
+| Rust | - | 252490 |
+| Grand Theft Auto V | gtav, gta5 | 271590 |
+| Cyberpunk 2077 | - | 1091500 |
+| The Witcher 3 | witcher3 | 292030 |
+| Steam客户端 | steam | - |
+
+### Steam游戏启动方式
+1. **Steam协议启动**: 使用 `steam://rungameid/游戏ID` 协议
+2. **直接启动**: 如果找到游戏安装路径，直接启动游戏可执行文件
+3. **Steam客户端**: 使用 `steam://open/main` 打开Steam主界面
 
 ## 配置管理
 

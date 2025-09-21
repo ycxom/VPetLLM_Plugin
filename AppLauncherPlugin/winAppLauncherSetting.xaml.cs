@@ -29,6 +29,7 @@ namespace AppLauncherPlugin
             
             chkEnableStartMenu.IsChecked = setting.EnableStartMenuScan;
             chkEnableSystemApps.IsChecked = setting.EnableSystemApps;
+            chkEnableSteamGames.IsChecked = setting.EnableSteamGames;
             chkLogLaunches.IsChecked = setting.LogLaunches;
             
             _customApps.Clear();
@@ -177,12 +178,31 @@ namespace AppLauncherPlugin
             appsWindow.ShowDialog();
         }
 
+        private void btnViewSteamGames_Click(object sender, RoutedEventArgs e)
+        {
+            var steamGames = _plugin.GetAvailableApps()
+                .Where(app => app.StartsWith("[Steam]"))
+                .ToList();
+            
+            if (steamGames.Count == 0)
+            {
+                MessageBox.Show("未找到Steam游戏。请确保已安装Steam并启用Steam游戏支持。", 
+                    "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var steamWindow = new winAvailableApps(steamGames);
+            steamWindow.Title = "可用Steam游戏";
+            steamWindow.ShowDialog();
+        }
+
         private void btnSave_Click(object sender, RoutedEventArgs e)
         {
             var setting = _plugin.GetSetting();
             
             setting.EnableStartMenuScan = chkEnableStartMenu.IsChecked ?? true;
             setting.EnableSystemApps = chkEnableSystemApps.IsChecked ?? true;
+            setting.EnableSteamGames = chkEnableSteamGames.IsChecked ?? true;
             setting.LogLaunches = chkLogLaunches.IsChecked ?? true;
             
             setting.CustomApps.Clear();

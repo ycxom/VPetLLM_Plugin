@@ -46,20 +46,39 @@ namespace AppLauncherPlugin
         private const string SettingFileName = "AppLauncherPlugin.json";
         private Dictionary<string, string> _systemApps = new Dictionary<string, string>();
         private Dictionary<string, string> _startMenuApps = new Dictionary<string, string>();
+        private Dictionary<string, SteamGame> _steamGames = new Dictionary<string, SteamGame>();
 
         public class CustomApp
         {
             public string Name { get; set; } = "";
             public string Path { get; set; } = "";
             public string Arguments { get; set; } = "";
+            public AppType Type { get; set; } = AppType.Application;
+        }
+
+        public enum AppType
+        {
+            Application,
+            SteamGame,
+            UriProtocol
+        }
+
+        public class SteamGame
+        {
+            public string Name { get; set; } = "";
+            public string GameId { get; set; } = "";
+            public string InstallPath { get; set; } = "";
         }
 
         public class Setting
         {
             public List<CustomApp> CustomApps { get; set; } = new List<CustomApp>();
+            public List<SteamGame> SteamGames { get; set; } = new List<SteamGame>();
             public bool EnableStartMenuScan { get; set; } = true;
             public bool EnableSystemApps { get; set; } = true;
+            public bool EnableSteamGames { get; set; } = true;
             public bool LogLaunches { get; set; } = true;
+            public string SteamPath { get; set; } = "";
         }
 
         public void Initialize(VPetLLM.VPetLLM plugin)
@@ -70,6 +89,10 @@ namespace AppLauncherPlugin
             if (_setting.EnableStartMenuScan)
             {
                 ScanStartMenuApps();
+            }
+            if (_setting.EnableSteamGames)
+            {
+                ScanSteamGames();
             }
             VPetLLM.Utils.Logger.Log("App Launcher Plugin Initialized!");
         }
@@ -243,13 +266,19 @@ namespace AppLauncherPlugin
                     return LaunchSystemApp(appName, _systemApps[appName]);
                 }
 
-                // 3. 检查开始菜单应用
+                // 3. 检查Steam游戏
+                if (_setting.EnableSteamGames && _steamGames.ContainsKey(appName))
+                {
+                    return LaunchSteamGame(appName, _steamGames[appName]);
+                }
+
+                // 4. 检查开始菜单应用
                 if (_setting.EnableStartMenuScan && _startMenuApps.ContainsKey(appName))
                 {
                     return LaunchStartMenuApp(appName, _startMenuApps[appName]);
                 }
 
-                // 4. 尝试直接启动（可能是完整路径或系统PATH中的程序）
+                // 5. 尝试直接启动（可能是完整路径或系统PATH中的程序）
                 return LaunchDirectly(appName);
             }
             catch (Exception ex)
@@ -426,6 +455,10 @@ namespace AppLauncherPlugin
             {
                 ScanStartMenuApps();
             }
+            if (_setting.EnableSteamGames)
+            {
+                ScanSteamGames();
+            }
         }
 
         public List<string> GetAvailableApps()
@@ -441,6 +474,12 @@ namespace AppLauncherPlugin
                 apps.AddRange(_systemApps.Keys.Select(key => $"[系统] {key}"));
             }
             
+            // 添加Steam游戏
+            if (_setting.EnableSteamGames)
+            {
+                apps.AddRange(_steamGames.Keys.Select(key => $"[Steam] {key}"));
+            }
+
             // 添加开始菜单应用
             if (_setting.EnableStartMenuScan)
             {
@@ -456,6 +495,241 @@ namespace AppLauncherPlugin
         }
 
 
+
+        private void ScanSteamGames()
+        {
+            _steamGames.Clear();
+            
+            try
+            {
+                // 尝试找到Steam安装路径
+                string steamPath = FindSteamPath();
+                if (string.IsNullOrEmpty(steamPath))
+                {
+                    _vpetLLM?.Log("AppLauncher: Steam not found");
+                    return;
+                }
+
+                _setting.SteamPath = steamPath;
+
+                // 扫描Steam游戏库
+                string steamAppsPath = Path.Combine(steamPath, "steamapps");
+                if (Directory.Exists(steamAppsPath))
+                {
+                    // 扫描common文件夹中的游戏
+                    string commonPath = Path.Combine(steamAppsPath, "common");
+                    if (Directory.Exists(commonPath))
+                    {
+                        foreach (string gameDir in Directory.GetDirectories(commonPath))
+                        {
+                            string gameName = Path.GetFileName(gameDir).ToLower();
+                            if (!string.IsNullOrEmpty(gameName))
+                            {
+                                // 尝试从ACF文件获取游戏ID
+                                string gameId = GetGameIdFromAcf(steamAppsPath, gameName);
+                                
+                                var steamGame = new SteamGame
+                                {
+                                    Name = gameName,
+                                    GameId = gameId,
+                                    InstallPath = gameDir
+                                };
+                                
+                                _steamGames[gameName] = steamGame;
+                            }
+                        }
+                    }
+                }
+
+                // 添加一些常见的Steam游戏（如果用户有的话）
+                AddCommonSteamGames();
+
+                _vpetLLM?.Log($"AppLauncher: Found {_steamGames.Count} Steam games");
+            }
+            catch (Exception ex)
+            {
+                _vpetLLM?.Log($"AppLauncher: Error scanning Steam games: {ex.Message}");
+            }
+        }
+
+        private string FindSteamPath()
+        {
+            try
+            {
+                // 常见的Steam安装路径
+                string[] commonPaths = {
+                    @"C:\Program Files (x86)\Steam",
+                    @"C:\Program Files\Steam",
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Steam")
+                };
+
+                foreach (string path in commonPaths)
+                {
+                    if (Directory.Exists(path) && File.Exists(Path.Combine(path, "steam.exe")))
+                    {
+                        return path;
+                    }
+                }
+
+                // 尝试从注册表获取Steam路径
+                try
+                {
+                    using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam"))
+                    {
+                        if (key != null)
+                        {
+                            string steamPath = key.GetValue("SteamPath")?.ToString();
+                            if (!string.IsNullOrEmpty(steamPath) && Directory.Exists(steamPath))
+                            {
+                                return steamPath;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // 忽略注册表访问错误
+                }
+            }
+            catch (Exception ex)
+            {
+                _vpetLLM?.Log($"AppLauncher: Error finding Steam path: {ex.Message}");
+            }
+
+            return "";
+        }
+
+        private string GetGameIdFromAcf(string steamAppsPath, string gameName)
+        {
+            try
+            {
+                foreach (string acfFile in Directory.GetFiles(steamAppsPath, "appmanifest_*.acf"))
+                {
+                    string content = File.ReadAllText(acfFile);
+                    if (content.Contains($"\"{gameName}\"", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // 提取游戏ID
+                        var match = Regex.Match(content, @"""appid""\s*""(\d+)""");
+                        if (match.Success)
+                        {
+                            return match.Groups[1].Value;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _vpetLLM?.Log($"AppLauncher: Error reading ACF files: {ex.Message}");
+            }
+
+            return "";
+        }
+
+        private void AddCommonSteamGames()
+        {
+            // 添加一些常见游戏的ID映射
+            var commonGames = new Dictionary<string, string>
+            {
+                {"counter-strike 2", "730"},
+                {"cs2", "730"},
+                {"dota 2", "570"},
+                {"dota2", "570"},
+                {"team fortress 2", "440"},
+                {"tf2", "440"},
+                {"left 4 dead 2", "550"},
+                {"l4d2", "550"},
+                {"portal 2", "620"},
+                {"half-life 2", "220"},
+                {"garry's mod", "4000"},
+                {"gmod", "4000"},
+                {"rust", "252490"},
+                {"grand theft auto v", "271590"},
+                {"gtav", "271590"},
+                {"gta5", "271590"},
+                {"cyberpunk 2077", "1091500"},
+                {"the witcher 3", "292030"},
+                {"witcher3", "292030"},
+                {"steam", "steam://open/main"}
+            };
+
+            foreach (var game in commonGames)
+            {
+                if (!_steamGames.ContainsKey(game.Key))
+                {
+                    _steamGames[game.Key] = new SteamGame
+                    {
+                        Name = game.Key,
+                        GameId = game.Value,
+                        InstallPath = ""
+                    };
+                }
+            }
+        }
+
+        private string LaunchSteamGame(string gameName, SteamGame steamGame)
+        {
+            try
+            {
+                string steamUri;
+                
+                if (steamGame.GameId == "steam://open/main")
+                {
+                    // 特殊处理：打开Steam客户端
+                    steamUri = steamGame.GameId;
+                }
+                else if (!string.IsNullOrEmpty(steamGame.GameId))
+                {
+                    // 使用Steam协议启动游戏
+                    steamUri = $"steam://rungameid/{steamGame.GameId}";
+                }
+                else
+                {
+                    // 如果没有游戏ID，尝试直接启动可执行文件
+                    if (!string.IsNullOrEmpty(steamGame.InstallPath) && Directory.Exists(steamGame.InstallPath))
+                    {
+                        var exeFiles = Directory.GetFiles(steamGame.InstallPath, "*.exe", SearchOption.TopDirectoryOnly);
+                        if (exeFiles.Length > 0)
+                        {
+                            var startInfo = new ProcessStartInfo
+                            {
+                                FileName = exeFiles[0],
+                                UseShellExecute = true
+                            };
+                            Process.Start(startInfo);
+                            
+                            if (_setting.LogLaunches)
+                            {
+                                _vpetLLM?.Log($"AppLauncher: Launched Steam game '{gameName}' from '{exeFiles[0]}'");
+                            }
+                            
+                            return $"已成功启动Steam游戏: {gameName}";
+                        }
+                    }
+                    
+                    return $"无法找到Steam游戏 '{gameName}' 的启动方式";
+                }
+
+                var startInfo2 = new ProcessStartInfo
+                {
+                    FileName = steamUri,
+                    UseShellExecute = true
+                };
+
+                Process.Start(startInfo2);
+                
+                if (_setting.LogLaunches)
+                {
+                    _vpetLLM?.Log($"AppLauncher: Launched Steam game '{gameName}' with URI '{steamUri}'");
+                }
+                
+                return $"已成功启动Steam游戏: {gameName}";
+            }
+            catch (Exception ex)
+            {
+                return $"启动Steam游戏 '{gameName}' 失败: {ex.Message}";
+            }
+        }
 
         public void Log(string message)
         {
