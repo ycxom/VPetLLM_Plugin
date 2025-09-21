@@ -46,5 +46,17 @@
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ForegroundAppPlugin/plugin/ForegroundAppPlugin.dll",
     "SHA256": "5adf4b47cab970577d2bcf3630b535b13561e27ef6244e249c2055f9789e6772"
+  },
+  "AppLauncherPlugin": {
+    "Name": "AppLauncher",
+    "Author": "ycxom",
+    "Description": {
+      "ja": "AIがアプリケーションを起動できるようにし、カスタムアプリパスとシステムアプリの自動認識をサポートします。",
+      "zh-hans": "允许AI启动应用程序，支持自定义应用路径和自动识别系统应用。",
+      "zh-hant": "允許AI啟動應用程序，支持自定義應用路徑和自動識別系統應用。",
+      "en": "Allows AI to launch applications with support for custom app paths and automatic system app recognition."
+    },
+    "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/AppLauncherPlugin/plugin/AppLauncherPlugin.dll",
+    "SHA256": "2500a2aee2c061bd9fd12618fd8ff7ee32e75e81e715cde873f5cfe1f701d752"
   }
 }

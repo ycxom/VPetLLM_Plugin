@@ -1,0 +1,28 @@
+<Window x:Class="AppLauncherPlugin.winAvailableApps"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="可用应用程序列表" Height="500" Width="600"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Grid.Row="0" Text="以下是当前可用的应用程序列表：" 
+                   FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+        
+        <ListBox Name="lstAvailableApps" Grid.Row="1" 
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+        
+        <StackPanel Orientation="Horizontal" Grid.Row="2" 
+                    HorizontalAlignment="Right" Margin="0,10,0,0">
+            <TextBlock Text="提示：使用 [:plugin(AppLauncher(应用名称))] 来启动应用" 
+                       VerticalAlignment="Center" Margin="0,0,20,0" 
+                       FontStyle="Italic" Foreground="Gray"/>
+            <Button Name="btnClose" Content="关闭" Width="80" Click="btnClose_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
