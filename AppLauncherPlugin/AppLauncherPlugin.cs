@@ -12,7 +12,7 @@ using VPetLLM.Core;
 
 namespace AppLauncherPlugin
 {
-    public class AppLauncherPlugin : IVPetLLMPlugin, IActionPlugin, IPluginWithData
+    public class AppLauncherPlugin : IVPetLLMPlugin, IActionPlugin, IPluginWithData, IDynamicInfoPlugin
     {
         public string Name => "AppLauncher";
         public string Author => "ycxom";
@@ -106,11 +106,14 @@ namespace AppLauncherPlugin
             {
                 {"notepad", "notepad.exe"},
                 {"calculator", "calc.exe"},
+                {"calc", "calc.exe"},
                 {"paint", "mspaint.exe"},
                 {"cmd", "cmd.exe"},
                 {"powershell", "powershell.exe"},
+                {"pwsh", "pwsh.exe"},
                 {"explorer", "explorer.exe"},
                 {"taskmgr", "taskmgr.exe"},
+                {"taskmanager", "taskmgr.exe"},
                 {"regedit", "regedit.exe"},
                 {"msconfig", "msconfig.exe"},
                 {"control", "control.exe"},
@@ -119,7 +122,12 @@ namespace AppLauncherPlugin
                 {"magnify", "magnify.exe"},
                 {"osk", "osk.exe"},
                 {"snip", "ms-screenclip:"},
-                {"settings", "ms-settings:"}
+                {"screenshot", "ms-screenclip:"},
+                {"settings", "ms-settings:"},
+                {"mstsc", "mstsc.exe"},
+                {"rdp", "mstsc.exe"},
+                {"wordpad", "wordpad.exe"},
+                {"write", "wordpad.exe"}
             };
 
             foreach (var app in commonApps)
@@ -259,6 +267,16 @@ namespace AppLauncherPlugin
                 {
                     return LaunchCustomApp(customApp);
                 }
+                
+                // 如果精确匹配失败，尝试模糊匹配自定义应用
+                var fuzzyCustomApp = _setting.CustomApps.FirstOrDefault(app => 
+                    app.Name.IndexOf(appName, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    appName.IndexOf(app.Name, StringComparison.OrdinalIgnoreCase) >= 0);
+                
+                if (fuzzyCustomApp != null)
+                {
+                    return LaunchCustomApp(fuzzyCustomApp);
+                }
 
                 // 2. 检查系统应用
                 if (_setting.EnableSystemApps && _systemApps.ContainsKey(appName))
@@ -267,15 +285,41 @@ namespace AppLauncherPlugin
                 }
 
                 // 3. 检查Steam游戏
-                if (_setting.EnableSteamGames && _steamGames.ContainsKey(appName))
+                if (_setting.EnableSteamGames)
                 {
-                    return LaunchSteamGame(appName, _steamGames[appName]);
+                    // 首先尝试精确匹配
+                    if (_steamGames.ContainsKey(appName))
+                    {
+                        return LaunchSteamGame(appName, _steamGames[appName]);
+                    }
+                    
+                    // 如果精确匹配失败，尝试模糊匹配
+                    var fuzzyMatch = _steamGames.FirstOrDefault(kvp => 
+                        kvp.Key.Contains(appName) || appName.Contains(kvp.Key));
+                    
+                    if (!string.IsNullOrEmpty(fuzzyMatch.Key))
+                    {
+                        return LaunchSteamGame(fuzzyMatch.Key, fuzzyMatch.Value);
+                    }
                 }
 
                 // 4. 检查开始菜单应用
-                if (_setting.EnableStartMenuScan && _startMenuApps.ContainsKey(appName))
+                if (_setting.EnableStartMenuScan)
                 {
-                    return LaunchStartMenuApp(appName, _startMenuApps[appName]);
+                    // 首先尝试精确匹配
+                    if (_startMenuApps.ContainsKey(appName))
+                    {
+                        return LaunchStartMenuApp(appName, _startMenuApps[appName]);
+                    }
+                    
+                    // 如果精确匹配失败，尝试模糊匹配
+                    var fuzzyMatch = _startMenuApps.FirstOrDefault(kvp => 
+                        kvp.Key.Contains(appName) || appName.Contains(kvp.Key));
+                    
+                    if (!string.IsNullOrEmpty(fuzzyMatch.Key))
+                    {
+                        return LaunchStartMenuApp(fuzzyMatch.Key, fuzzyMatch.Value);
+                    }
                 }
 
                 // 5. 尝试直接启动（可能是完整路径或系统PATH中的程序）
@@ -371,7 +415,8 @@ namespace AppLauncherPlugin
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = appName,
-                    UseShellExecute = true
+                    UseShellExecute = true,
+                    WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) // 修复工作目录问题
                 };
 
                 Process.Start(startInfo);
@@ -429,12 +474,6 @@ namespace AppLauncherPlugin
                     { 
                         Name = "chrome", 
                         Path = @"C:\Program Files\Google\Chrome\Application\chrome.exe",
-                        Arguments = ""
-                    });
-                    _setting.CustomApps.Add(new CustomApp 
-                    { 
-                        Name = "vscode", 
-                        Path = @"C:\Users\%USERNAME%\AppData\Local\Programs\Microsoft VS Code\Code.exe",
                         Arguments = ""
                     });
                 }
@@ -628,7 +667,7 @@ namespace AppLauncherPlugin
 
         private void AddCommonSteamGames()
         {
-            // 添加一些常见游戏的ID映射
+            // 添加一些常见Steam游戏的ID映射
             var commonGames = new Dictionary<string, string>
             {
                 {"counter-strike 2", "730"},
@@ -735,6 +774,37 @@ namespace AppLauncherPlugin
         {
             if (_vpetLLM == null) return;
             _vpetLLM.Log(message);
+        }
+
+        public string GetDynamicInfo()
+        {
+            try
+            {
+                var availableApps = GetAvailableApps();
+                if (availableApps.Count == 0)
+                {
+                    return "";
+                }
+
+                // 限制显示的应用程序数量，避免提示词过长
+                var displayApps = availableApps.Take(50).ToList();
+                var moreCount = availableApps.Count - displayApps.Count;
+                
+                var appList = string.Join(", ", displayApps);
+                var result = $"Available applications for AppLauncher plugin: {appList}";
+                
+                if (moreCount > 0)
+                {
+                    result += $" (and {moreCount} more applications)";
+                }
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _vpetLLM?.Log($"AppLauncher: Error getting dynamic info: {ex.Message}");
+                return "";
+            }
         }
     }
 }
