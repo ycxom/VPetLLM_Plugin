@@ -293,9 +293,10 @@ namespace AppLauncherPlugin
                         return LaunchSteamGame(appName, _steamGames[appName]);
                     }
                     
-                    // 如果精确匹配失败，尝试模糊匹配
+                    // 如果精确匹配失败，尝试模糊匹配（不区分大小写）
                     var fuzzyMatch = _steamGames.FirstOrDefault(kvp => 
-                        kvp.Key.Contains(appName) || appName.Contains(kvp.Key));
+                        kvp.Key.IndexOf(appName, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        appName.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0);
                     
                     if (!string.IsNullOrEmpty(fuzzyMatch.Key))
                     {
@@ -551,37 +552,51 @@ namespace AppLauncherPlugin
 
                 _setting.SteamPath = steamPath;
 
-                // 扫描Steam游戏库
-                string steamAppsPath = Path.Combine(steamPath, "steamapps");
-                if (Directory.Exists(steamAppsPath))
+                // 收集所有 Steam 库的 steamapps 目录（包含默认库）
+                var steamLibraries = GetSteamLibraryPaths(steamPath);
+                var defaultSteamApps = Path.Combine(steamPath, "steamapps");
+                if (Directory.Exists(defaultSteamApps))
                 {
-                    // 扫描common文件夹中的游戏
-                    string commonPath = Path.Combine(steamAppsPath, "common");
-                    if (Directory.Exists(commonPath))
-                    {
-                        foreach (string gameDir in Directory.GetDirectories(commonPath))
-                        {
-                            string gameName = Path.GetFileName(gameDir).ToLower();
-                            if (!string.IsNullOrEmpty(gameName))
-                            {
-                                // 尝试从ACF文件获取游戏ID
-                                string gameId = GetGameIdFromAcf(steamAppsPath, gameName);
-                                
-                                var steamGame = new SteamGame
-                                {
-                                    Name = gameName,
-                                    GameId = gameId,
-                                    InstallPath = gameDir
-                                };
-                                
-                                _steamGames[gameName] = steamGame;
-                            }
-                        }
-                    }
+                    steamLibraries.Add(defaultSteamApps);
                 }
 
-                // 添加一些常见的Steam游戏（如果用户有的话）
-                AddCommonSteamGames();
+                foreach (var steamAppsPath in steamLibraries)
+                {
+                    try
+                    {
+                        foreach (string acfFile in Directory.GetFiles(steamAppsPath, "appmanifest_*.acf"))
+                        {
+                            var acf = ParseAcf(acfFile);
+                            if (string.IsNullOrEmpty(acf.name) || string.IsNullOrEmpty(acf.appid))
+                                continue;
+
+                            string gameKey = acf.name.ToLower();
+                            string installPath = "";
+                            try
+                            {
+                                if (!string.IsNullOrEmpty(acf.installdir))
+                                {
+                                    var commonPath = Path.Combine(steamAppsPath, "common");
+                                    var candidate = Path.Combine(commonPath, acf.installdir);
+                                    if (Directory.Exists(candidate))
+                                        installPath = candidate;
+                                }
+                            }
+                            catch { }
+
+                            _steamGames[gameKey] = new SteamGame
+                            {
+                                Name = gameKey,
+                                GameId = acf.appid,
+                                InstallPath = installPath
+                            };
+                        }
+                    }
+                    catch (Exception exInner)
+                    {
+                        _vpetLLM?.Log($"AppLauncher: Error scanning Steam library '{steamAppsPath}': {exInner.Message}");
+                    }
+                }
 
                 _vpetLLM?.Log($"AppLauncher: Found {_steamGames.Count} Steam games");
             }
@@ -639,6 +654,55 @@ namespace AppLauncherPlugin
             return "";
         }
 
+        // 解析 libraryfolders.vdf，返回所有库的 steamapps 目录
+        private HashSet<string> GetSteamLibraryPaths(string steamPath)
+        {
+            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                var vdfPath = Path.Combine(steamPath, "steamapps", "libraryfolders.vdf");
+                if (File.Exists(vdfPath))
+                {
+                    var content = File.ReadAllText(vdfPath);
+                    foreach (Match m in Regex.Matches(content, "\"path\"\\s*\"([^\"]+)\"", RegexOptions.IgnoreCase))
+                    {
+                        var p = m.Groups[1].Value.Replace("\\\\", "\\");
+                        try
+                        {
+                            var steamApps = Path.Combine(p, "steamapps");
+                            if (Directory.Exists(steamApps))
+                            {
+                                result.Add(steamApps);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _vpetLLM?.Log($"AppLauncher: Error parsing libraryfolders.vdf: {ex.Message}");
+            }
+            return result;
+        }
+
+        // 解析 appmanifest_*.acf，提取 name、appid、installdir
+        private (string name, string appid, string installdir) ParseAcf(string acfFile)
+        {
+            try
+            {
+                var content = File.ReadAllText(acfFile);
+                var name = Regex.Match(content, "\"name\"\\s*\"([^\"]+)\"", RegexOptions.IgnoreCase).Groups[1].Value;
+                var appid = Regex.Match(content, "\"appid\"\\s*\"(\\d+)\"", RegexOptions.IgnoreCase).Groups[1].Value;
+                var installdir = Regex.Match(content, "\"installdir\"\\s*\"([^\"]+)\"", RegexOptions.IgnoreCase).Groups[1].Value;
+                return (name, appid, installdir);
+            }
+            catch
+            {
+                return ("", "", "");
+            }
+        }
+
         private string GetGameIdFromAcf(string steamAppsPath, string gameName)
         {
             try
@@ -665,46 +729,7 @@ namespace AppLauncherPlugin
             return "";
         }
 
-        private void AddCommonSteamGames()
-        {
-            // 添加一些常见Steam游戏的ID映射
-            var commonGames = new Dictionary<string, string>
-            {
-                {"counter-strike 2", "730"},
-                {"cs2", "730"},
-                {"dota 2", "570"},
-                {"dota2", "570"},
-                {"team fortress 2", "440"},
-                {"tf2", "440"},
-                {"left 4 dead 2", "550"},
-                {"l4d2", "550"},
-                {"portal 2", "620"},
-                {"half-life 2", "220"},
-                {"garry's mod", "4000"},
-                {"gmod", "4000"},
-                {"rust", "252490"},
-                {"grand theft auto v", "271590"},
-                {"gtav", "271590"},
-                {"gta5", "271590"},
-                {"cyberpunk 2077", "1091500"},
-                {"the witcher 3", "292030"},
-                {"witcher3", "292030"},
-                {"steam", "steam://open/main"}
-            };
-
-            foreach (var game in commonGames)
-            {
-                if (!_steamGames.ContainsKey(game.Key))
-                {
-                    _steamGames[game.Key] = new SteamGame
-                    {
-                        Name = game.Key,
-                        GameId = game.Value,
-                        InstallPath = ""
-                    };
-                }
-            }
-        }
+        
 
         private string LaunchSteamGame(string gameName, SteamGame steamGame)
         {
