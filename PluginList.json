@@ -45,7 +45,7 @@
       "en": "Monitors the foreground application and provides the name to the AI."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ForegroundAppPlugin/plugin/ForegroundAppPlugin.dll",
-    "SHA256": "5adf4b47cab970577d2bcf3630b535b13561e27ef6244e249c2055f9789e6772"
+    "SHA256": "b23196ccefbcd408af64b3cfaa30ce09938d9b778970c7c71d5b51614b7adafd"
   },
   "AppLauncherPlugin": {
     "Name": "AppLauncher",
@@ -58,5 +58,17 @@
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/AppLauncherPlugin/plugin/AppLauncherPlugin.dll",
     "SHA256": "143431038fd24131df4ab377ade27a62316c485c52c1cc0eca5a39362c4b5970"
+  },
+  "MinecraftVersionPlugin": {
+    "Name": "MinecraftVersionWatcher",
+    "Author": "ycxom",
+    "Description": {
+      "ja": "Minecraft（Java/Bedrock）のバージョンを監視し、指定バージョンに一致した場合のみAIに通知します。",
+      "zh-hans": "监听并识别我的世界（Java/基岩）版本，仅在命中指定版本时通知 AI。",
+      "zh-hant": "監聽並識別我的世界（Java/基岩）版本，僅在命中指定版本時通知 AI。",
+      "en": "Watches Minecraft (Java/Bedrock) versions and notifies AI only if it matches allowed versions."
+    },
+    "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MinecraftVersionPlugin/plugin/MinecraftVersionPlugin.dll",
+    "SHA256": "011f549bb210f808c4bafcaba58974414f760f32385c337abdfaa1580c59d4af"
   }
 }

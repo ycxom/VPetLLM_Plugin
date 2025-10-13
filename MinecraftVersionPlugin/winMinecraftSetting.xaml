@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window x:Class="MinecraftVersionPlugin.winMinecraftSetting"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        Title="Minecraft Version Plugin Settings" Height="540" Width="800"
+        WindowStartupLocation="CenterOwner" MinWidth="700" MinHeight="450">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="280" MinWidth="240"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel: Settings & Server List -->
+            <DockPanel Grid.Column="0">
+                <!-- 常规设置 -->
+                <GroupBox Header="常规设置" DockPanel.Dock="Top" Padding="10">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Label Content="检测间隔(ms):" Width="120" VerticalAlignment="Center"/>
+                            <TextBox x:Name="TxtDelay" Width="150"/>
+                            <CheckBox x:Name="ChkLocalSLP" Content="启用本地状态查询" Margin="20,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- 服务器列表 -->
+                <GroupBox Header="服务器列表" DockPanel.Dock="Top" Padding="10" Margin="0,10,0,0">
+                    <DockPanel>
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,8">
+                            <Button x:Name="BtnAddServer" Content="添加" Width="80" Margin="0,0,8,0" Click="BtnAddServer_Click"/>
+                            <Button x:Name="BtnRemoveServer" Content="删除所选" Width="90" Margin="0,0,8,0" Click="BtnRemoveServer_Click"/>
+                        </StackPanel>
+                        <DataGrid x:Name="GridServers" AutoGenerateColumns="False" CanUserAddRows="False"
+                                  HeadersVisibility="Column" IsReadOnly="False" Margin="0"
+                                  SelectionChanged="GridServers_SelectionChanged">
+                            <DataGrid.Columns>
+                                <DataGridCheckBoxColumn Header="启用" Binding="{Binding Enabled}" Width="50"/>
+                                <DataGridComboBoxColumn Header="类型" SelectedItemBinding="{Binding Product}" Width="80">
+                                    <DataGridComboBoxColumn.ElementStyle>
+                                        <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}"/>
+                                    </DataGridComboBoxColumn.ElementStyle>
+                                    <DataGridComboBoxColumn.EditingElementStyle>
+                                        <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}"/>
+                                    </DataGridComboBoxColumn.EditingElementStyle>
+                                    <DataGridComboBoxColumn.ItemsSource>
+                                        <x:Array Type="sys:String">
+                                            <sys:String>java</sys:String>
+                                            <sys:String>bedrock</sys:String>
+                                        </x:Array>
+                                    </DataGridComboBoxColumn.ItemsSource>
+                                </DataGridComboBoxColumn>
+                                <DataGridTextColumn Header="服务器地址 (host:port)" Binding="{Binding Address, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                                <DataGridTextColumn Header="别名" Binding="{Binding Alias, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </GroupBox>
+            </DockPanel>
+
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" />
+
+            <!-- Right Panel: Selected Server Details -->
+            <DockPanel Grid.Column="2">
+                <GroupBox Header="所选服务器详情" Padding="10">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Top" Orientation="Vertical">
+                            <Button x:Name="BtnTestSelected" Content="测试所选服务器" Click="BtnTestSelected_Click" Margin="0,0,0,10"/>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Label Content="在线状态:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtLocalOnline" Grid.Row="0" Grid.Column="1" Text="-" Margin="6,0,0,0" VerticalAlignment="Center"/>
+
+                                <Label Content="游戏版本:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,6,0,0"/>
+                                <TextBlock x:Name="TxtLocalVersion" Grid.Row="1" Grid.Column="1" Text="-" Margin="6,6,0,0" VerticalAlignment="Center"/>
+
+                                <Label Content="服务器描述:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Top" Margin="0,6,0,0"/>
+                                <TextBlock x:Name="TxtLocalDesc" Grid.Row="2" Grid.Column="1" Text="-" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Margin="6,6,0,0" MaxHeight="60" VerticalAlignment="Top"/>
+
+                                <DockPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="0,8,0,0">
+                                    <Button x:Name="BtnUseDetectedAsAlias" Content="设为别名" DockPanel.Dock="Right" Click="BtnUseDetectedAsAlias_Click" Padding="8,2"/>
+                                    <TextBlock x:Name="TxtDetectedName" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip="来自 MOTD，可设为别名"/>
+                                </DockPanel>
+                            </Grid>
+                        </StackPanel>
+
+                        <GroupBox Header="在线玩家 (所选服务器)" DockPanel.Dock="Top" Margin="0,10,0,0">
+                            <ListBox x:Name="LstPlayers" Margin="2"
+                                     MinHeight="120" MaxHeight="220"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" />
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </GroupBox>
+                    </DockPanel>
+                </GroupBox>
+            </DockPanel>
+        </Grid>
+
+        <!-- Bottom Action Buttons -->
+        <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="刷新预览" Click="BtnRefresh_Click" Width="100" Margin="0,0,10,0"/>
+            <Button Content="保存" Click="BtnSave_Click" Width="100" Margin="0,0,10,0"/>
+            <Button Content="关闭" Click="BtnClose_Click" Width="100"/>
+        </StackPanel>
+    </Grid>
+</Window>

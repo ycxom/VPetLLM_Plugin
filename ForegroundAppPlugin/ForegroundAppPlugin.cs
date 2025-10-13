@@ -137,7 +137,7 @@ namespace ForegroundAppPlugin
                         {
                             chatMessage = $"The user is now using the application: {processName}, Time: {DateTime.Now}";
                         }
-                        _vpetLLM?.SendChat(chatMessage);
+                        VPetLLM.Handlers.PluginHandler.SendPluginMessage("ForegroundAppWatcher", chatMessage);
                     }
                 }
                 catch (Exception ex)
