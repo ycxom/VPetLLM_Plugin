@@ -35,8 +35,8 @@ namespace AppLauncherPlugin
                 }
             }
         }
-        public string Parameters => "app_name|action(setting|list|steamlist)";
-        public string Examples => "Examples: `[:plugin(AppLauncher(notepad))]`, `[:plugin(AppLauncher(action(setting)))]`, `[:plugin(AppLauncher(action(list)))]`, `[:plugin(AppLauncher(action(steamlist)))]`";
+        public string Parameters => "app_name|action(setting|list)";
+        public string Examples => "Examples: `[:plugin(AppLauncher(notepad))]`, `[:plugin(AppLauncher(action(setting)))]`, `[:plugin(AppLauncher(action(list)))]`";
         public bool Enabled { get; set; } = true;
         public string FilePath { get; set; } = "";
         public string PluginDataDir { get; set; } = "";
@@ -217,18 +217,14 @@ namespace AppLauncherPlugin
                             return Task.FromResult($"打开设置窗口失败: {ex.Message}");
                         }
                     }
-                    else if (action == "list" || action == "apps" || action == "allapps")
+                    else if (action == "list" || action == "apps" || action == "allapps" || action == "steam" || action == "steamlist")
                     {
+                        RefreshApps();
                         var apps = GetAvailableApps();
                         if (apps.Count == 0) return Task.FromResult("暂无可用应用。");
                         return Task.FromResult("All applications: " + string.Join(", ", apps));
                     }
-                    else if (action == "steamlist" || action == "steam")
-                    {
-                        var apps = GetAvailableApps().Where(x => x.StartsWith("[Steam]")).ToList();
-                        if (apps.Count == 0) return Task.FromResult("未找到Steam游戏。请确认已安装Steam并启用Steam游戏支持。");
-                        return Task.FromResult("Steam games: " + string.Join(", ", apps));
-                    }
+                    
                     return Task.FromResult("无效的操作。");
                 }
 

@@ -57,7 +57,7 @@
       "en": "Allows AI to launch applications with support for custom app paths and automatic system app recognition."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/AppLauncherPlugin/plugin/AppLauncherPlugin.dll",
-    "SHA256": "b556605ba122791bbef712b9a87e6f6a6794771f7026c57848acc4ae5fb517d3"
+    "SHA256": "e098c93c3fdc5dc12787606ea775ca3d848db634e2ff1428bdf0ee8330133bb9"
   },
   "MinecraftVersionPlugin": {
     "Name": "MinecraftVersionWatcher",
