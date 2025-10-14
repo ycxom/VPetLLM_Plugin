@@ -612,7 +612,7 @@ namespace MinecraftVersionPlugin
                 else
                 {
                     // 仅人数；当在线人数为 0 时，逐个判定为退出并清空集合，并建立空基线
-                    _vpetLLM?.Log($"SLP: {displayName} Online={online}, Version={versionName}");
+                    // _vpetLLM?.Log($"SLP: {displayName} Online={online}, Version={versionName}");
                     if (online == 0)
                     {
                         HashSet<string>? snapshot = null;

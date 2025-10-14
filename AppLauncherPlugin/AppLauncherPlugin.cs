@@ -35,8 +35,8 @@ namespace AppLauncherPlugin
                 }
             }
         }
-        public string Parameters => "app_name|action(setting)";
-        public string Examples => "Examples: `[:plugin(AppLauncher(notepad))]`, `[:plugin(AppLauncher(action(setting)))]`";
+        public string Parameters => "app_name|action(setting|list|steamlist)";
+        public string Examples => "Examples: `[:plugin(AppLauncher(notepad))]`, `[:plugin(AppLauncher(action(setting)))]`, `[:plugin(AppLauncher(action(list)))]`, `[:plugin(AppLauncher(action(steamlist)))]`";
         public bool Enabled { get; set; } = true;
         public string FilePath { get; set; } = "";
         public string PluginDataDir { get; set; } = "";
@@ -216,6 +216,18 @@ namespace AppLauncherPlugin
                             _vpetLLM?.Log($"AppLauncher: Error opening settings: {ex.Message}");
                             return Task.FromResult($"打开设置窗口失败: {ex.Message}");
                         }
+                    }
+                    else if (action == "list" || action == "apps" || action == "allapps")
+                    {
+                        var apps = GetAvailableApps();
+                        if (apps.Count == 0) return Task.FromResult("暂无可用应用。");
+                        return Task.FromResult("All applications: " + string.Join(", ", apps));
+                    }
+                    else if (action == "steamlist" || action == "steam")
+                    {
+                        var apps = GetAvailableApps().Where(x => x.StartsWith("[Steam]")).ToList();
+                        if (apps.Count == 0) return Task.FromResult("未找到Steam游戏。请确认已安装Steam并启用Steam游戏支持。");
+                        return Task.FromResult("Steam games: " + string.Join(", ", apps));
                     }
                     return Task.FromResult("无效的操作。");
                 }
@@ -811,18 +823,35 @@ namespace AppLauncherPlugin
                     return "";
                 }
 
-                // 限制显示的应用程序数量，避免提示词过长
-                var displayApps = availableApps.Take(50).ToList();
+                // 优先展示 Steam 项，避免被其他类别挤出前 50 条
+                const int maxItems = 50;
+                var steamApps = availableApps.Where(x => x.StartsWith("[Steam]")).Take(maxItems).ToList();
+                List<string> displayApps;
+
+                if (steamApps.Count > 0)
+                {
+                    var remain = maxItems - steamApps.Count;
+                    var others = remain > 0
+                        ? availableApps.Where(x => !x.StartsWith("[Steam]")).Take(remain).ToList()
+                        : new List<string>();
+                    displayApps = steamApps.Concat(others).ToList();
+                }
+                else
+                {
+                    // 没有 Steam 项时，退回原有逻辑
+                    displayApps = availableApps.Take(maxItems).ToList();
+                }
+
                 var moreCount = availableApps.Count - displayApps.Count;
-                
+
                 var appList = string.Join(", ", displayApps);
                 var result = $"Available applications for AppLauncher plugin: {appList}";
-                
+
                 if (moreCount > 0)
                 {
                     result += $" (and {moreCount} more applications)";
                 }
-                
+
                 return result;
             }
             catch (Exception ex)

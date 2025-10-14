@@ -57,7 +57,7 @@
       "en": "Allows AI to launch applications with support for custom app paths and automatic system app recognition."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/AppLauncherPlugin/plugin/AppLauncherPlugin.dll",
-    "SHA256": "143431038fd24131df4ab377ade27a62316c485c52c1cc0eca5a39362c4b5970"
+    "SHA256": "b556605ba122791bbef712b9a87e6f6a6794771f7026c57848acc4ae5fb517d3"
   },
   "MinecraftVersionPlugin": {
     "Name": "MinecraftVersionWatcher",
@@ -69,6 +69,6 @@
       "en": "Watches Minecraft (Java/Bedrock) versions and notifies AI only if it matches allowed versions."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MinecraftVersionPlugin/plugin/MinecraftVersionPlugin.dll",
-    "SHA256": "011f549bb210f808c4bafcaba58974414f760f32385c337abdfaa1580c59d4af"
+    "SHA256": "fedab9177a1963fa444561753290c7f07b80b45635211ade4528b8968070db0b"
   }
 }
