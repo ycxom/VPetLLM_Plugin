@@ -50,7 +50,7 @@ namespace ForegroundAppPlugin
         public class Setting
         {
             [JsonProperty("jitter_delay")]
-            public int JitterDelay { get; set; } = 30000;
+            public int JitterDelay { get; set; } = 30;
         }
 
         [DllImport("user32.dll")]
@@ -145,7 +145,7 @@ namespace ForegroundAppPlugin
                     _vpetLLM?.Log($"ForegroundAppPlugin: Error monitoring foreground app: {ex.Message}");
                     _currentForegroundAppName = "Unknown";
                 }
-                await Task.Delay(_setting.JitterDelay, token);
+                await Task.Delay(_setting.JitterDelay * 1000, token);
             }
         }
 
