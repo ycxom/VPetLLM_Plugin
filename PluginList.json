@@ -70,5 +70,17 @@
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MinecraftVersionPlugin/plugin/MinecraftVersionPlugin.dll",
     "SHA256": "fedab9177a1963fa444561753290c7f07b80b45635211ade4528b8968070db0b"
+  },
+  "MarkdownViewerPlugin": {
+    "Name": "MarkdownViewer",
+    "Author": "ycxom",
+    "Description": {
+      "ja": "Markdown を独立ウィンドウでレンダリング表示します（チュートリアル等向け）。",
+      "zh-hans": "在独立窗口中渲染显示 Markdown（适合教程等内容）。",
+      "zh-hant": "在獨立視窗中渲染顯示 Markdown（適合教學等內容）。",
+      "en": "Render and display Markdown in a standalone window (good for tutorials)."
+    },
+    "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MarkdownViewerPlugin/plugin/MarkdownViewerPlugin.dll",
+    "SHA256": "37695acfd59e01265260be5cf7dde16ee9b9aa258674353bdd1d6496f8c590c2"
   }
 }

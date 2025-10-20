@@ -1,0 +1,11 @@
+<Window x:Class="MarkdownViewerPlugin.winMarkdownViewer"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Markdown Viewer" Height="700" Width="900">
+    <DockPanel>
+        <ToolBar DockPanel.Dock="Top">
+            <Button Click="BtnCopyText_Click">复制文本</Button>
+        </ToolBar>
+        <FlowDocumentScrollViewer x:Name="DocViewer" VerticalScrollBarVisibility="Auto"/>
+    </DockPanel>
+</Window>
