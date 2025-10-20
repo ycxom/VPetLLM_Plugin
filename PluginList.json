@@ -81,6 +81,18 @@
       "en": "Render and display Markdown in a standalone window (good for tutorials)."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MarkdownViewerPlugin/plugin/MarkdownViewerPlugin.dll",
-    "SHA256": "37695acfd59e01265260be5cf7dde16ee9b9aa258674353bdd1d6496f8c590c2"
+    "SHA256": "e1c1c0ed20bd0a3c29b75dcf85303aaccdb8116873839ff6b34505f900a739ff"
+  },
+  "WebSearchPlugin": {
+    "Name": "WebSearch",
+    "Author": "ycxom",
+    "Description": {
+      "ja": "インターネットコンテンツを検索するか、Webページのコンテンツ（Markdown形式）を取得します。",
+      "zh-hans": "搜索互联网内容或获取网页内容（Markdown格式）",
+      "zh-hant": "搜尋互聯網內容或獲取網頁內容（Markdown格式）",
+      "en": "Search internet content or fetch webpage content (Markdown format)"
+    },
+    "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WebSearchPlugin/plugin/WebSearchPlugin.dll",
+    "SHA256": "8f165285898c0abb8a1e33982688675787e1cacd2e84e1557361ee5b5e17728e"
   }
 }

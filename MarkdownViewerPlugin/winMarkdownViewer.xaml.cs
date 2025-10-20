@@ -7,10 +7,12 @@ namespace MarkdownViewerPlugin
     {
         private string _lastText = "";
         private string _titleSource = "Markdown Viewer";
+        public bool IsClosed { get; private set; } = false;
 
         public winMarkdownViewer()
         {
             InitializeComponent();
+            Closed += (s, e) => IsClosed = true;
         }
 
         public void SetTitleFromSource(string src)

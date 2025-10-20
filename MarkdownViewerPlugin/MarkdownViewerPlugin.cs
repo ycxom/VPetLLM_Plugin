@@ -6,7 +6,7 @@ using VPetLLM.Core;
 namespace MarkdownViewerPlugin
 {
     // 提供简单动作入口：传入内联 Markdown 文本
-    public class MarkdownViewerPlugin : IVPetLLMPlugin, IActionPlugin
+    public class MarkdownViewerPlugin : IVPetLLMPlugin, IActionPlugin, VPetLLM.Core.IPluginTakeover
     {
         public string Name => "MarkdownViewer";
         public string Author => "ycxom";
@@ -14,23 +14,31 @@ namespace MarkdownViewerPlugin
         {
             get
             {
-                if (_vpetLLM == null) return "在独立窗口中渲染并显示 Markdown 文档。";
+                if (_vpetLLM == null) return "在独立窗口中渲染并显示标准 Markdown 文档。请使用标准 Markdown 格式，支持标题、列表、代码块、表格等。";
                 switch (_vpetLLM.Settings.Language)
                 {
-                    case "ja": return "Markdown ドキュメントを独立ウィンドウでレンダリングして表示します。";
-                    case "zh-hans": return "在独立窗口中渲染并显示 Markdown 文档。";
-                    case "zh-hant": return "在獨立視窗中渲染並顯示 Markdown 文件。";
+                    case "ja": return "標準 Markdown ドキュメントを独立ウィンドウでレンダリングして表示します。標準 Markdown 形式を使用してください。見出し、リスト、コードブロック、テーブルなどをサポートします。";
+                    case "zh-hans": return "在独立窗口中渲染并显示标准 Markdown 文档。请使用标准 Markdown 格式，支持标题、列表、代码块、表格等。";
+                    case "zh-hant": return "在獨立視窗中渲染並顯示標準 Markdown 文件。請使用標準 Markdown 格式，支援標題、清單、程式碼區塊、表格等。";
                     case "en":
-                    default: return "Render and display Markdown in a standalone window.";
+                    default: return "Render and display standard Markdown documents in a standalone window. Use standard Markdown format. Supports headings, lists, code blocks, tables, etc.";
                 }
             }
         }
-        public string Parameters => "content";
-        public string Examples => "[:plugin(MarkdownViewer(# 标题\\n这里是内容))]";
+        public string Parameters => "markdown_content";
+        public string Examples => "[:plugin(MarkdownViewer(# Python Example\n\n```python\ndef hello():\n    print(\"Hello\")\n```\n\n## Explanation\nThis is a simple function.))]";
         public bool Enabled { get; set; } = true;
         public string FilePath { get; set; } = "";
 
+        // IPluginTakeover 接口实现
+        public bool SupportsTakeover => true;
+
         private VPetLLM.VPetLLM? _vpetLLM;
+        private System.Text.StringBuilder _takeoverContent = new System.Text.StringBuilder();
+        private winMarkdownViewer _takeoverWindow;
+        private bool _isTakingOver = false;
+        private DateTime _lastUpdateTime = DateTime.MinValue;
+        private const int UPDATE_INTERVAL_MS = 100; // 更新间隔：100ms
 
         public void Initialize(VPetLLM.VPetLLM plugin)
         {
@@ -47,15 +55,23 @@ namespace MarkdownViewerPlugin
         {
             try
             {
-                var content = (arguments ?? string.Empty);
+                var content = (arguments ?? string.Empty).Trim();
                 
-                // 智能识别和处理转义序列
-                content = ProcessEscapeSequences(content);
-                
-                // 智能识别 Markdown 内容
-                content = RecognizeMarkdownContent(content);
+                // 移除可能的引号包装
+                if (content.StartsWith("\"") && content.EndsWith("\""))
+                {
+                    content = content.Substring(1, content.Length - 2);
+                }
 
-                // 再次保险：在调用窗口前确保解析器已就绪
+                // 处理 AI 可能生成的转义反引号：\`\`\` -> ```
+                content = content.Replace("\\`\\`\\`", "```");
+                
+                // 处理其他常见的转义序列
+                content = content.Replace("\\n", "\n")
+                               .Replace("\\t", "\t")
+                               .Replace("\\r", "\r");
+
+                // 确保解析器已就绪
                 try { DependencyResolver.Ensure(FilePath); } catch { }
 
                 Application.Current.Dispatcher.Invoke(() =>
@@ -67,16 +83,16 @@ namespace MarkdownViewerPlugin
                     if (!string.IsNullOrEmpty(content))
                     {
                         win.RenderMarkdown(content);
-                        win.SetTitleFromSource("Inline Markdown");
+                        win.SetTitleFromSource("AI Generated Markdown");
                     }
                     else
                     {
-                        win.RenderMarkdown("# Markdown Viewer\n\n请通过插件参数传入 Markdown 文本进行渲染。");
-                        win.SetTitleFromSource("Inline Markdown");
+                        win.RenderMarkdown("# Markdown Viewer\n\n请通过插件参数传入标准 Markdown 文本。");
+                        win.SetTitleFromSource("Markdown Viewer");
                     }
                 });
 
-                return Task.FromResult("Markdown window opened.");
+                return Task.FromResult("Markdown window opened successfully.");
             }
             catch (Exception ex)
             {
@@ -85,112 +101,7 @@ namespace MarkdownViewerPlugin
             }
         }
 
-        /// <summary>
-        /// 智能处理转义序列，支持多种格式
-        /// </summary>
-        private string ProcessEscapeSequences(string content)
-        {
-            if (string.IsNullOrEmpty(content)) return content;
 
-            // 处理常见的转义序列
-            content = content.Replace("\\r\\n", "\n")
-                           .Replace("\\n", "\n")
-                           .Replace("\\r", "\n")
-                           .Replace("\\t", "\t")
-                           .Replace("\\\"", "\"")
-                           .Replace("\\'", "'");
-
-            // 处理 Unicode 转义序列 (如 \u0020)
-            var unicodePattern = new System.Text.RegularExpressions.Regex(@"\\u([0-9A-Fa-f]{4})");
-            content = unicodePattern.Replace(content, m => 
-                ((char)Convert.ToInt32(m.Groups[1].Value, 16)).ToString());
-
-            return content.Trim();
-        }
-
-        /// <summary>
-        /// 智能识别 Markdown 内容特征
-        /// </summary>
-        private string RecognizeMarkdownContent(string content)
-        {
-            if (string.IsNullOrEmpty(content)) return content;
-
-            // 检测是否已经是有效的 Markdown 格式
-            if (IsValidMarkdown(content))
-            {
-                _vpetLLM?.Log("MarkdownViewer: Detected valid Markdown content");
-                return content;
-            }
-
-            // 尝试从常见的包装格式中提取 Markdown
-            content = ExtractFromCommonFormats(content);
-
-            return content;
-        }
-
-        /// <summary>
-        /// 检测是否为有效的 Markdown 内容
-        /// </summary>
-        private bool IsValidMarkdown(string content)
-        {
-            if (string.IsNullOrWhiteSpace(content)) return false;
-
-            // 检测常见的 Markdown 特征
-            var markdownPatterns = new[]
-            {
-                @"^#{1,6}\s+",           // 标题 (# ## ### 等)
-                @"^\*\*.*\*\*",          // 粗体
-                @"^_.*_",                // 斜体
-                @"^\*\s+",               // 无序列表
-                @"^\d+\.\s+",            // 有序列表
-                @"^>\s+",                // 引用
-                @"^```",                 // 代码块
-                @"^\|.*\|",              // 表格
-                @"^\[.*\]\(.*\)",        // 链接
-                @"^---+$",               // 分隔线
-                @"^===+$"                // 分隔线
-            };
-
-            var lines = content.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var line in lines)
-            {
-                foreach (var pattern in markdownPatterns)
-                {
-                    if (System.Text.RegularExpressions.Regex.IsMatch(line.Trim(), pattern))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// 从常见格式中提取 Markdown 内容
-        /// </summary>
-        private string ExtractFromCommonFormats(string content)
-        {
-            // 移除可能的 JSON 字符串包装
-            if (content.StartsWith("\"") && content.EndsWith("\""))
-            {
-                content = content.Substring(1, content.Length - 2);
-                content = ProcessEscapeSequences(content);
-                _vpetLLM?.Log("MarkdownViewer: Extracted from JSON string format");
-            }
-
-            // 移除可能的 XML/HTML 包装
-            var xmlPattern = new System.Text.RegularExpressions.Regex(@"^<!\[CDATA\[(.*)\]\]>$", 
-                System.Text.RegularExpressions.RegexOptions.Singleline);
-            var xmlMatch = xmlPattern.Match(content);
-            if (xmlMatch.Success)
-            {
-                content = xmlMatch.Groups[1].Value;
-                _vpetLLM?.Log("MarkdownViewer: Extracted from CDATA format");
-            }
-
-            return content;
-        }
 
         public void Unload()
         {
@@ -202,5 +113,176 @@ namespace MarkdownViewerPlugin
             if (_vpetLLM == null) return;
             _vpetLLM.Log(message);
         }
+
+        #region IPluginTakeover 实现
+
+        /// <summary>
+        /// 开始接管处理
+        /// </summary>
+        public Task<bool> BeginTakeoverAsync(string initialContent)
+        {
+            try
+            {
+                Log("MarkdownViewer: 开始接管模式");
+                _isTakingOver = true;
+                _takeoverContent.Clear();
+                _takeoverContent.Append(initialContent);
+
+                // 确保依赖可解析
+                try { DependencyResolver.Ensure(FilePath); } catch { }
+
+                // 创建窗口
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    _takeoverWindow = new winMarkdownViewer();
+                    _takeoverWindow.Show();
+                    try { _takeoverWindow.Activate(); _takeoverWindow.Topmost = true; _takeoverWindow.Topmost = false; } catch { }
+                    _takeoverWindow.SetTitleFromSource("Streaming Markdown");
+                    
+                    // 显示初始内容
+                    if (!string.IsNullOrEmpty(initialContent))
+                    {
+                        _takeoverWindow.RenderMarkdown(initialContent);
+                    }
+                });
+
+                Log($"MarkdownViewer: 接管开始成功，初始内容长度: {initialContent.Length}");
+                return Task.FromResult(true);
+            }
+            catch (Exception ex)
+            {
+                Log($"MarkdownViewer: 接管开始失败: {ex.Message}");
+                _isTakingOver = false;
+                return Task.FromResult(false);
+            }
+        }
+
+        /// <summary>
+        /// 处理接管期间的内容片段
+        /// </summary>
+        public Task<bool> ProcessTakeoverContentAsync(string content)
+        {
+            try
+            {
+                if (!_isTakingOver || _takeoverWindow == null)
+                    return Task.FromResult(false);
+
+                _takeoverContent.Append(content);
+                var fullContent = _takeoverContent.ToString();
+
+                // 节流更新：避免过于频繁的渲染
+                var now = DateTime.Now;
+                var timeSinceLastUpdate = (now - _lastUpdateTime).TotalMilliseconds;
+                
+                if (timeSinceLastUpdate >= UPDATE_INTERVAL_MS)
+                {
+                    // 实时更新窗口内容
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        if (_takeoverWindow != null && !_takeoverWindow.IsClosed)
+                        {
+                            _takeoverWindow.RenderMarkdown(fullContent);
+                            _lastUpdateTime = now;
+                        }
+                    });
+                    
+                    Log($"MarkdownViewer: 更新渲染，当前总长度: {fullContent.Length}");
+                }
+                else
+                {
+                    // 跳过此次更新，但内容已累积
+                    Log($"MarkdownViewer: 累积内容片段，当前总长度: {fullContent.Length}（跳过渲染）");
+                }
+
+                return Task.FromResult(true);
+            }
+            catch (Exception ex)
+            {
+                Log($"MarkdownViewer: 处理内容片段失败: {ex.Message}");
+                return Task.FromResult(false);
+            }
+        }
+
+        /// <summary>
+        /// 结束接管处理
+        /// </summary>
+        public Task<string> EndTakeoverAsync()
+        {
+            try
+            {
+                Log("MarkdownViewer: 结束接管模式，准备最终渲染");
+                
+                var finalContent = _takeoverContent.ToString();
+                
+                // 最终统一更新：确保所有内容都被正确渲染
+                if (_takeoverWindow != null)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        if (_takeoverWindow != null && !_takeoverWindow.IsClosed)
+                        {
+                            Log($"MarkdownViewer: 执行最终渲染，内容长度: {finalContent.Length}");
+                            
+                            // 强制完整渲染，确保没有遗漏
+                            _takeoverWindow.RenderMarkdown(finalContent);
+                            
+                            // 更新窗口标题，标记为完成状态
+                            _takeoverWindow.SetTitleFromSource("Markdown (Complete)");
+                            
+                            Log("MarkdownViewer: 最终渲染完成");
+                        }
+                        else
+                        {
+                            Log("MarkdownViewer: 窗口已关闭，跳过最终渲染");
+                        }
+                    });
+                }
+                else
+                {
+                    Log("MarkdownViewer: 窗口为 null，跳过最终渲染");
+                }
+
+                _isTakingOver = false;
+                _takeoverContent.Clear();
+                
+                Log($"MarkdownViewer: 接管结束，最终内容长度: {finalContent.Length}");
+                return Task.FromResult("Markdown rendered successfully in streaming mode.");
+            }
+            catch (Exception ex)
+            {
+                Log($"MarkdownViewer: 结束接管失败: {ex.Message}");
+                _isTakingOver = false;
+                return Task.FromResult($"Failed to end takeover: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 检查是否应该结束接管
+        /// </summary>
+        public bool ShouldEndTakeover(string content)
+        {
+            // 检测闭合标记 )]
+            // 需要确保括号匹配
+            int openCount = 0;
+            int closeCount = 0;
+
+            foreach (char c in content)
+            {
+                if (c == '(') openCount++;
+                else if (c == ')') closeCount++;
+            }
+
+            // 当括号完全匹配且至少有一对括号时，认为应该结束
+            var shouldEnd = openCount > 0 && openCount == closeCount && content.TrimEnd().EndsWith(")]");
+            
+            if (shouldEnd)
+            {
+                Log($"MarkdownViewer: 检测到接管结束标记，括号匹配: ({openCount}, {closeCount})");
+            }
+
+            return shouldEnd;
+        }
+
+        #endregion
     }
 }
