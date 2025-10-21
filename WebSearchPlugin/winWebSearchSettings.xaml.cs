@@ -123,7 +123,6 @@ namespace WebSearchPlugin
                 MessageBox.Show("设置已保存！\n\n部分设置可能需要重新加载插件才能生效。", 
                     "保存成功", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                DialogResult = true;
                 Close();
             }
             catch (Exception ex)
@@ -135,7 +134,6 @@ namespace WebSearchPlugin
 
         private void OnCancel(object sender, RoutedEventArgs e)
         {
-            DialogResult = false;
             Close();
         }
     }

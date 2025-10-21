@@ -28,8 +28,8 @@ namespace WebSearchPlugin
                 }
             }
         }
-        public string Parameters => "action, query/url";
-        public string Examples => "Search: [:plugin(WebSearch(search|AMD 9950HX))]\nFetch: [:plugin(WebSearch(fetch|https://example.com))]\nSettings: [:plugin(WebSearch(action(setting)))]";
+        public string Parameters => "search|query, fetch|url, action(setting)";
+        public string Examples => "Examples: `[:plugin(WebSearch(search|AMD 9950HX))]`, `[:plugin(WebSearch(fetch|https://example.com))]`";
         public bool Enabled { get; set; } = true;
         public string FilePath { get; set; } = "";
 
