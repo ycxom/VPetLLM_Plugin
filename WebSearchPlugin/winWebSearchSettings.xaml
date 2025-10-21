@@ -1,0 +1,141 @@
+<Window x:Class="WebSearchPlugin.winWebSearchSettings"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="WebSearch 插件设置"
+        Height="500"
+        Width="500"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="#F5F5F5">
+
+    <Window.Resources>
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+
+        <Style x:Key="SettingLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#555555"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+
+        <Style x:Key="DescriptionText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#888888"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,5,0,0"/>
+        </Style>
+
+        <Style x:Key="ModernTextBox" TargetType="TextBox">
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#0078D4"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="20,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#005A9E"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#E1E1E1"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#D1D1D1"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- 代理设置 -->
+                <TextBlock Text="代理设置" Style="{StaticResource SectionTitle}"/>
+                <Border Background="White" Padding="15" CornerRadius="5" Margin="0,0,0,20">
+                    <StackPanel>
+                        <CheckBox x:Name="chkUseVPetLLMProxy" Content="使用 VPetLLM 的代理配置" FontSize="13" Checked="OnProxyModeChanged" Unchecked="OnProxyModeChanged"/>
+                        <TextBlock Style="{StaticResource DescriptionText}" Margin="0,5,0,15">
+                            自动使用 VPetLLM 主程序的代理设置（推荐）
+                        </TextBlock>
+
+                        <CheckBox x:Name="chkEnableCustomProxy" Content="使用自定义代理" FontSize="13" Checked="OnProxyModeChanged" Unchecked="OnProxyModeChanged"/>
+                        <TextBlock Style="{StaticResource DescriptionText}" Margin="0,5,0,10">
+                            配置插件专用的代理设置
+                        </TextBlock>
+
+                        <StackPanel x:Name="pnlCustomProxy" Margin="20,10,0,0">
+                            <CheckBox x:Name="chkUseSystemProxy" Content="使用系统代理" FontSize="13" Margin="0,0,0,10" Checked="OnSystemProxyChanged" Unchecked="OnSystemProxyChanged"/>
+
+                            <StackPanel x:Name="pnlProxyAddress">
+                                <TextBlock Text="代理协议" Style="{StaticResource SettingLabel}"/>
+                                <ComboBox x:Name="cmbProtocol" FontSize="13" Margin="0,0,0,10">
+                                    <ComboBoxItem Content="http" IsSelected="True"/>
+                                    <ComboBoxItem Content="https"/>
+                                    <ComboBoxItem Content="socks5"/>
+                                </ComboBox>
+
+                                <TextBlock Text="代理地址" Style="{StaticResource SettingLabel}"/>
+                                <TextBox x:Name="txtProxyAddress" Style="{StaticResource ModernTextBox}" Margin="0,0,0,5"/>
+                                <TextBlock Style="{StaticResource DescriptionText}">
+                                    格式：IP:端口 或 域名:端口，例如：127.0.0.1:7890
+                                </TextBlock>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 搜索设置 -->
+                <TextBlock Text="搜索设置" Style="{StaticResource SectionTitle}"/>
+                <Border Background="White" Padding="15" CornerRadius="5">
+                    <StackPanel>
+                        <TextBlock Text="最大搜索结果数" Style="{StaticResource SettingLabel}"/>
+                        <TextBox x:Name="txtMaxResults" Style="{StaticResource ModernTextBox}" Margin="0,0,0,15"/>
+
+                        <TextBlock Text="最大内容长度" Style="{StaticResource SettingLabel}"/>
+                        <TextBox x:Name="txtMaxContentLength" Style="{StaticResource ModernTextBox}" Margin="0,0,0,5"/>
+                        <TextBlock Style="{StaticResource DescriptionText}">
+                            网页内容超过此长度将被截断（字符数）
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="保存" Style="{StaticResource PrimaryButton}" Click="OnSave" Margin="0,0,10,0"/>
+            <Button Content="取消" Style="{StaticResource SecondaryButton}" Click="OnCancel"/>
+        </StackPanel>
+    </Grid>
+</Window>

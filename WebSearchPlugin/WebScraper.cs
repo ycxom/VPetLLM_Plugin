@@ -10,6 +10,7 @@ namespace WebSearchPlugin
     public class WebScraper
     {
         private readonly HttpClient _httpClient;
+        public int MaxContentLength { get; set; } = 20000;
 
         public WebScraper(HttpClient httpClient)
         {
@@ -20,7 +21,7 @@ namespace WebSearchPlugin
         {
             try
             {
-                VPetLLM.Utils.Logger.Log($"WebScraper: Fetching {url}");
+                VPetLLM.Utils.Logger.Log($"WebScraper: Fetching {url} (Local Mode)");
 
                 // 获取网页内容
                 var html = await FetchHtml(url);
@@ -107,61 +108,122 @@ namespace WebSearchPlugin
 
         private HtmlNode? ExtractMainContent(HtmlDocument doc)
         {
-            // 尝试常见的主内容选择器
+            // 尝试常见的主内容选择器（优先级从高到低）
             var selectors = new[]
             {
                 "//article",
                 "//main",
+                "//*[@role='main']",
                 "//*[@id='content']",
+                "//*[@id='main-content']",
                 "//*[@id='main']",
+                "//*[@id='article']",
+                "//*[contains(@class, 'article-content')]",
+                "//*[contains(@class, 'post-content')]",
+                "//*[contains(@class, 'entry-content')]",
+                "//*[contains(@class, 'content-main')]",
+                "//*[contains(@class, 'main-content')]",
                 "//*[@class='content']",
                 "//*[@class='main']",
-                "//*[@class='article']",
-                "//*[@role='main']"
+                "//*[@class='article']"
             };
 
             foreach (var selector in selectors)
             {
-                var node = doc.DocumentNode.SelectSingleNode(selector);
-                if (node != null)
+                try
                 {
-                    VPetLLM.Utils.Logger.Log($"WebScraper: Found main content using selector: {selector}");
-                    return node;
+                    var node = doc.DocumentNode.SelectSingleNode(selector);
+                    if (node != null && node.InnerText.Trim().Length > 200)
+                    {
+                        VPetLLM.Utils.Logger.Log($"WebScraper: Found main content using selector: {selector}");
+                        return node;
+                    }
                 }
+                catch { }
             }
 
-            // 如果没找到，尝试找最大的 div
+            // 智能查找：基于内容密度和文本长度
+            return FindContentByDensity(doc);
+        }
+
+        private HtmlNode? FindContentByDensity(HtmlDocument doc)
+        {
             try
             {
-                var divs = doc.DocumentNode.SelectNodes("//div");
-                if (divs != null && divs.Count > 0)
+                var candidates = doc.DocumentNode.SelectNodes("//div | //section | //article");
+                if (candidates == null || candidates.Count == 0)
                 {
-                    HtmlNode? largestDiv = null;
-                    int maxLength = 0;
+                    return null;
+                }
 
-                    foreach (var div in divs)
-                    {
-                        var textLength = div.InnerText.Length;
-                        if (textLength > maxLength)
-                        {
-                            maxLength = textLength;
-                            largestDiv = div;
-                        }
-                    }
+                HtmlNode? bestNode = null;
+                double bestScore = 0;
 
-                    if (largestDiv != null && maxLength > 500)
+                foreach (var node in candidates)
+                {
+                    var score = CalculateContentScore(node);
+                    if (score > bestScore)
                     {
-                        VPetLLM.Utils.Logger.Log($"WebScraper: Using largest div ({maxLength} chars)");
-                        return largestDiv;
+                        bestScore = score;
+                        bestNode = node;
                     }
+                }
+
+                if (bestNode != null && bestScore > 100)
+                {
+                    VPetLLM.Utils.Logger.Log($"WebScraper: Found content by density (score: {bestScore:F2})");
+                    return bestNode;
                 }
             }
             catch (Exception ex)
             {
-                VPetLLM.Utils.Logger.Log($"WebScraper: Error finding largest div: {ex.Message}");
+                VPetLLM.Utils.Logger.Log($"WebScraper: Error in density analysis: {ex.Message}");
             }
 
             return null;
+        }
+
+        private double CalculateContentScore(HtmlNode node)
+        {
+            try
+            {
+                var text = node.InnerText.Trim();
+                var textLength = text.Length;
+                
+                // 文本太短，不是主内容
+                if (textLength < 200) return 0;
+
+                // 计算文本密度（文本长度 / HTML 长度）
+                var htmlLength = node.InnerHtml.Length;
+                var density = htmlLength > 0 ? (double)textLength / htmlLength : 0;
+
+                // 计算段落数量
+                var paragraphs = node.SelectNodes(".//p")?.Count ?? 0;
+
+                // 计算链接密度（链接文本 / 总文本）
+                var links = node.SelectNodes(".//a");
+                var linkTextLength = 0;
+                if (links != null)
+                {
+                    foreach (var link in links)
+                    {
+                        linkTextLength += link.InnerText.Length;
+                    }
+                }
+                var linkDensity = textLength > 0 ? (double)linkTextLength / textLength : 0;
+
+                // 综合评分
+                var score = textLength * 0.5 +           // 文本长度权重
+                           density * 1000 +              // 文本密度权重
+                           paragraphs * 50 -             // 段落数量加分
+                           linkDensity * 500;            // 链接密度惩罚
+
+                return score;
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         private string ConvertToMarkdown(HtmlDocument doc)
@@ -329,10 +391,9 @@ namespace WebSearchPlugin
 
             // 限制长度（避免内容过长）
             var result = sb.ToString();
-            const int maxLength = 15000;
-            if (result.Length > maxLength)
+            if (result.Length > MaxContentLength)
             {
-                result = result.Substring(0, maxLength);
+                result = result.Substring(0, MaxContentLength);
                 result += "\n\n---\n\n⚠️ 内容过长，已截断。完整内容请访问原网页。";
             }
 
