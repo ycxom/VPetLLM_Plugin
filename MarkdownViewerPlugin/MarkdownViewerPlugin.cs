@@ -38,7 +38,10 @@ namespace MarkdownViewerPlugin
         private winMarkdownViewer _takeoverWindow;
         private bool _isTakingOver = false;
         private DateTime _lastUpdateTime = DateTime.MinValue;
-        private const int UPDATE_INTERVAL_MS = 100; // 更新间隔：100ms
+        private const int UPDATE_INTERVAL_MS = 50; // 更新间隔：50ms（更流畅的实时渲染）
+        private System.Threading.Timer _renderTimer;
+        private bool _hasPendingUpdate = false;
+        private readonly object _updateLock = new object();
 
         public void Initialize(VPetLLM.VPetLLM plugin)
         {
@@ -123,10 +126,11 @@ namespace MarkdownViewerPlugin
         {
             try
             {
-                Log("MarkdownViewer: 开始接管模式");
+                Log("MarkdownViewer: 开始接管模式（流式渲染）");
                 _isTakingOver = true;
                 _takeoverContent.Clear();
                 _takeoverContent.Append(initialContent);
+                _hasPendingUpdate = false;
 
                 // 确保依赖可解析
                 try { DependencyResolver.Ensure(FilePath); } catch { }
@@ -137,7 +141,7 @@ namespace MarkdownViewerPlugin
                     _takeoverWindow = new winMarkdownViewer();
                     _takeoverWindow.Show();
                     try { _takeoverWindow.Activate(); _takeoverWindow.Topmost = true; _takeoverWindow.Topmost = false; } catch { }
-                    _takeoverWindow.SetTitleFromSource("Streaming Markdown");
+                    _takeoverWindow.SetTitleFromSource("Streaming Markdown ⚡");
                     
                     // 显示初始内容
                     if (!string.IsNullOrEmpty(initialContent))
@@ -145,6 +149,9 @@ namespace MarkdownViewerPlugin
                         _takeoverWindow.RenderMarkdown(initialContent);
                     }
                 });
+
+                // 启动定时器，用于批量渲染累积的内容
+                _renderTimer = new System.Threading.Timer(RenderPendingContent, null, UPDATE_INTERVAL_MS, UPDATE_INTERVAL_MS);
 
                 Log($"MarkdownViewer: 接管开始成功，初始内容长度: {initialContent.Length}");
                 return Task.FromResult(true);
@@ -158,7 +165,7 @@ namespace MarkdownViewerPlugin
         }
 
         /// <summary>
-        /// 处理接管期间的内容片段
+        /// 处理接管期间的内容片段（流式渲染）
         /// </summary>
         public Task<bool> ProcessTakeoverContentAsync(string content)
         {
@@ -167,31 +174,10 @@ namespace MarkdownViewerPlugin
                 if (!_isTakingOver || _takeoverWindow == null)
                     return Task.FromResult(false);
 
-                _takeoverContent.Append(content);
-                var fullContent = _takeoverContent.ToString();
-
-                // 节流更新：避免过于频繁的渲染
-                var now = DateTime.Now;
-                var timeSinceLastUpdate = (now - _lastUpdateTime).TotalMilliseconds;
-                
-                if (timeSinceLastUpdate >= UPDATE_INTERVAL_MS)
+                lock (_updateLock)
                 {
-                    // 实时更新窗口内容
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        if (_takeoverWindow != null && !_takeoverWindow.IsClosed)
-                        {
-                            _takeoverWindow.RenderMarkdown(fullContent);
-                            _lastUpdateTime = now;
-                        }
-                    });
-                    
-                    Log($"MarkdownViewer: 更新渲染，当前总长度: {fullContent.Length}");
-                }
-                else
-                {
-                    // 跳过此次更新，但内容已累积
-                    Log($"MarkdownViewer: 累积内容片段，当前总长度: {fullContent.Length}（跳过渲染）");
+                    _takeoverContent.Append(content);
+                    _hasPendingUpdate = true;
                 }
 
                 return Task.FromResult(true);
@@ -204,6 +190,54 @@ namespace MarkdownViewerPlugin
         }
 
         /// <summary>
+        /// 定时器回调：渲染累积的内容
+        /// </summary>
+        private void RenderPendingContent(object state)
+        {
+            try
+            {
+                if (!_isTakingOver || _takeoverWindow == null)
+                    return;
+
+                bool shouldRender = false;
+                string contentToRender = null;
+
+                lock (_updateLock)
+                {
+                    if (_hasPendingUpdate)
+                    {
+                        contentToRender = _takeoverContent.ToString();
+                        _hasPendingUpdate = false;
+                        shouldRender = true;
+                    }
+                }
+
+                if (shouldRender && contentToRender != null)
+                {
+                    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        try
+                        {
+                            if (_takeoverWindow != null && !_takeoverWindow.IsClosed)
+                            {
+                                _takeoverWindow.RenderMarkdown(contentToRender);
+                                _lastUpdateTime = DateTime.Now;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log($"MarkdownViewer: 渲染失败: {ex.Message}");
+                        }
+                    }));
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"MarkdownViewer: 定时渲染失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// 结束接管处理
         /// </summary>
         public Task<string> EndTakeoverAsync()
@@ -211,6 +245,10 @@ namespace MarkdownViewerPlugin
             try
             {
                 Log("MarkdownViewer: 结束接管模式，准备最终渲染");
+                
+                // 停止定时器
+                _renderTimer?.Dispose();
+                _renderTimer = null;
                 
                 var finalContent = _takeoverContent.ToString();
                 
@@ -227,7 +265,7 @@ namespace MarkdownViewerPlugin
                             _takeoverWindow.RenderMarkdown(finalContent);
                             
                             // 更新窗口标题，标记为完成状态
-                            _takeoverWindow.SetTitleFromSource("Markdown (Complete)");
+                            _takeoverWindow.SetTitleFromSource("Markdown ✓");
                             
                             Log("MarkdownViewer: 最终渲染完成");
                         }
@@ -243,6 +281,7 @@ namespace MarkdownViewerPlugin
                 }
 
                 _isTakingOver = false;
+                _hasPendingUpdate = false;
                 _takeoverContent.Clear();
                 
                 Log($"MarkdownViewer: 接管结束，最终内容长度: {finalContent.Length}");
@@ -252,6 +291,8 @@ namespace MarkdownViewerPlugin
             {
                 Log($"MarkdownViewer: 结束接管失败: {ex.Message}");
                 _isTakingOver = false;
+                _renderTimer?.Dispose();
+                _renderTimer = null;
                 return Task.FromResult($"Failed to end takeover: {ex.Message}");
             }
         }

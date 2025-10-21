@@ -75,13 +75,13 @@
     "Name": "MarkdownViewer",
     "Author": "ycxom",
     "Description": {
-      "ja": "Markdown を独立ウィンドウでレンダリング表示します（チュートリアル等向け）。",
-      "zh-hans": "在独立窗口中渲染显示 Markdown（适合教程等内容）。",
-      "zh-hant": "在獨立視窗中渲染顯示 Markdown（適合教學等內容）。",
-      "en": "Render and display Markdown in a standalone window (good for tutorials)."
+      "ja": "標準 Markdown ドキュメントを独立ウィンドウでレンダリングして表示します。標準 Markdown 形式を使用してください。見出し、リスト、コードブロック、テーブルなどをサポートします。",
+      "zh-hans": "在独立窗口中渲染并显示标准 Markdown 文档。请使用标准 Markdown 格式，支持标题、列表、代码块、表格等。",
+      "zh-hant": "在獨立視窗中渲染並顯示標準 Markdown 文件。請使用標準 Markdown 格式，支援標題、清單、程式碼區塊、表格等。",
+      "en": "Render and display standard Markdown documents in a standalone window. Use standard Markdown format. Supports headings, lists, code blocks, tables, etc."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MarkdownViewerPlugin/plugin/MarkdownViewerPlugin.dll",
-    "SHA256": "e1c1c0ed20bd0a3c29b75dcf85303aaccdb8116873839ff6b34505f900a739ff"
+    "SHA256": "217b3fae34d36d48297d206355c8dba0fc79112382f5384cb97dcc387c5a5653"
   },
   "WebSearchPlugin": {
     "Name": "WebSearch",
