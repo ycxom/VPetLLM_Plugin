@@ -27,7 +27,7 @@ public class SystemInfoPlugin : IActionPlugin
         }
     }
     public string Parameters => ""; // 不用传参留空
-    public string Examples => "Example: `[:plugin(system_info())]`";   //  给ai一个示例，用于帮助ai调用
+    public string Examples => "Example: `<|plugin_system_info_begin|> <|plugin_system_info_end|>`";   //  给ai一个示例，用于帮助ai调用
     public bool Enabled { get; set; } = true;
     public string FilePath { get; set; } = "";
 

@@ -26,7 +26,7 @@ public class ExamplePlugin : IActionPlugin
         }
     }
     public string Parameters => ""; // This plugin does not require any parameters.
-    public string Examples => "Example: `[:plugin(example_plugin())]`";
+    public string Examples => "Example: `<|plugin_example_plugin_begin|> <|plugin_example_plugin_end|>`";
     public bool Enabled { get; set; } = true;
     public string FilePath { get; set; } = "";
 

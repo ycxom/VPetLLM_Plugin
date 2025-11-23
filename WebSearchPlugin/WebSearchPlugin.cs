@@ -29,7 +29,7 @@ namespace WebSearchPlugin
             }
         }
         public string Parameters => "search|query, fetch|url, action(setting)";
-        public string Examples => "Examples: `[:plugin(WebSearch(search|AMD 9950HX))]`, `[:plugin(WebSearch(fetch|https://example.com))]`";
+        public string Examples => "Examples: `<|plugin_WebSearch_begin|> search|AMD 9950HX <|plugin_WebSearch_end|>`, `<|plugin_WebSearch_begin|> fetch|https://example.com <|plugin_WebSearch_end|>`";
         public bool Enabled { get; set; } = true;
         public string FilePath { get; set; } = "";
 
@@ -301,7 +301,7 @@ namespace WebSearchPlugin
             }
 
             sb.AppendLine("\n---");
-            sb.AppendLine("💡 使用 `[:plugin(WebSearch(fetch|网址))]` 获取完整网页内容");
+            sb.AppendLine("💡 使用 `<|plugin_WebSearch_begin|> fetch|网址 <|plugin_WebSearch_end|>` 获取完整网页内容");
 
             return sb.ToString();
         }

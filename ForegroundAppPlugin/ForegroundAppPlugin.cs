@@ -35,7 +35,7 @@ namespace ForegroundAppPlugin
             }
         }
         public string Parameters => "setting";
-        public string Examples => "";
+        public string Examples => "Example: `<|plugin_ForegroundAppWatcher_begin|> action(setting) <|plugin_ForegroundAppWatcher_end|>`";
         public bool Enabled { get; set; } = true;
         public string FilePath { get; set; } = "";
         public string PluginDataDir { get; set; } = "";

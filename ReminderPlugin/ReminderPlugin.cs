@@ -27,7 +27,7 @@ public class ReminderPlugin : IActionPlugin
             }
         }
     }
-    public string Examples => "Example: `[:plugin(reminder(time(10), unit(minutes), event(\"study\")))]`";
+    public string Examples => "Example: `<|plugin_reminder_begin|> time(10), unit(minutes), event(\"study\") <|plugin_reminder_end|>`";
 
     public string Parameters => "time(int), unit(string, optional: seconds/minutes), event(string)";
     public bool Enabled { get; set; } = true;

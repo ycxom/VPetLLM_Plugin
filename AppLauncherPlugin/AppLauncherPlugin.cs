@@ -36,7 +36,7 @@ namespace AppLauncherPlugin
             }
         }
         public string Parameters => "app_name|action(setting|list)";
-        public string Examples => "Examples: `[:plugin(AppLauncher(notepad))]`, `[:plugin(AppLauncher(action(setting)))]`, `[:plugin(AppLauncher(action(list)))]`";
+        public string Examples => "Examples: `<|plugin_AppLauncher_begin|> notepad <|plugin_AppLauncher_end|>`, `<|plugin_AppLauncher_begin|> action(setting) <|plugin_AppLauncher_end|>`, `<|plugin_AppLauncher_begin|> action(list) <|plugin_AppLauncher_end|>`";
         public bool Enabled { get; set; } = true;
         public string FilePath { get; set; } = "";
         public string PluginDataDir { get; set; } = "";

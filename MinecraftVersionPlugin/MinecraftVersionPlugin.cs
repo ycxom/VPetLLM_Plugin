@@ -33,7 +33,7 @@ namespace MinecraftVersionPlugin
             }
         }
         public string Parameters => "setting";
-        public string Examples => "Examples: `[:plugin(MinecraftVersionWatcher(action(setting)))]`, `[:plugin(MinecraftVersionWatcher(action(servers_status)))]`";
+        public string Examples => "Examples: `<|plugin_MinecraftVersionWatcher_begin|> action(setting) <|plugin_MinecraftVersionWatcher_end|>`, `<|plugin_MinecraftVersionWatcher_begin|> action(servers_status) <|plugin_MinecraftVersionWatcher_end|>`";
         public bool Enabled { get; set; } = true;
         public string FilePath { get; set; } = "";
         public string PluginDataDir { get; set; } = "";

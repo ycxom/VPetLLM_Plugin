@@ -26,7 +26,7 @@ namespace MarkdownViewerPlugin
             }
         }
         public string Parameters => "markdown_content";
-        public string Examples => "[:plugin(MarkdownViewer(# Python Example\n\n```python\ndef hello():\n    print(\"Hello\")\n```\n\n## Explanation\nThis is a simple function.))]";
+        public string Examples => "Example: `<|plugin_MarkdownViewer_begin|> # Python Example\n\n```python\ndef hello():\n    print(\"Hello\")\n```\n\n## Explanation\nThis is a simple function. <|plugin_MarkdownViewer_end|>`";
         public bool Enabled { get; set; } = true;
         public string FilePath { get; set; } = "";
 

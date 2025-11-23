@@ -27,7 +27,7 @@ public class MoneyManagerPlugin : IActionPlugin
             }
         }
     }
-    public string Examples => "Example: `[:plugin(money_manager(action(add), amount(100)))]` or `[:plugin(money_manager(action(set), amount(500)))]`";
+    public string Examples => "Examples: `<|plugin_money_manager_begin|> action(add), amount(100) <|plugin_money_manager_end|>`, `<|plugin_money_manager_begin|> action(set), amount(500) <|plugin_money_manager_end|>`";
     public string Parameters => "action(string: add/sub/set), amount(double)";
     public bool Enabled { get; set; } = true;
     public string FilePath { get; set; } = "";
