@@ -94,5 +94,17 @@
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WebSearchPlugin/plugin/WebSearchPlugin.dll",
     "SHA256": "ff7216b9cf090d3f99e767cfbd4cf86f4c16dc55f82a75641675ad47066c0df0"
+  },
+  "WeatherPlugin": {
+    "Name": "Weather",
+    "Author": "ycxom",
+    "Description": {
+      "ja": "中国地域の天気情報を照会します。注意：このAPIは中国地域のデータのみをサポートしています。",
+      "zh-hans": "查询中国地区天气信息。注意：该接口仅支持中国地区数据。",
+      "zh-hant": "查詢中國地區天氣資訊。注意：該接口僅支持中國地區數據。",
+      "en": "Query weather information for China regions. Note: This API only supports China region data."
+    },
+    "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WeatherPlugin/plugin/WeatherPlugin.dll",
+    "SHA256": "3cd35ac7a6b60e5ab6a5a340b41abeff0459a7ef9e49a9419e481a30ae17fb16"
   }
 }

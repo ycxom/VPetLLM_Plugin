@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdateSHA_Helper", "UpdateS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebSearchPlugin", "WebSearchPlugin\WebSearchPlugin.csproj", "{D0A4AE46-A598-38A3-DE58-3FB88F48B5B2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherPlugin", "WeatherPlugin\WeatherPlugin.csproj", "{B1C2D3E4-F5A6-7890-ABCD-EF1234567890}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +70,10 @@ Global
 		{D0A4AE46-A598-38A3-DE58-3FB88F48B5B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0A4AE46-A598-38A3-DE58-3FB88F48B5B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0A4AE46-A598-38A3-DE58-3FB88F48B5B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1C2D3E4-F5A6-7890-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1C2D3E4-F5A6-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1C2D3E4-F5A6-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1C2D3E4-F5A6-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
