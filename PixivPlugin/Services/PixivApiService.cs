@@ -52,9 +52,18 @@ namespace PixivPlugin.Services
 
             try
             {
-                // 页码转换为 offset：第1页 offset=30，第2页 offset=60，以此类推
-                var offset = page * 30;
-                var url = $"{BaseUrl}/search?word={Uri.EscapeDataString(keyword)}&offset={offset}";
+                string url;
+                if (page <= 1)
+                {
+                    // 第一页不需要 offset 参数
+                    url = $"{BaseUrl}/search?word={Uri.EscapeDataString(keyword)}";
+                }
+                else
+                {
+                    // 第2页 offset=30，第3页 offset=60，以此类推
+                    var offset = (page - 1) * 30;
+                    url = $"{BaseUrl}/search?word={Uri.EscapeDataString(keyword)}&offset={offset}";
+                }
                 var response = await _httpClient.GetStringAsync(url);
                 return JsonConvert.DeserializeObject<PixivResponse>(response);
             }
