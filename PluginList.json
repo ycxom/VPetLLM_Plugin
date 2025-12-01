@@ -106,5 +106,17 @@
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WeatherPlugin/plugin/WeatherPlugin.dll",
     "SHA256": "3cd35ac7a6b60e5ab6a5a340b41abeff0459a7ef9e49a9419e481a30ae17fb16"
+  },
+  "PixivPlugin": {
+    "Name": "Pixiv",
+    "Author": "ycxom",
+    "Description": {
+      "ja": "Pixiv画像を検索したり、ランダムなおすすめ画像を取得します。",
+      "zh-hans": "搜索 Pixiv 图片或获取随机推荐图片。",
+      "zh-hant": "搜尋 Pixiv 圖片或取得隨機推薦圖片。",
+      "en": "Search Pixiv images or get random recommended images."
+    },
+    "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/PixivPlugin/plugin/PixivPlugin.dll",
+    "SHA256": "7e87fa5212f89514506ef967f39703e6352a517198618fc156fb0130e84c8b95"
   }
 }

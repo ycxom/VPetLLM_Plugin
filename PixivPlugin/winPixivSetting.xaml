@@ -1,0 +1,65 @@
+<Window x:Class="PixivPlugin.winPixivSetting"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Pixiv 插件设置" Height="350" Width="450"
+        WindowStartupLocation="CenterScreen"
+        Background="#FF2D2D30"
+        ResizeMode="NoResize">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 代理设置标题 -->
+        <TextBlock Grid.Row="0" Text="代理设置（仅用于图片下载）" 
+                   Foreground="White" FontSize="14" FontWeight="Bold" Margin="0,0,0,15"/>
+
+        <!-- 启用代理 -->
+        <CheckBox x:Name="chkUseProxy" Grid.Row="1" Content="启用代理" 
+                  Foreground="White" Margin="0,0,0,10"
+                  Checked="chkUseProxy_Changed" Unchecked="chkUseProxy_Changed"/>
+
+        <!-- 代理模式选择 -->
+        <StackPanel Grid.Row="2" Margin="20,0,0,10">
+            <RadioButton x:Name="rbFollowVPetLLM" Content="跟随 VPetLLM 代理设置" 
+                         Foreground="White" Margin="0,0,0,8" GroupName="ProxyMode"
+                         Checked="ProxyMode_Changed"/>
+            <RadioButton x:Name="rbCustomProxy" Content="使用自定义代理" 
+                         Foreground="White" GroupName="ProxyMode"
+                         Checked="ProxyMode_Changed"/>
+        </StackPanel>
+
+        <!-- 自定义代理地址 -->
+        <StackPanel x:Name="pnlCustomProxy" Grid.Row="3" Margin="40,0,0,10">
+            <TextBlock Text="自定义代理地址:" Foreground="#FFAAAAAA" FontSize="12" Margin="0,0,0,5"/>
+            <TextBox x:Name="txtProxyUrl" Height="28" 
+                     Background="#FF3C3C3C" Foreground="White" BorderThickness="1"
+                     BorderBrush="#FF555555" Padding="5,3"/>
+            <TextBlock Text="格式: http://127.0.0.1:7890" Foreground="#FF666666" FontSize="11" Margin="0,3,0,0"/>
+        </StackPanel>
+
+        <!-- 说明 -->
+        <TextBlock Grid.Row="4" Foreground="#FF888888" FontSize="11" TextWrapping="Wrap" Margin="0,10,0,0">
+            注意：代理仅用于图片下载和预览，API 请求不使用代理。
+            <LineBreak/>
+            如果图片无法加载，请尝试启用代理。
+            <LineBreak/>
+            跟随 VPetLLM 代理需要在 VPetLLM 设置中启用代理。
+        </TextBlock>
+
+        <!-- 按钮 -->
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="btnSave" Content="保存" Width="80" Height="30" 
+                    Margin="0,0,10,0" Click="btnSave_Click"
+                    Background="#FF0078D4" Foreground="White" BorderThickness="0"/>
+            <Button x:Name="btnCancel" Content="取消" Width="80" Height="30" 
+                    Click="btnCancel_Click"
+                    Background="#FF3C3C3C" Foreground="White" BorderThickness="0"/>
+        </StackPanel>
+    </Grid>
+</Window>
