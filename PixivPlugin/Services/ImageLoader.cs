@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -6,14 +7,20 @@ using System.Windows.Media.Imaging;
 namespace PixivPlugin.Services
 {
     /// <summary>
-    /// 图片加载器，处理 Pixiv 防盗链
+    /// 图片加载器，处理 Pixiv 防盗链，支持内存缓存
     /// </summary>
     public class ImageLoader
     {
         private const string PixivReferer = "https://www.pixiv.net/";
+        private const int MaxCacheSize = 100; // 最大缓存数量
         
         private HttpClient _httpClient;
         private string? _proxyUrl;
+        
+        // 图片缓存（URL -> BitmapImage）
+        private readonly ConcurrentDictionary<string, BitmapImage> _imageCache = new();
+        // 缓存访问顺序（用于LRU淘汰）
+        private readonly ConcurrentQueue<string> _cacheOrder = new();
 
         public ImageLoader()
         {
@@ -64,22 +71,67 @@ namespace PixivPlugin.Services
         }
 
         /// <summary>
-        /// 异步加载图片
+        /// 异步加载图片（带缓存）
         /// </summary>
         public async Task<BitmapImage?> LoadImageAsync(string url)
         {
             if (string.IsNullOrEmpty(url))
                 return null;
 
+            // 检查缓存
+            if (_imageCache.TryGetValue(url, out var cachedImage))
+            {
+                return cachedImage;
+            }
+
             try
             {
                 var bytes = await _httpClient.GetByteArrayAsync(url);
-                return BytesToBitmapImage(bytes);
+                var image = BytesToBitmapImage(bytes);
+                
+                // 添加到缓存
+                if (image != null)
+                {
+                    AddToCache(url, image);
+                }
+                
+                return image;
             }
             catch (Exception)
             {
                 return null;
             }
+        }
+        
+        /// <summary>
+        /// 添加图片到缓存，超出限制时淘汰最旧的
+        /// </summary>
+        private void AddToCache(string url, BitmapImage image)
+        {
+            // 如果已存在，不重复添加
+            if (_imageCache.ContainsKey(url))
+                return;
+                
+            // 淘汰旧缓存
+            while (_imageCache.Count >= MaxCacheSize && _cacheOrder.TryDequeue(out var oldUrl))
+            {
+                _imageCache.TryRemove(oldUrl, out _);
+            }
+            
+            // 添加新缓存
+            if (_imageCache.TryAdd(url, image))
+            {
+                _cacheOrder.Enqueue(url);
+            }
+        }
+        
+        /// <summary>
+        /// 清空缓存
+        /// </summary>
+        public void ClearCache()
+        {
+            _imageCache.Clear();
+            while (_cacheOrder.TryDequeue(out _)) { }
         }
 
         /// <summary>
@@ -162,6 +214,7 @@ namespace PixivPlugin.Services
 
         public void Dispose()
         {
+            ClearCache();
             _httpClient.Dispose();
         }
     }
