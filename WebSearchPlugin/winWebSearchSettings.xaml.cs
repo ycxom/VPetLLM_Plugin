@@ -43,6 +43,15 @@ namespace WebSearchPlugin
             
             txtProxyAddress.Text = _settings.Proxy.Address;
 
+            // API 设置
+            chkUseApiMode.IsChecked = _settings.Api.UseApiMode;
+            chkUseBuiltInCredentials.IsChecked = _settings.Api.UseBuiltInCredentials;
+            txtApiUrl.Text = _settings.Api.ApiUrl;
+            txtBearerToken.Text = _settings.Api.BearerToken;
+            chkEnableFallback.IsChecked = _settings.Api.EnableFallback;
+            UpdateApiUI();
+            UpdateBuiltInCredentialsUI();
+
             // 搜索设置
             txtMaxResults.Text = _settings.MaxSearchResults.ToString();
             txtMaxContentLength.Text = _settings.MaxContentLength.ToString();
@@ -85,10 +94,58 @@ namespace WebSearchPlugin
             UpdateProxyUI();
         }
 
+        private void OnApiModeChanged(object sender, RoutedEventArgs e)
+        {
+            UpdateApiUI();
+        }
+
+        private void UpdateApiUI()
+        {
+            pnlApiSettings.IsEnabled = chkUseApiMode.IsChecked == true;
+            UpdateBuiltInCredentialsUI();
+        }
+
+        private void OnBuiltInCredentialsChanged(object sender, RoutedEventArgs e)
+        {
+            UpdateBuiltInCredentialsUI();
+        }
+
+        private void UpdateBuiltInCredentialsUI()
+        {
+            if (pnlCustomCredentials != null)
+            {
+                pnlCustomCredentials.IsEnabled = chkUseBuiltInCredentials.IsChecked != true;
+            }
+        }
+
+        private bool ValidateApiUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return false;
+            }
+
+            return Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+                   (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+        }
+
         private void OnSave(object sender, RoutedEventArgs e)
         {
             try
             {
+                // 验证 API URL（如果启用了 API 模式且使用自定义凭证）
+                if (chkUseApiMode.IsChecked == true && chkUseBuiltInCredentials.IsChecked != true)
+                {
+                    var apiUrl = txtApiUrl.Text.Trim();
+                    if (!ValidateApiUrl(apiUrl))
+                    {
+                        txtApiUrlError.Text = "请输入有效的 HTTP/HTTPS URL";
+                        txtApiUrlError.Visibility = Visibility.Visible;
+                        return;
+                    }
+                    txtApiUrlError.Visibility = Visibility.Collapsed;
+                }
+
                 // 保存代理设置
                 _settings.Proxy.UseVPetLLMProxy = chkUseVPetLLMProxy.IsChecked == true;
                 _settings.Proxy.EnableCustomProxy = chkEnableCustomProxy.IsChecked == true;
@@ -102,6 +159,13 @@ namespace WebSearchPlugin
                 }
                 
                 _settings.Proxy.Address = txtProxyAddress.Text.Trim();
+
+                // 保存 API 设置
+                _settings.Api.UseApiMode = chkUseApiMode.IsChecked == true;
+                _settings.Api.UseBuiltInCredentials = chkUseBuiltInCredentials.IsChecked == true;
+                _settings.Api.ApiUrl = txtApiUrl.Text.Trim();
+                _settings.Api.BearerToken = txtBearerToken.Text.Trim();
+                _settings.Api.EnableFallback = chkEnableFallback.IsChecked == true;
 
                 // 保存搜索设置
                 if (int.TryParse(txtMaxResults.Text, out int maxResults))
@@ -120,7 +184,8 @@ namespace WebSearchPlugin
                 // 通知保存成功
                 _onSaved?.Invoke(_settings);
 
-                MessageBox.Show("设置已保存！\n\n部分设置可能需要重新加载插件才能生效。", 
+                var modeInfo = _settings.Api.UseApiMode ? "API 模式" : "本地模式";
+                MessageBox.Show($"设置已保存！\n\n当前模式：{modeInfo}", 
                     "保存成功", MessageBoxButton.OK, MessageBoxImage.Information);
 
                 Close();

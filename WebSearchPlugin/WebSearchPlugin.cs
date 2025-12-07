@@ -38,6 +38,7 @@ namespace WebSearchPlugin
         private WebScraper? _scraper;
         private SearchEngine? _searchEngine;
         private WebSearchSettings _settings;
+        private IContentFetcher? _contentFetcher;
 
         public WebSearchPlugin()
         {
@@ -88,8 +89,12 @@ namespace WebSearchPlugin
                 // 应用设置
                 _scraper.MaxContentLength = _settings.MaxContentLength;
                 
+                // 创建内容抓取器
+                CreateContentFetcher();
+                
                 var proxyInfo = GetProxyInfo(proxyToUse);
-                VPetLLM.Utils.Logger.Log($"WebSearch Plugin Initialized! (Local Mode, Proxy: {proxyInfo})");
+                var modeInfo = _settings.Api.UseApiMode ? "API Mode" : "Local Mode";
+                VPetLLM.Utils.Logger.Log($"WebSearch Plugin Initialized! ({modeInfo}, Proxy: {proxyInfo})");
             }
             catch (Exception ex)
             {
@@ -122,7 +127,43 @@ namespace WebSearchPlugin
                 _scraper.MaxContentLength = _settings.MaxContentLength;
             }
 
-            VPetLLM.Utils.Logger.Log("WebSearch: Settings applied. Some changes may require plugin reload.");
+            // 重新创建内容抓取器以应用新的 API 设置
+            CreateContentFetcher();
+
+            var modeInfo = _settings.Api.UseApiMode ? "API Mode" : "Local Mode";
+            VPetLLM.Utils.Logger.Log($"WebSearch: Settings applied. Current mode: {modeInfo}");
+        }
+
+        private void CreateContentFetcher()
+        {
+            if (_httpClient == null || _scraper == null)
+            {
+                return;
+            }
+
+            var localFetcher = new LocalContentFetcher(_scraper);
+
+            if (_settings.Api.UseApiMode)
+            {
+                var apiUrl = _settings.Api.GetEffectiveApiUrl();
+                var token = _settings.Api.GetEffectiveToken();
+                
+                _contentFetcher = new ApiContentFetcher(
+                    _httpClient,
+                    apiUrl,
+                    token,
+                    localFetcher,
+                    _settings.Api.EnableFallback
+                );
+                
+                var credentialType = _settings.Api.UseBuiltInCredentials ? "内置凭证" : "自定义凭证";
+                VPetLLM.Utils.Logger.Log($"WebSearch: Using API mode ({credentialType}, Fallback: {_settings.Api.EnableFallback})");
+            }
+            else
+            {
+                _contentFetcher = localFetcher;
+                VPetLLM.Utils.Logger.Log("WebSearch: Using Local mode");
+            }
         }
 
         private HttpClient CreateHttpClient(VPetLLM.Setting.ProxySetting proxySetting)
@@ -264,13 +305,63 @@ namespace WebSearchPlugin
 
         private async Task<string> HandleSearch(string query)
         {
+            _vpetLLM?.Log($"WebSearch: Searching for '{query}'");
+
+            // API 模式：通过 API 获取 Bing 搜索结果
+            if (_settings.Api.UseApiMode && _contentFetcher != null)
+            {
+                return await HandleSearchViaApi(query);
+            }
+
+            // 本地模式：使用本地搜索引擎
+            return await HandleSearchLocal(query);
+        }
+
+        private async Task<string> HandleSearchViaApi(string query)
+        {
+            // 构建 Bing 搜索 URL
+            var encodedQuery = Uri.EscapeDataString(query);
+            var searchUrl = $"https://www.bing.com/search?q={encodedQuery}";
+
+            _vpetLLM?.Log($"WebSearch: Searching via API: {searchUrl}");
+
+            var result = await _contentFetcher!.FetchAsync(searchUrl);
+
+            if (!result.Success)
+            {
+                // API 失败，尝试本地搜索
+                if (_settings.Api.EnableFallback)
+                {
+                    _vpetLLM?.Log($"WebSearch: API search failed, falling back to local search");
+                    return await HandleSearchLocal(query);
+                }
+                return $"错误：{result.ErrorMessage}";
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"# 搜索结果：{query}\n");
+            
+            if (result.UsedFallback)
+            {
+                sb.AppendLine("⚠️ API 模式失败，已降级到本地模式\n");
+            }
+            
+            sb.Append(result.Content);
+            
+            sb.AppendLine("\n\n---");
+            sb.AppendLine("💡 使用 `<|plugin_WebSearch_begin|> fetch|网址 <|plugin_WebSearch_end|>` 获取完整网页内容");
+
+            _vpetLLM?.Log($"WebSearch: Search completed via API (Mode: {result.Mode})");
+            return sb.ToString();
+        }
+
+        private async Task<string> HandleSearchLocal(string query)
+        {
             if (_searchEngine == null)
             {
                 return "错误：搜索引擎未初始化";
             }
 
-            _vpetLLM?.Log($"WebSearch: Searching for '{query}'");
-            
             var results = await _searchEngine.SearchMultipleEngines(query);
             
             if (results.Count == 0)
@@ -308,9 +399,9 @@ namespace WebSearchPlugin
 
         private async Task<string> HandleFetch(string url)
         {
-            if (_scraper == null)
+            if (_contentFetcher == null)
             {
-                return "错误：网页抓取器未初始化";
+                return "错误：内容抓取器未初始化";
             }
 
             _vpetLLM?.Log($"WebSearch: Fetching '{url}'");
@@ -320,14 +411,24 @@ namespace WebSearchPlugin
                 return $"错误：无效的URL '{url}'";
             }
 
-            var markdown = await _scraper.FetchAsMarkdown(url);
+            var result = await _contentFetcher.FetchAsync(url);
             
-            if (string.IsNullOrEmpty(markdown))
+            if (!result.Success)
             {
-                return "错误：无法获取网页内容";
+                return $"错误：{result.ErrorMessage}";
             }
 
-            return markdown;
+            // 添加模式信息到返回内容
+            var sb = new StringBuilder();
+            if (result.UsedFallback)
+            {
+                sb.AppendLine($"⚠️ API 模式失败，已降级到本地模式\n");
+            }
+            sb.Append(result.Content);
+            
+            _vpetLLM?.Log($"WebSearch: Fetch completed (Mode: {result.Mode}, Fallback: {result.UsedFallback})");
+
+            return sb.ToString();
         }
 
         public void Unload()

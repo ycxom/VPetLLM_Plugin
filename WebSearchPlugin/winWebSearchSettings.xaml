@@ -116,6 +116,41 @@
                     </StackPanel>
                 </Border>
 
+                <!-- API 模式设置 -->
+                <TextBlock Text="内容抓取模式" Style="{StaticResource SectionTitle}"/>
+                <Border Background="White" Padding="15" CornerRadius="5" Margin="0,0,0,20">
+                    <StackPanel>
+                        <CheckBox x:Name="chkUseApiMode" Content="使用 API 模式" FontSize="13" Checked="OnApiModeChanged" Unchecked="OnApiModeChanged"/>
+                        <TextBlock Style="{StaticResource DescriptionText}" Margin="0,5,0,15">
+                            使用远程 API 获取网页内容（Markdown 格式），关闭则使用本地 HTML 解析
+                        </TextBlock>
+
+                        <StackPanel x:Name="pnlApiSettings" Margin="20,0,0,0">
+                            <CheckBox x:Name="chkUseBuiltInCredentials" Content="使用内置 API 凭证（推荐）" FontSize="13" Checked="OnBuiltInCredentialsChanged" Unchecked="OnBuiltInCredentialsChanged"/>
+                            <TextBlock Style="{StaticResource DescriptionText}" Margin="0,5,0,15">
+                                使用预配置的 API 服务，无需额外设置
+                            </TextBlock>
+
+                            <StackPanel x:Name="pnlCustomCredentials">
+                                <TextBlock Text="API 地址" Style="{StaticResource SettingLabel}"/>
+                                <TextBox x:Name="txtApiUrl" Style="{StaticResource ModernTextBox}" Margin="0,0,0,5"/>
+                                <TextBlock x:Name="txtApiUrlError" Style="{StaticResource DescriptionText}" Foreground="Red" Visibility="Collapsed"/>
+                                <TextBlock Style="{StaticResource DescriptionText}" Margin="0,0,0,15">
+                                    自定义 API 端点地址
+                                </TextBlock>
+
+                                <TextBlock Text="Bearer Token" Style="{StaticResource SettingLabel}"/>
+                                <TextBox x:Name="txtBearerToken" Style="{StaticResource ModernTextBox}" Margin="0,0,0,15"/>
+                            </StackPanel>
+
+                            <CheckBox x:Name="chkEnableFallback" Content="API 失败时降级到本地模式" FontSize="13"/>
+                            <TextBlock Style="{StaticResource DescriptionText}" Margin="0,5,0,0">
+                                当 API 请求失败时，自动使用本地 HTML 解析作为备用方案
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
                 <!-- 搜索设置 -->
                 <TextBlock Text="搜索设置" Style="{StaticResource SectionTitle}"/>
                 <Border Background="White" Padding="15" CornerRadius="5">

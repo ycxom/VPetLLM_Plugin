@@ -2,3 +2,8 @@
 */obj
 *.log
 DevelopData
+
+#ide
+.vscode
+.kiro
+.ide

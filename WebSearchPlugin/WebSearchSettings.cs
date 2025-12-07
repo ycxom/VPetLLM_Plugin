@@ -13,6 +13,9 @@ namespace WebSearchPlugin
         public int MaxSearchResults { get; set; } = 5;
         public int MaxContentLength { get; set; } = 20000;
 
+        // API 设置
+        public ApiSettings Api { get; set; } = new ApiSettings();
+
         public class ProxySettings
         {
             public bool UseVPetLLMProxy { get; set; } = true;  // 使用 VPetLLM 的代理配置
@@ -20,6 +23,31 @@ namespace WebSearchPlugin
             public bool UseSystemProxy { get; set; } = false;
             public string Protocol { get; set; } = "http";
             public string Address { get; set; } = "127.0.0.1:7890";
+        }
+
+        public class ApiSettings
+        {
+            public bool UseApiMode { get; set; } = false;  // 是否使用 API 模式
+            public bool UseBuiltInCredentials { get; set; } = true;  // 使用内置凭证
+            public string ApiUrl { get; set; } = "";  // 自定义 API 地址
+            public string BearerToken { get; set; } = "";  // 自定义 Bearer Token
+            public bool EnableFallback { get; set; } = true;  // API 失败时是否降级到本地模式
+
+            /// <summary>
+            /// 获取实际使用的 API 地址
+            /// </summary>
+            public string GetEffectiveApiUrl()
+            {
+                return UseBuiltInCredentials ? ApiCredentials.GetBuiltInApiUrl() : ApiUrl;
+            }
+
+            /// <summary>
+            /// 获取实际使用的 Bearer Token
+            /// </summary>
+            public string GetEffectiveToken()
+            {
+                return UseBuiltInCredentials ? ApiCredentials.GetBuiltInToken() : BearerToken;
+            }
         }
 
         private static string GetSettingsPath()
