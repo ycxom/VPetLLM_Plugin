@@ -9,7 +9,7 @@ using VPetLLM.Core;
 
 namespace WebSearchPlugin
 {
-    public class WebSearchPlugin : IActionPlugin
+    public class WebSearchPlugin : IActionPlugin, IPluginWithData
     {
         public string Name => "WebSearch";
         public string Author => "ycxom";
@@ -32,6 +32,7 @@ namespace WebSearchPlugin
         public string Examples => "Examples: `<|plugin_WebSearch_begin|> search|AMD 9950HX <|plugin_WebSearch_end|>`, `<|plugin_WebSearch_begin|> fetch|https://example.com <|plugin_WebSearch_end|>`";
         public bool Enabled { get; set; } = true;
         public string FilePath { get; set; } = "";
+        public string PluginDataDir { get; set; } = "";
 
         private VPetLLM.VPetLLM? _vpetLLM;
         private HttpClient? _httpClient;
@@ -42,8 +43,8 @@ namespace WebSearchPlugin
 
         public WebSearchPlugin()
         {
-            // 加载设置
-            _settings = WebSearchSettings.Load();
+            // 设置将在 Initialize 中加载，因为需要 PluginDataDir
+            _settings = new WebSearchSettings();
         }
 
         public void Initialize(VPetLLM.VPetLLM plugin)
@@ -52,6 +53,8 @@ namespace WebSearchPlugin
             
             try
             {
+                // 加载设置（使用 PluginDataDir）
+                _settings = WebSearchSettings.Load(PluginDataDir);
                 // 根据设置决定使用哪个代理配置
                 VPetLLM.Setting.ProxySetting proxyToUse;
                 if (_settings.Proxy.UseVPetLLMProxy)
@@ -108,6 +111,7 @@ namespace WebSearchPlugin
         {
             try
             {
+                _settings.SetPluginDataDir(PluginDataDir);
                 var settingsWindow = new winWebSearchSettings(_settings, OnSettingsSaved);
                 settingsWindow.ShowDialog();
             }
@@ -258,6 +262,7 @@ namespace WebSearchPlugin
                         {
                             System.Windows.Application.Current.Dispatcher.Invoke(() =>
                             {
+                                _settings.SetPluginDataDir(PluginDataDir);
                                 var settingWindow = new winWebSearchSettings(_settings, OnSettingsSaved);
                                 settingWindow.Show();
                             });
