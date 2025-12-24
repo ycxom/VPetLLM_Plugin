@@ -71,43 +71,42 @@ namespace StickerPlugin.Models
 
         /// <summary>
         /// 智能查找 VPet.Plugin.Imgae.dll
+        /// 优先级：注册表 Steam 路径 > libraryfolders.vdf 中的库路径 > 常见硬编码路径
         /// </summary>
         public static string? FindImagePluginDll()
         {
             var searchPaths = new List<string>();
 
-            // 1. Steam 常见安装路径
-            var steamPaths = new[]
-            {
-                @"C:\Program Files (x86)\Steam",
-                @"C:\Program Files\Steam",
-                @"D:\Steam",
-                @"D:\Program Files (x86)\Steam",
-                @"D:\Program Files\Steam",
-                @"E:\Steam",
-                @"E:\Program Files (x86)\Steam",
-                @"F:\Steam",
-                @"G:\Steam"
-            };
-
-            foreach (var steamPath in steamPaths)
-            {
-                var workshopPath = Path.Combine(steamPath, "steamapps", "workshop", "content", "1920960", WorkshopItemId, "plugin", ImagePluginDllName);
-                searchPaths.Add(workshopPath);
-            }
-
-            // 2. 通过注册表查找 Steam 安装路径
+            // 1. 通过注册表查找 Steam 主安装路径
+            string? mainSteamPath = null;
             try
             {
-                var steamInstallPath = Microsoft.Win32.Registry.GetValue(
+                mainSteamPath = Microsoft.Win32.Registry.GetValue(
                     @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam",
                     "InstallPath",
                     null) as string;
 
-                if (!string.IsNullOrEmpty(steamInstallPath))
+                // 备用注册表路径（32位系统或其他情况）
+                if (string.IsNullOrEmpty(mainSteamPath))
                 {
-                    var workshopPath = Path.Combine(steamInstallPath, "steamapps", "workshop", "content", "1920960", WorkshopItemId, "plugin", ImagePluginDllName);
-                    searchPaths.Insert(0, workshopPath); // 优先检查
+                    mainSteamPath = Microsoft.Win32.Registry.GetValue(
+                        @"HKEY_LOCAL_MACHINE\SOFTWARE\Valve\Steam",
+                        "InstallPath",
+                        null) as string;
+                }
+
+                // 当前用户注册表
+                if (string.IsNullOrEmpty(mainSteamPath))
+                {
+                    mainSteamPath = Microsoft.Win32.Registry.GetValue(
+                        @"HKEY_CURRENT_USER\SOFTWARE\Valve\Steam",
+                        "SteamPath",
+                        null) as string;
+                }
+
+                if (!string.IsNullOrEmpty(mainSteamPath))
+                {
+                    AddWorkshopPath(searchPaths, mainSteamPath);
                 }
             }
             catch
@@ -115,7 +114,51 @@ namespace StickerPlugin.Models
                 // 忽略注册表访问错误
             }
 
-            // 3. 查找第一个存在的路径
+            // 2. 解析 libraryfolders.vdf 获取所有 Steam 库路径
+            if (!string.IsNullOrEmpty(mainSteamPath))
+            {
+                try
+                {
+                    var libraryFoldersPath = Path.Combine(mainSteamPath, "steamapps", "libraryfolders.vdf");
+                    if (File.Exists(libraryFoldersPath))
+                    {
+                        var libraryPaths = ParseLibraryFolders(libraryFoldersPath);
+                        foreach (var libPath in libraryPaths)
+                        {
+                            if (libPath != mainSteamPath) // 避免重复
+                            {
+                                AddWorkshopPath(searchPaths, libPath);
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // 忽略解析错误
+                }
+            }
+
+            // 3. 常见硬编码路径作为后备
+            var fallbackPaths = new[]
+            {
+                @"C:\Program Files (x86)\Steam",
+                @"C:\Program Files\Steam",
+                @"D:\Steam",
+                @"D:\SteamLibrary",
+                @"E:\Steam",
+                @"E:\SteamLibrary",
+                @"F:\Steam",
+                @"F:\SteamLibrary",
+                @"G:\Steam",
+                @"G:\SteamLibrary"
+            };
+
+            foreach (var steamPath in fallbackPaths)
+            {
+                AddWorkshopPath(searchPaths, steamPath);
+            }
+
+            // 4. 查找第一个存在的路径
             foreach (var path in searchPaths)
             {
                 if (File.Exists(path))
@@ -125,6 +168,55 @@ namespace StickerPlugin.Models
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// 添加 Workshop 路径到搜索列表（避免重复）
+        /// </summary>
+        private static void AddWorkshopPath(List<string> searchPaths, string steamPath)
+        {
+            var workshopPath = Path.Combine(steamPath, "steamapps", "workshop", "content", "1920960", WorkshopItemId, "plugin", ImagePluginDllName);
+            if (!searchPaths.Contains(workshopPath))
+            {
+                searchPaths.Add(workshopPath);
+            }
+        }
+
+        /// <summary>
+        /// 解析 libraryfolders.vdf 获取所有 Steam 库路径
+        /// </summary>
+        private static List<string> ParseLibraryFolders(string vdfPath)
+        {
+            var paths = new List<string>();
+            
+            try
+            {
+                var content = File.ReadAllText(vdfPath);
+                
+                // 匹配 "path" 字段，格式如: "path"		"D:\\SteamLibrary"
+                var pathRegex = new System.Text.RegularExpressions.Regex(
+                    "\"path\"\\s+\"([^\"]+)\"",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                
+                var matches = pathRegex.Matches(content);
+                foreach (System.Text.RegularExpressions.Match match in matches)
+                {
+                    if (match.Success && match.Groups.Count > 1)
+                    {
+                        var path = match.Groups[1].Value.Replace("\\\\", "\\");
+                        if (Directory.Exists(path))
+                        {
+                            paths.Add(path);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // 忽略解析错误
+            }
+
+            return paths;
         }
 
         /// <summary>
