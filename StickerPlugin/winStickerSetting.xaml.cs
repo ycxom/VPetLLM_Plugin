@@ -33,8 +33,8 @@ namespace StickerPlugin
             txtCacheDuration.Text = _settings.CacheDurationMinutes.ToString();
             txtDisplayDuration.Text = _settings.DisplayDurationSeconds.ToString();
             
-            // 显示有效的 DLL 路径（自动查找或配置值）
-            var effectivePath = _settings.GetEffectiveDllPath();
+            // 显示有效的 DLL 路径（优先使用 VPet MODPath 查找）
+            var effectivePath = _settings.GetEffectiveDllPath(_plugin.GetModPaths());
             txtDllPath.Text = effectivePath;
             
             // 如果是自动查找的路径，显示提示

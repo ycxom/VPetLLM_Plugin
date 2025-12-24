@@ -57,7 +57,8 @@ namespace StickerPlugin.Models
         /// <summary>
         /// 获取有效的 DLL 路径（自动查找或使用配置值）
         /// </summary>
-        public string GetEffectiveDllPath()
+        /// <param name="modPaths">VPet 已加载的 MOD 路径列表（可选）</param>
+        public string GetEffectiveDllPath(IEnumerable<DirectoryInfo>? modPaths = null)
         {
             // 如果已配置且文件存在，直接返回
             if (!string.IsNullOrEmpty(ImagePluginDllPath) && File.Exists(ImagePluginDllPath))
@@ -65,8 +66,48 @@ namespace StickerPlugin.Models
                 return ImagePluginDllPath;
             }
 
-            // 智能查找
+            // 优先从 VPet MODPath 查找（最快最准确）
+            if (modPaths != null)
+            {
+                var dllPath = FindImagePluginDllFromModPaths(modPaths);
+                if (!string.IsNullOrEmpty(dllPath))
+                {
+                    return dllPath;
+                }
+            }
+
+            // 后备：智能查找 Steam 路径
             return FindImagePluginDll() ?? ImagePluginDllPath;
+        }
+
+        /// <summary>
+        /// 从 VPet 已加载的 MOD 路径中查找 DLL
+        /// </summary>
+        /// <param name="modPaths">VPet 的 MODPath 列表</param>
+        public static string? FindImagePluginDllFromModPaths(IEnumerable<DirectoryInfo> modPaths)
+        {
+            foreach (var modDir in modPaths)
+            {
+                // 检查是否是目标插件目录（通过 Workshop ID 或目录名判断）
+                if (modDir.FullName.Contains(WorkshopItemId) || 
+                    modDir.Name.Equals("VPet.Plugin.Imgae", StringComparison.OrdinalIgnoreCase))
+                {
+                    var dllPath = Path.Combine(modDir.FullName, "plugin", ImagePluginDllName);
+                    if (File.Exists(dllPath))
+                    {
+                        return dllPath;
+                    }
+
+                    // 也检查根目录
+                    dllPath = Path.Combine(modDir.FullName, ImagePluginDllName);
+                    if (File.Exists(dllPath))
+                    {
+                        return dllPath;
+                    }
+                }
+            }
+
+            return null;
         }
 
         /// <summary>

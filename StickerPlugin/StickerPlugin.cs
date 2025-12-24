@@ -61,8 +61,8 @@ namespace StickerPlugin
             // 初始化 API 服务
             _imageVectorService = new ImageVectorService(_settings.GetEffectiveServiceUrl(), _settings.GetEffectiveApiKey(), Log);
 
-            // 初始化图片显示管理器
-            var dllPath = _settings.GetEffectiveDllPath();
+            // 初始化图片显示管理器 - 优先使用 VPet 的 MODPath 查找 DLL
+            var dllPath = _settings.GetEffectiveDllPath(plugin.MW?.MODPath);
             _imageDisplayManager = new ImageDisplayManager(plugin.MW, dllPath);
             var initResult = _imageDisplayManager.Initialize();
             
@@ -351,6 +351,14 @@ namespace StickerPlugin
                 return false;
             }
             return await _imageVectorService.HealthCheckAsync();
+        }
+
+        /// <summary>
+        /// 获取 VPet 的 MODPath 列表
+        /// </summary>
+        public IEnumerable<System.IO.DirectoryInfo>? GetModPaths()
+        {
+            return _vpetLLM?.MW?.MODPath;
         }
 
         #endregion
