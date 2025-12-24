@@ -118,5 +118,17 @@
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/PixivPlugin/plugin/PixivPlugin.dll",
     "SHA256": "fa9e6acd5859c0a9a23bbaf5bfcee304a1d97ffa287c8479ed4a0af95c06deef"
+  },
+  "StickerPlugin": {
+    "Name": "Sticker",
+    "Author": "ycxom",
+    "Description": {
+      "ja": "スタンプを検索して送信します。",
+      "zh-hans": "搜索并发送表情包。",
+      "zh-hant": "搜尋並發送表情包。",
+      "en": "Search and send stickers."
+    },
+    "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/StickerPlugin/plugin/StickerPlugin.dll",
+    "SHA256": "07fb9bd73a09b3d2f6c04a0e0ec6a6d2c96ee7bb43fc355272302ee63d16dbf1"
   }
 }
