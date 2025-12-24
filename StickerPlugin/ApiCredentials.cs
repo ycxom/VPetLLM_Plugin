@@ -5,9 +5,6 @@ namespace StickerPlugin
 {
     internal static class ApiCredentials
     {
-        // 内置凭证（Base64 编码）
-        // URL: https://ai.ycxom.top:3020
-        // Key: VPetLLM-ycxom-IMAGE_VECTOR
         private static readonly string _obfuscatedUrl = "aHR0cHM6Ly9haS55Y3hvbS50b3A6MzAyMA==";
         private static readonly string _obfuscatedKey = "VlBldExMTS15Y3hvbS1JTUFHRV9WRUNUT1I=";
 
@@ -37,7 +34,6 @@ namespace StickerPlugin
         }
 
         /// <summary>
-        /// 混淆字符串（用于生成混淆值，开发时使用）
         /// </summary>
         internal static string Obfuscate(string input)
         {
