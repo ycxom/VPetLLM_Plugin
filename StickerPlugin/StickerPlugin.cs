@@ -63,13 +63,12 @@ namespace StickerPlugin
 
             // 初始化图片显示管理器
             var dllPath = _settings.GetEffectiveDllPath();
-            Log($"Using ImagePlugin DLL: {dllPath}");
             _imageDisplayManager = new ImageDisplayManager(plugin.MW, dllPath);
             var initResult = _imageDisplayManager.Initialize();
             
             if (!initResult)
             {
-                Log($"ImageDisplayManager initialization failed: {_imageDisplayManager.LastError}");
+                Log($"ImageDisplayManager init failed: {_imageDisplayManager.LastError}");
             }
 
             // 预加载标签
@@ -80,13 +79,11 @@ namespace StickerPlugin
                     var cacheDuration = TimeSpan.FromMinutes(_settings.CacheDurationMinutes);
                     await _imageVectorService.GetCachedTagsAsync(cacheDuration);
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Log($"Failed to preload tags: {ex.Message}");
+                    // 静默失败
                 }
             });
-
-            Log("Sticker Plugin Initialized!");
         }
 
         public async Task<string> Function(string arguments)
@@ -110,11 +107,8 @@ namespace StickerPlugin
                     var tagsMatch = Regex.Match(arguments, @"tags\(([^)]+)\)");
                     var tagsStr = tagsMatch.Success ? tagsMatch.Groups[1].Value.Trim() : "";
 
-                    if (string.IsNullOrWhiteSpace(tagsStr))
-                    {
-                        Log("No tags provided for sticker search");
-                        return string.Empty;
-                    }
+                if (string.IsNullOrWhiteSpace(tagsStr))
+                    return string.Empty;
 
                     await SearchAndShowStickerAsync(tagsStr);
                     return string.Empty;
@@ -135,27 +129,15 @@ namespace StickerPlugin
         private async Task SearchAndShowStickerAsync(string tags)
         {
             if (_imageVectorService == null)
-            {
-                Log("ImageVectorService not initialized");
                 return;
-            }
 
             try
             {
                 // 搜索表情包
                 var response = await _imageVectorService.SearchAsync(tags, limit: 1);
 
-                if (response == null || !response.Success)
-                {
-                    Log("Sticker service unavailable");
+                if (response == null || !response.Success || response.Results == null || response.Results.Count == 0)
                     return;
-                }
-
-                if (response.Results == null || response.Results.Count == 0)
-                {
-                    Log($"No sticker found for tags: {tags}");
-                    return;
-                }
 
                 // 选择最高分的结果
                 var bestResult = response.Results.OrderByDescending(r => r.Score).First();
@@ -163,30 +145,23 @@ namespace StickerPlugin
                 // 显示表情包
                 if (_imageDisplayManager?.IsInitialized == true)
                 {
-                    // 优先使用 Base64 数据
                     if (!string.IsNullOrEmpty(bestResult.Base64))
                     {
-                        Log($"Showing image from Base64: {bestResult.Filename}");
                         await _imageDisplayManager.ShowImageFromBase64Async(
                             bestResult.Base64,
                             _settings.DisplayDurationSeconds
                         );
                     }
-                    else
-                    {
-                        Log($"No Base64 data for: {bestResult.Filename}");
-                    }
                 }
                 else
                 {
-                    Log($"ImageDisplayManager not initialized: {_imageDisplayManager?.LastError}");
                     // 检测是否是 DLL 未找到的情况，弹出订阅提示
                     ShowDllMissingPrompt();
                 }
             }
             catch (Exception ex)
             {
-                Log($"Search sticker failed: {ex.Message}");
+                Log($"Sticker error: {ex.Message}");
             }
         }
 
@@ -334,7 +309,6 @@ namespace StickerPlugin
             SaveSettings();
             _imageVectorService?.Dispose();
             _imageDisplayManager?.Dispose();
-            Log("Sticker Plugin Unloaded!");
         }
 
         public void Log(string message)

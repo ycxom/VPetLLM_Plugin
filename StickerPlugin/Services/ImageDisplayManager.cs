@@ -84,11 +84,23 @@ namespace StickerPlugin.Services
                             return;
                         }
 
-                        // 获取 Image 控件
+                        // 获取 Image 控件（assembly/internal 访问修饰符，需要 NonPublic）
                         var imageField = imageUIType.GetField("Image", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
                         if (imageField != null)
                         {
                             _imageControl = imageField.GetValue(_imageUI) as Image;
+                        }
+                        
+                        // 如果字段获取失败，尝试通过 LogicalTreeHelper 查找
+                        if (_imageControl == null && _imageUI is UserControl uc)
+                        {
+                            _imageControl = FindVisualChild<Image>(uc);
+                        }
+
+                        if (_imageControl == null)
+                        {
+                            LastError = "Failed to get Image control from ImageUI";
+                            return;
                         }
 
                         // 将 ImageUI 添加到 UIGrid
@@ -114,8 +126,10 @@ namespace StickerPlugin.Services
                     return false;
                 }
 
-                if (_imageUI == null)
+                if (_imageUI == null || _imageControl == null)
                 {
+                    if (string.IsNullOrEmpty(LastError))
+                        LastError = "ImageUI or ImageControl is null after initialization";
                     return false;
                 }
 
@@ -137,11 +151,29 @@ namespace StickerPlugin.Services
         }
 
         /// <summary>
+        /// 在可视化树中查找指定类型的子元素
+        /// </summary>
+        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
+                if (child is T result)
+                    return result;
+                
+                var descendant = FindVisualChild<T>(child);
+                if (descendant != null)
+                    return descendant;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// 从 Base64 数据显示图片（支持 GIF 动画）
         /// </summary>
         public async Task ShowImageFromBase64Async(string base64Data, int durationSeconds)
         {
-            if (!IsInitialized || _imageUI == null)
+            if (!IsInitialized || _imageUI == null || _imageControl == null)
             {
                 LastError = "ImageDisplayManager not initialized";
                 return;
@@ -151,38 +183,43 @@ namespace StickerPlugin.Services
             {
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    // 解析 Base64 数据
-                    var base64 = base64Data;
-                    var isGif = false;
-
-                    // 检测是否为 GIF（通过 data URI 前缀或文件头）
-                    if (base64.StartsWith("data:image/gif"))
+                    try
                     {
-                        isGif = true;
-                    }
+                        // 解析 Base64 数据
+                        var base64 = base64Data;
+                        var isGif = false;
 
-                    // 移除 data:image/xxx;base64, 前缀
-                    if (base64.Contains(","))
-                    {
-                        base64 = base64.Substring(base64.IndexOf(",") + 1);
-                    }
+                        // 检测是否为 GIF（通过 data URI 前缀或文件头）
+                        if (base64.StartsWith("data:image/gif"))
+                        {
+                            isGif = true;
+                        }
 
-                    // 转换为字节数组
-                    var imageBytes = Convert.FromBase64String(base64);
+                        // 移除 data:image/xxx;base64, 前缀
+                        if (base64.Contains(","))
+                        {
+                            base64 = base64.Substring(base64.IndexOf(",") + 1);
+                        }
 
-                    // 检测 GIF 文件头 (47 49 46 38 = "GIF8")
-                    if (!isGif && imageBytes.Length > 4)
-                    {
-                        isGif = imageBytes[0] == 0x47 && imageBytes[1] == 0x49 &&
-                                imageBytes[2] == 0x46 && imageBytes[3] == 0x38;
-                    }
+                        // 转换为字节数组
+                        var imageBytes = Convert.FromBase64String(base64);
 
-                    if (_imageControl != null)
-                    {
+                        // 检测 GIF 文件头 (47 49 46 38 = "GIF8")
+                        if (!isGif && imageBytes.Length > 4)
+                        {
+                            isGif = imageBytes[0] == 0x47 && imageBytes[1] == 0x49 &&
+                                    imageBytes[2] == 0x46 && imageBytes[3] == 0x38;
+                        }
+
+                        // 先清除之前的图片/动画
+                        ImageBehavior.SetAnimatedSource(_imageControl, null);
+                        _imageControl.Source = null;
+
                         if (isGif)
                         {
                             // 使用 WpfAnimatedGif 显示 GIF 动画
-                            using var stream = new MemoryStream(imageBytes);
+                            // 注意：不能使用 using，因为 WpfAnimatedGif 需要保持 stream
+                            var stream = new MemoryStream(imageBytes);
                             var image = new BitmapImage();
                             image.BeginInit();
                             image.StreamSource = stream;
@@ -197,11 +234,8 @@ namespace StickerPlugin.Services
                         else
                         {
                             // 静态图片
-                            // 先清除可能存在的 GIF 动画
-                            ImageBehavior.SetAnimatedSource(_imageControl, null);
-
+                            var stream = new MemoryStream(imageBytes);
                             var bitmap = new BitmapImage();
-                            using var stream = new MemoryStream(imageBytes);
                             bitmap.BeginInit();
                             bitmap.StreamSource = stream;
                             bitmap.CacheOption = BitmapCacheOption.OnLoad;
@@ -210,20 +244,24 @@ namespace StickerPlugin.Services
 
                             _imageControl.Source = bitmap;
                         }
-                    }
 
-                    // 显示 ImageUI
-                    if (_imageUI is UserControl userControl)
-                    {
-                        userControl.Visibility = Visibility.Visible;
-                    }
+                        // 显示 ImageUI
+                        if (_imageUI is UserControl userControl)
+                        {
+                            userControl.Visibility = Visibility.Visible;
+                        }
 
-                    // 设置隐藏定时器
-                    if (_hideTimer != null)
+                        // 设置隐藏定时器
+                        if (_hideTimer != null)
+                        {
+                            _hideTimer.Stop();
+                            _hideTimer.Interval = TimeSpan.FromSeconds(durationSeconds);
+                            _hideTimer.Start();
+                        }
+                    }
+                    catch (Exception innerEx)
                     {
-                        _hideTimer.Stop();
-                        _hideTimer.Interval = TimeSpan.FromSeconds(durationSeconds);
-                        _hideTimer.Start();
+                        LastError = $"Failed to display image: {innerEx.Message}";
                     }
                 });
             }

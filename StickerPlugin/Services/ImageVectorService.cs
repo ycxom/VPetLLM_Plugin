@@ -38,14 +38,11 @@ namespace StickerPlugin.Services
             {
                 _httpClient.DefaultRequestHeaders.Add("X-API-Key", _apiKey);
             }
-
-            Log($"ImageVectorService initialized: baseUrl={_baseUrl}, hasApiKey={!string.IsNullOrEmpty(_apiKey)}");
         }
 
         private void Log(string message)
         {
             _logger?.Invoke($"[ImageVectorService] {message}");
-            System.Diagnostics.Debug.WriteLine($"[StickerPlugin] {message}");
         }
 
         /// <summary>
@@ -55,15 +52,12 @@ namespace StickerPlugin.Services
         {
             try
             {
-                Log("HealthCheckAsync: Starting health check...");
                 var response = await PostAsync<object, HealthResponse>("/api/health", new { });
-                var result = response?.Success ?? false;
-                Log($"HealthCheckAsync: Result={result}");
-                return result;
+                return response?.Success ?? false;
             }
             catch (Exception ex)
             {
-                Log($"HealthCheckAsync: Exception - {ex.Message}");
+                Log($"HealthCheck failed: {ex.Message}");
                 return false;
             }
         }
@@ -90,20 +84,17 @@ namespace StickerPlugin.Services
         {
             try
             {
-                Log($"SearchAsync: query={query}, limit={limit}, minScore={minScore}");
                 var request = new SearchRequest
                 {
                     Query = query,
                     Limit = limit,
                     MinScore = minScore
                 };
-                var response = await PostAsync<SearchRequest, SearchResponse>("/api/search", request);
-                Log($"SearchAsync: Success={response?.Success}, ResultCount={response?.Results?.Count ?? 0}");
-                return response;
+                return await PostAsync<SearchRequest, SearchResponse>("/api/search", request);
             }
             catch (Exception ex)
             {
-                Log($"SearchAsync: Exception - {ex.Message}");
+                Log($"Search failed: {ex.Message}");
                 return null;
             }
         }
@@ -171,13 +162,10 @@ namespace StickerPlugin.Services
             {
                 var url = _baseUrl + endpoint;
                 var json = JsonConvert.SerializeObject(request);
-                Log($"POST {url}: {json}");
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PostAsync(url, content);
                 var responseJson = await response.Content.ReadAsStringAsync();
-
-                Log($"Response {(int)response.StatusCode}: {responseJson}");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -185,28 +173,25 @@ namespace StickerPlugin.Services
                 }
 
                 // 记录非成功状态码
-                LastError = $"HTTP {(int)response.StatusCode} from {endpoint}: {responseJson}";
+                LastError = $"HTTP {(int)response.StatusCode} from {endpoint}";
                 Log(LastError);
                 return null;
             }
             catch (TaskCanceledException)
             {
-                // 超时
                 LastError = $"Request timeout for {endpoint}";
                 Log(LastError);
                 return null;
             }
             catch (HttpRequestException ex)
             {
-                // 网络错误
-                LastError = $"Network error for {endpoint}: {ex.Message}";
+                LastError = $"Network error: {ex.Message}";
                 Log(LastError);
                 return null;
             }
             catch (Exception ex)
             {
-                // 其他错误
-                LastError = $"Error for {endpoint}: {ex.Message}";
+                LastError = $"Error: {ex.Message}";
                 Log(LastError);
                 return null;
             }
