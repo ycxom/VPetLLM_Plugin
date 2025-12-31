@@ -8,10 +8,6 @@ using PixivPlugin.Services;
 
 namespace PixivPlugin
 {
-    /// <summary>
-    /// VPetLLM Pixiv 插件
-    /// 支持搜索 Pixiv 图片和随机推荐
-    /// </summary>
     public class PixivPlugin : IVPetLLMPlugin, IActionPlugin, IPluginWithData
     {
         public string Name => "Pixiv";
@@ -48,23 +44,32 @@ namespace PixivPlugin
         private PluginSettings _settings = new();
         private PixivApiService? _apiService;
         private ImageLoader? _imageLoader;
+        private ulong _steamId;
 
         private const string SettingsFileName = "PixivPlugin.json";
 
         public void Initialize(VPetLLM.VPetLLM plugin)
         {
             _vpetLLM = plugin;
-            FilePath = plugin.PluginPath;
+            // 注意：不要覆盖 FilePath，PluginManager 已经正确设置了 DLL 文件路径
+
+            try { _steamId = plugin.MW?.SteamID ?? 0; } catch { _steamId = 0; }
 
             LoadSettings();
 
-            _apiService = new PixivApiService();
+            _apiService = new PixivApiService(_steamId, GetAuthKeyAsync);
             _apiService.SetTimeout(_settings.TimeoutSeconds);
 
             _imageLoader = new ImageLoader();
             ApplyProxySettings();
 
             VPetLLM.Utils.Logger.Log("Pixiv Plugin Initialized!");
+        }
+
+        private async Task<int> GetAuthKeyAsync()
+        {
+            try { if (_vpetLLM?.MW != null) return await _vpetLLM.MW.GenerateAuthKey(); } catch { }
+            return 0;
         }
 
         public async Task<string> Function(string arguments)

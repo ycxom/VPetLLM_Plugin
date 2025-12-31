@@ -40,10 +40,10 @@ namespace WebSearchPlugin
         private SearchEngine? _searchEngine;
         private WebSearchSettings _settings;
         private IContentFetcher? _contentFetcher;
+        private ulong _steamId;
 
         public WebSearchPlugin()
         {
-            // 设置将在 Initialize 中加载，因为需要 PluginDataDir
             _settings = new WebSearchSettings();
         }
 
@@ -51,21 +51,24 @@ namespace WebSearchPlugin
         {
             _vpetLLM = plugin;
             
+            try { _steamId = plugin.MW?.SteamID ?? 0; } catch { _steamId = 0; }
+            
             try
             {
-                // 加载设置（使用 PluginDataDir）
                 _settings = WebSearchSettings.Load(PluginDataDir);
-                // 根据设置决定使用哪个代理配置
                 VPetLLM.Setting.ProxySetting proxyToUse;
-                if (_settings.Proxy.UseVPetLLMProxy)
+                
+                // 使用内置凭证时不使用代理
+                if (_settings.Api.UseApiMode && _settings.Api.UseBuiltInCredentials)
                 {
-                    // 使用 VPetLLM 的代理配置
+                    proxyToUse = new VPetLLM.Setting.ProxySetting { IsEnabled = false };
+                }
+                else if (_settings.Proxy.UseVPetLLMProxy)
+                {
                     proxyToUse = plugin.Settings.Proxy;
-                    VPetLLM.Utils.Logger.Log("WebSearch: Using VPetLLM proxy settings");
                 }
                 else if (_settings.Proxy.EnableCustomProxy)
                 {
-                    // 使用自定义代理配置
                     proxyToUse = new VPetLLM.Setting.ProxySetting
                     {
                         IsEnabled = true,
@@ -74,13 +77,10 @@ namespace WebSearchPlugin
                         Address = _settings.Proxy.Address,
                         ForPlugin = true
                     };
-                    VPetLLM.Utils.Logger.Log("WebSearch: Using custom proxy settings");
                 }
                 else
                 {
-                    // 不使用代理
                     proxyToUse = new VPetLLM.Setting.ProxySetting { IsEnabled = false };
-                    VPetLLM.Utils.Logger.Log("WebSearch: Proxy disabled");
                 }
 
                 // 创建 HttpClient，支持代理配置
@@ -106,7 +106,6 @@ namespace WebSearchPlugin
             }
         }
 
-        // 打开设置窗口
         public void OpenSettings()
         {
             try
@@ -115,104 +114,63 @@ namespace WebSearchPlugin
                 var settingsWindow = new winWebSearchSettings(_settings, OnSettingsSaved);
                 settingsWindow.ShowDialog();
             }
-            catch (Exception ex)
-            {
-                VPetLLM.Utils.Logger.Log($"WebSearch: Error opening settings: {ex.Message}");
-            }
+            catch { }
         }
 
         private void OnSettingsSaved(WebSearchSettings newSettings)
         {
             _settings = newSettings;
-            
-            // 应用新设置
-            if (_scraper != null)
-            {
-                _scraper.MaxContentLength = _settings.MaxContentLength;
-            }
-
-            // 重新创建内容抓取器以应用新的 API 设置
+            if (_scraper != null) _scraper.MaxContentLength = _settings.MaxContentLength;
             CreateContentFetcher();
-
-            var modeInfo = _settings.Api.UseApiMode ? "API Mode" : "Local Mode";
-            VPetLLM.Utils.Logger.Log($"WebSearch: Settings applied. Current mode: {modeInfo}");
         }
 
         private void CreateContentFetcher()
         {
-            if (_httpClient == null || _scraper == null)
-            {
-                return;
-            }
-
+            if (_httpClient == null || _scraper == null) return;
             var localFetcher = new LocalContentFetcher(_scraper);
-
             if (_settings.Api.UseApiMode)
             {
-                var apiUrl = _settings.Api.GetEffectiveApiUrl();
-                var token = _settings.Api.GetEffectiveToken();
-                
-                _contentFetcher = new ApiContentFetcher(
-                    _httpClient,
-                    apiUrl,
-                    token,
-                    localFetcher,
-                    _settings.Api.EnableFallback
-                );
-                
-                var credentialType = _settings.Api.UseBuiltInCredentials ? "内置凭证" : "自定义凭证";
-                VPetLLM.Utils.Logger.Log($"WebSearch: Using API mode ({credentialType}, Fallback: {_settings.Api.EnableFallback})");
+                _contentFetcher = new ApiContentFetcher(_httpClient, _settings.Api.GetEffectiveApiUrl(),
+                    _settings.Api.GetEffectiveToken(), _steamId, GetAuthKeyAsync, localFetcher, 
+                    _settings.Api.EnableFallback, _settings.Api.UseBuiltInCredentials);
             }
             else
             {
                 _contentFetcher = localFetcher;
-                VPetLLM.Utils.Logger.Log("WebSearch: Using Local mode");
             }
+        }
+
+        private async Task<int> GetAuthKeyAsync()
+        {
+            try { if (_vpetLLM?.MW != null) return await _vpetLLM.MW.GenerateAuthKey(); } catch { }
+            return 0;
         }
 
         private HttpClient CreateHttpClient(VPetLLM.Setting.ProxySetting proxySetting)
         {
             HttpClientHandler handler = new HttpClientHandler();
-            
-            // 检查是否需要使用代理
-            bool useProxy = proxySetting.IsEnabled && 
-                           (proxySetting.ForAllAPI || proxySetting.ForPlugin);
-
+            bool useProxy = proxySetting.IsEnabled && (proxySetting.ForAllAPI || proxySetting.ForPlugin);
             if (useProxy)
             {
                 try
                 {
                     if (proxySetting.FollowSystemProxy)
                     {
-                        // 使用系统代理
                         handler.UseProxy = true;
                         handler.Proxy = System.Net.WebRequest.GetSystemWebProxy();
-                        VPetLLM.Utils.Logger.Log("WebSearch: Using system proxy");
                     }
                     else
                     {
-                        // 使用自定义代理
-                        var proxyUri = new Uri($"{proxySetting.Protocol}://{proxySetting.Address}");
-                        handler.Proxy = new System.Net.WebProxy(proxyUri);
+                        handler.Proxy = new System.Net.WebProxy(new Uri($"{proxySetting.Protocol}://{proxySetting.Address}"));
                         handler.UseProxy = true;
-                        VPetLLM.Utils.Logger.Log($"WebSearch: Using custom proxy: {proxyUri}");
                     }
                 }
-                catch (Exception ex)
-                {
-                    VPetLLM.Utils.Logger.Log($"WebSearch: Proxy configuration error: {ex.Message}");
-                    handler.UseProxy = false;
-                }
+                catch { handler.UseProxy = false; }
             }
-            else
-            {
-                handler.UseProxy = false;
-            }
-
+            else { handler.UseProxy = false; }
             var client = new HttpClient(handler);
-            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
             client.Timeout = TimeSpan.FromSeconds(30);
-            
             return client;
         }
 

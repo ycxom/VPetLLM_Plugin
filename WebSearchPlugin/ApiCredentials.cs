@@ -5,7 +5,7 @@ namespace WebSearchPlugin
 {
     internal static class ApiCredentials
     {
-        private static readonly string _obfuscatedUrl = "aHR0cHM6Ly9haS55Y3hvbS50b3A6NDQ1Ny9leHRyYWN0";
+        private static readonly string _obfuscatedUrl = "aHR0cHM6Ly9haS55Y3hvbS50b3A6ODAyNS9zZWFyY2gvZXh0cmFjdA==";
         private static readonly string _obfuscatedToken = "YzNlOTZkZDdkN2JmY2JjYWY5NzY1NGJkMDM0NjUwZWQ=";
 
         /// <summary>

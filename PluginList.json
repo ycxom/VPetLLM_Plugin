@@ -9,7 +9,7 @@
       "en": "Give red envelopes to lolisi on holidays!"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MoneyManagerPlugin/plugin/MoneyManagerPlugin.dll",
-    "SHA256": "701cd4bb60a46595847d12d4a61080ea891f5f52bbc8958f57ebcf7c010963ab"
+    "SHA256": "0e8261b262444c00f4cafc799d8b10c3d3f9bc84d844116eb17e20a91a3b6acf"
   },
   "ReminderPlugin": {
     "Name": "reminder",
@@ -81,7 +81,7 @@
       "en": "Render and display standard Markdown documents in a standalone window. Use standard Markdown format. Supports headings, lists, code blocks, tables, etc."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MarkdownViewerPlugin/plugin/MarkdownViewerPlugin.dll",
-    "SHA256": "ab011f59ce950993690912ff7e317e6e41a888a633d014cf5795b85d511eeea2"
+    "SHA256": "6e2ed82236216d4f26e393f65bee0ac205e32b37054a36d99bf7d9a5ee33c3b0"
   },
   "WebSearchPlugin": {
     "Name": "WebSearch",
@@ -93,7 +93,7 @@
       "en": "Search internet content or fetch webpage content (Markdown format)"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WebSearchPlugin/plugin/WebSearchPlugin.dll",
-    "SHA256": "d72f51da281ba89eaa3c10371856c8d92923befb3d0e4e397be452ba51463313"
+    "SHA256": "d8ed59f680aae6036bb599b69006aa5e23f7fd27c83411e1dc9679a4826d08b1"
   },
   "WeatherPlugin": {
     "Name": "Weather",
@@ -105,7 +105,7 @@
       "en": "Query weather information for China regions. Note: This API only supports China region data."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WeatherPlugin/plugin/WeatherPlugin.dll",
-    "SHA256": "3cd35ac7a6b60e5ab6a5a340b41abeff0459a7ef9e49a9419e481a30ae17fb16"
+    "SHA256": "fdc9a0cc067bba232d6f5fb6f1b8f157f6ac994fcea8cc6124b6765c6cdf3511"
   },
   "PixivPlugin": {
     "Name": "Pixiv",
@@ -117,7 +117,7 @@
       "en": "Search Pixiv images or get random recommended images."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/PixivPlugin/plugin/PixivPlugin.dll",
-    "SHA256": "fa9e6acd5859c0a9a23bbaf5bfcee304a1d97ffa287c8479ed4a0af95c06deef"
+    "SHA256": "e7df9f6093e33d6b57ca59ca797e40c1c61faed0c8c7658d48a1230e26d0575a"
   },
   "StickerPlugin": {
     "Name": "Sticker",
@@ -129,6 +129,6 @@
       "en": "Search and send stickers."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/StickerPlugin/plugin/StickerPlugin.dll",
-    "SHA256": "bcbcdfdb9cb0c0d70f834e61898fdcf28346b3f1ca1964ece2481eb4b23fb5fa"
+    "SHA256": "90e1a96cf83aba8c74d688e980ba9647f340788021334e413a11b57f6d74feaa"
   }
 }

@@ -35,7 +35,7 @@ public class ExamplePlugin : IActionPlugin
     public void Initialize(VPetLLM.VPetLLM plugin)
     {
         _vpetLLM = plugin;
-        FilePath = plugin.PluginPath;
+        // 注意：不要覆盖 FilePath，PluginManager 已经正确设置了 DLL 文件路径
         VPetLLM.Utils.Logger.Log("Example Plugin Initialized!");
     }
 

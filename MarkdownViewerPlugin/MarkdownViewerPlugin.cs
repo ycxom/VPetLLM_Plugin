@@ -46,7 +46,7 @@ namespace MarkdownViewerPlugin
         public void Initialize(VPetLLM.VPetLLM plugin)
         {
             _vpetLLM = plugin;
-            FilePath = plugin.PluginPath;
+            // 注意：不要覆盖 FilePath，PluginManager 已经正确设置了 DLL 文件路径
 
             // 确保依赖可解析（temp 解压目录找不到依赖时，从原插件目录回退加载）
             try { DependencyResolver.Ensure(FilePath); } catch { }

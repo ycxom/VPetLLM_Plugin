@@ -49,17 +49,35 @@ namespace StickerPlugin
         private ImageDisplayManager? _imageDisplayManager;
         private Random _random = new();
         private bool _dllMissingPromptShown = false;
+        private ulong _steamId = 0;
 
         public void Initialize(VPetLLM.VPetLLM plugin)
         {
             _vpetLLM = plugin;
-            FilePath = plugin.PluginPath;
+            // 注意：不要覆盖 FilePath，PluginManager 已经正确设置了 DLL 文件路径
 
             // 加载设置
             LoadSettings();
 
+            // 获取 Steam ID
+            try
+            {
+                _steamId = plugin.MW?.SteamID ?? 0;
+            }
+            catch
+            {
+                _steamId = 0;
+            }
+
             // 初始化 API 服务
-            _imageVectorService = new ImageVectorService(_settings.GetEffectiveServiceUrl(), _settings.GetEffectiveApiKey(), Log);
+            _imageVectorService = new ImageVectorService(
+                _settings.GetEffectiveServiceUrl(), 
+                _settings.GetEffectiveApiKey(), 
+                Log, 
+                _steamId,
+                async () => await (plugin.MW?.GenerateAuthKey() ?? Task.FromResult(0)),
+                _settings.UseBuiltInCredentials
+            );
 
             // 初始化图片显示管理器 - 优先使用 VPet 的 MODPath 查找 DLL
             var dllPath = _settings.GetEffectiveDllPath(plugin.MW?.MODPath);
@@ -338,7 +356,14 @@ namespace StickerPlugin
 
             // 重新初始化服务
             _imageVectorService?.Dispose();
-            _imageVectorService = new ImageVectorService(_settings.GetEffectiveServiceUrl(), _settings.GetEffectiveApiKey(), Log);
+            _imageVectorService = new ImageVectorService(
+                _settings.GetEffectiveServiceUrl(), 
+                _settings.GetEffectiveApiKey(), 
+                Log, 
+                _steamId,
+                async () => await (_vpetLLM?.MW?.GenerateAuthKey() ?? Task.FromResult(0)),
+                _settings.UseBuiltInCredentials
+            );
         }
 
         /// <summary>
@@ -364,3 +389,4 @@ namespace StickerPlugin
         #endregion
     }
 }
+

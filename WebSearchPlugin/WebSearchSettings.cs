@@ -33,7 +33,7 @@ namespace WebSearchPlugin
 
         public class ApiSettings
         {
-            public bool UseApiMode { get; set; } = false;  // 是否使用 API 模式
+            public bool UseApiMode { get; set; } = true;  // 是否使用 API 模式
             public bool UseBuiltInCredentials { get; set; } = true;  // 使用内置凭证
             public string ApiUrl { get; set; } = "";  // 自定义 API 地址
             public string BearerToken { get; set; } = "";  // 自定义 Bearer Token

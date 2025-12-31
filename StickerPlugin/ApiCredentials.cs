@@ -5,7 +5,7 @@ namespace StickerPlugin
 {
     internal static class ApiCredentials
     {
-        private static readonly string _obfuscatedUrl = "aHR0cHM6Ly9haS55Y3hvbS50b3A6MzAyMA==";
+        private static readonly string _obfuscatedUrl = "aHR0cHM6Ly9haS55Y3hvbS50b3A6ODAyNS9lbW90aWNvbnM=";
         private static readonly string _obfuscatedKey = "VlBldExMTS15Y3hvbS1JTUFHRV9WRUNUT1I=";
 
         /// <summary>

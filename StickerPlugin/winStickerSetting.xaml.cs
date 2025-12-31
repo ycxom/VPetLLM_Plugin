@@ -121,8 +121,7 @@ namespace StickerPlugin
                     apiKey = txtApiKey.Password;
                 }
 
-                // 临时创建服务测试连接
-                using var service = new Services.ImageVectorService(serviceUrl, apiKey);
+                using var service = new Services.ImageVectorService(serviceUrl, apiKey, null, 0, null, chkUseBuiltInCredentials.IsChecked == true);
 
                 var result = await service.HealthCheckAsync();
 
