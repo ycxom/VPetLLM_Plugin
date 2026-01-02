@@ -36,5 +36,20 @@ namespace PixivPlugin.Models
         /// </summary>
         [JsonProperty("timeoutSeconds")]
         public int TimeoutSeconds { get; set; } = 30;
+
+        /// <summary>
+        /// 是否启用图片反向代理
+        /// </summary>
+        [JsonProperty("useImageProxy")]
+        public bool UseImageProxy { get; set; } = false;
+
+        /// <summary>
+        /// 图片反向代理 URL 模板
+        /// 支持占位符: {pid} - 作品ID, {index} - 页码(1-based)
+        /// 单页作品: https://pixiv.shojo.cn/{pid}
+        /// 多页作品: https://pixiv.shojo.cn/{pid}-{index}
+        /// </summary>
+        [JsonProperty("imageProxyUrlTemplate")]
+        public string ImageProxyUrlTemplate { get; set; } = "https://pixiv.shojo.cn/{pid}";
     }
 }

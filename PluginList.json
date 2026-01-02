@@ -117,7 +117,7 @@
       "en": "Search Pixiv images or get random recommended images."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/PixivPlugin/plugin/PixivPlugin.dll",
-    "SHA256": "e7df9f6093e33d6b57ca59ca797e40c1c61faed0c8c7658d48a1230e26d0575a"
+    "SHA256": "d7ac9a66c850ac8a1a32e3da7ef7ff58ad1a411021b4d8ebe3990e66d8a7a2fa"
   },
   "StickerPlugin": {
     "Name": "Sticker",
@@ -129,6 +129,6 @@
       "en": "Search and send stickers."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/StickerPlugin/plugin/StickerPlugin.dll",
-    "SHA256": "90e1a96cf83aba8c74d688e980ba9647f340788021334e413a11b57f6d74feaa"
+    "SHA256": "e92bbfbc02ca3e858e863a2556778ab9e9702847d777fd31840194110e148d45"
   }
 }

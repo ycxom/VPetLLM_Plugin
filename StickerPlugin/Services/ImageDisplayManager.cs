@@ -84,22 +84,35 @@ namespace StickerPlugin.Services
                             return;
                         }
 
-                        // 获取 Image 控件（assembly/internal 访问修饰符，需要 NonPublic）
+                        // 获取 Image 控件 - 尝试多种方式
+                        // 方式1: 通过反射获取 Image 字段（internal/assembly 访问修饰符）
                         var imageField = imageUIType.GetField("Image", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
                         if (imageField != null)
                         {
                             _imageControl = imageField.GetValue(_imageUI) as Image;
                         }
                         
-                        // 如果字段获取失败，尝试通过 LogicalTreeHelper 查找
+                        // 方式2: 如果字段获取失败，尝试通过 LogicalTreeHelper 查找（适用于 XAML 加载后）
                         if (_imageControl == null && _imageUI is UserControl uc)
                         {
-                            _imageControl = FindVisualChild<Image>(uc);
+                            _imageControl = FindLogicalChild<Image>(uc);
+                        }
+
+                        // 方式3: 如果 LogicalTree 也失败，尝试 VisualTree（需要控件已渲染）
+                        if (_imageControl == null && _imageUI is UserControl uc2)
+                        {
+                            _imageControl = FindVisualChild<Image>(uc2);
+                        }
+
+                        // 方式4: 尝试通过 FindName 查找（XAML 中定义的 x:Name）
+                        if (_imageControl == null && _imageUI is FrameworkElement fe)
+                        {
+                            _imageControl = fe.FindName("Image") as Image;
                         }
 
                         if (_imageControl == null)
                         {
-                            LastError = "Failed to get Image control from ImageUI";
+                            LastError = "Failed to get Image control from ImageUI. The DLL may have been updated with incompatible changes.";
                             return;
                         }
 
@@ -164,6 +177,26 @@ namespace StickerPlugin.Services
                 var descendant = FindVisualChild<T>(child);
                 if (descendant != null)
                     return descendant;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 在逻辑树中查找指定类型的子元素（适用于 XAML 加载后但未渲染的控件）
+        /// </summary>
+        private static T? FindLogicalChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            foreach (var child in LogicalTreeHelper.GetChildren(parent))
+            {
+                if (child is T result)
+                    return result;
+                
+                if (child is DependencyObject depChild)
+                {
+                    var descendant = FindLogicalChild<T>(depChild);
+                    if (descendant != null)
+                        return descendant;
+                }
             }
             return null;
         }

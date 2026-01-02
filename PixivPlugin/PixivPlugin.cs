@@ -44,6 +44,7 @@ namespace PixivPlugin
         private PluginSettings _settings = new();
         private PixivApiService? _apiService;
         private ImageLoader? _imageLoader;
+        private ImageProxyService? _imageProxyService;
         private ulong _steamId;
 
         private const string SettingsFileName = "PixivPlugin.json";
@@ -61,6 +62,8 @@ namespace PixivPlugin
             _apiService.SetTimeout(_settings.TimeoutSeconds);
 
             _imageLoader = new ImageLoader();
+            _imageProxyService = new ImageProxyService(_settings);
+            _imageLoader.SetImageProxyService(_imageProxyService);
             ApplyProxySettings();
 
             VPetLLM.Utils.Logger.Log("Pixiv Plugin Initialized!");
@@ -232,6 +235,7 @@ namespace PixivPlugin
         public void UpdateSettings(PluginSettings settings)
         {
             _settings = settings;
+            _imageProxyService?.UpdateSettings(settings);
             ApplyProxySettings();
             SaveSettings();
         }

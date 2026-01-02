@@ -19,6 +19,11 @@ namespace PixivPlugin
 
         private void LoadSettings()
         {
+            // 图片反向代理设置
+            chkUseImageProxy.IsChecked = _settings.UseImageProxy;
+            txtImageProxyUrl.Text = _settings.ImageProxyUrlTemplate ?? "https://pixiv.shojo.cn/{pid}";
+            
+            // 网络代理设置
             chkUseProxy.IsChecked = _settings.UseProxy;
             txtProxyUrl.Text = _settings.ProxyUrl ?? "";
             
@@ -37,6 +42,12 @@ namespace PixivPlugin
 
         private void UpdateControlStates()
         {
+            // 图片反向代理控件状态
+            var useImageProxy = chkUseImageProxy.IsChecked == true;
+            pnlImageProxy.IsEnabled = useImageProxy;
+            txtImageProxyUrl.IsEnabled = useImageProxy;
+            
+            // 网络代理控件状态
             var useProxy = chkUseProxy.IsChecked == true;
             var useCustomProxy = rbCustomProxy.IsChecked == true;
             
@@ -44,6 +55,11 @@ namespace PixivPlugin
             rbCustomProxy.IsEnabled = useProxy;
             pnlCustomProxy.IsEnabled = useProxy && useCustomProxy;
             txtProxyUrl.IsEnabled = useProxy && useCustomProxy;
+        }
+
+        private void chkUseImageProxy_Changed(object sender, RoutedEventArgs e)
+        {
+            UpdateControlStates();
         }
 
         private void chkUseProxy_Changed(object sender, RoutedEventArgs e)
@@ -58,6 +74,21 @@ namespace PixivPlugin
 
         private void btnSave_Click(object sender, RoutedEventArgs e)
         {
+            // 验证图片反向代理设置
+            if (chkUseImageProxy.IsChecked == true && string.IsNullOrWhiteSpace(txtImageProxyUrl.Text))
+            {
+                MessageBox.Show("启用图片反向代理时，URL 模板不能为空", "验证失败", MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtImageProxyUrl.Focus();
+                return;
+            }
+            
+            // 保存图片反向代理设置
+            _settings.UseImageProxy = chkUseImageProxy.IsChecked == true;
+            _settings.ImageProxyUrlTemplate = string.IsNullOrWhiteSpace(txtImageProxyUrl.Text) 
+                ? "https://pixiv.shojo.cn/{pid}" 
+                : txtImageProxyUrl.Text.Trim();
+            
+            // 保存网络代理设置
             _settings.UseProxy = chkUseProxy.IsChecked == true;
             _settings.FollowVPetLLMProxy = rbFollowVPetLLM.IsChecked == true;
             _settings.ProxyUrl = string.IsNullOrWhiteSpace(txtProxyUrl.Text) ? null : txtProxyUrl.Text.Trim();

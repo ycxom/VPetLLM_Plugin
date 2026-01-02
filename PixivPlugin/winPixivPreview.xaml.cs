@@ -57,10 +57,11 @@ namespace PixivPlugin
             UpdatePageInfo();
             UpdateNavigationButtons();
 
-            // 加载图片
+            // 加载图片（传递 PID 和页码信息以支持反向代理）
             ShowLoading();
             var thumbnailUrl = illust.GetThumbnailUrl(_currentPageIndex);
-            var image = await _imageLoader.LoadImageAsync(thumbnailUrl);
+            var isMultiPage = illust.PageCount > 1;
+            var image = await _imageLoader.LoadImageAsync(thumbnailUrl, illust.Id, _currentPageIndex, isMultiPage);
             
             if (image != null)
             {
@@ -184,7 +185,9 @@ namespace PixivPlugin
                 txtDownloadStatus.Text = $"下载中... {percent}%";
             });
 
-            var success = await _imageLoader.DownloadImageAsync(originalUrl, savePath, progress);
+            // 下载时传递 PID 和页码信息以支持反向代理
+            var isMultiPage = illust.PageCount > 1;
+            var success = await _imageLoader.DownloadImageAsync(originalUrl, savePath, progress, illust.Id, _currentPageIndex, isMultiPage);
 
             _isDownloading = false;
             btnDownload.IsEnabled = true;

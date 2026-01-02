@@ -28,6 +28,7 @@
     <Compile Include="Models\PluginSettings.cs" />
     <Compile Include="Services\PixivApiService.cs" />
     <Compile Include="Services\ImageLoader.cs" />
+    <Compile Include="Services\ImageProxyService.cs" />
     <Compile Include="winPixivPreview.xaml.cs">
       <DependentUpon>winPixivPreview.xaml</DependentUpon>
     </Compile>
