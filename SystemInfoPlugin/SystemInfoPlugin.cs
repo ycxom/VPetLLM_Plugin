@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using VPetLLM;
-using VPetLLM.Core;
+using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 
 public class SystemInfoPlugin : IActionPlugin
 {
@@ -11,7 +11,7 @@ public class SystemInfoPlugin : IActionPlugin
     {
         get
         {
-            if (_vpetLLM == null) return "获取当前操作系统的版本信息。";  // 显示在 插件 列表介绍，也用于告知ai 这是个什么工具
+            if (_vpetLLM is null) return "获取当前操作系统的版本信息。";  // 显示在 插件 列表介绍，也用于告知ai 这是个什么工具
             switch (_vpetLLM.Settings.Language)
             {
                 case "ja":
@@ -36,13 +36,13 @@ public class SystemInfoPlugin : IActionPlugin
     public void Initialize(VPetLLM.VPetLLM plugin)
     {
         _vpetLLM = plugin;
-        VPetLLM.Utils.Logger.Log("System Info Plugin Initialized!");
+        VPetLLM.Utils.System.Logger.Log("System Info Plugin Initialized!");
     }
 
     public Task<string> Function(string arguments)
     {
         var osInfo = Environment.OSVersion.VersionString;
-        if (_vpetLLM == null) return Task.FromResult("VPetLLM instance is not initialized.");
+        if (_vpetLLM is null) return Task.FromResult("VPetLLM instance is not initialized.");
         _vpetLLM.Log($"SystemInfoPlugin: Function called. Returning OSVersion: {osInfo}");
         return Task.FromResult(osInfo);
     }
@@ -50,12 +50,12 @@ public class SystemInfoPlugin : IActionPlugin
 
     public void Unload()
     {
-        VPetLLM.Utils.Logger.Log("System Info Plugin Unloaded!");
+        VPetLLM.Utils.System.Logger.Log("System Info Plugin Unloaded!");
     }
 
     public void Log(string message)
     {
-        if (_vpetLLM == null) return;
+        if (_vpetLLM is null) return;
         _vpetLLM.Log(message);
     }
 }

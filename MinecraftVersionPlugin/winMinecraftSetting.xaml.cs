@@ -28,7 +28,7 @@ namespace MinecraftVersionPlugin
 
             // 初始化服务器列表
             var serversFromPlugin = _plugin.GetServers();
-            if (serversFromPlugin != null)
+            if (serversFromPlugin is not null)
             {
                 foreach (var s in serversFromPlugin)
                     _servers.Add(new MinecraftVersionPlugin.ServerConfig { Enabled = s.Enabled, Address = s.Address ?? "", Alias = s.Alias ?? "", Product = string.IsNullOrWhiteSpace(s.Product) ? "java" : s.Product });
@@ -76,7 +76,7 @@ namespace MinecraftVersionPlugin
         private async void BtnTestSelected_Click(object sender, RoutedEventArgs e)
         {
             var item = GridServers.SelectedItem as MinecraftVersionPlugin.ServerConfig;
-            if (item == null)
+            if (item is null)
             {
                 MessageBox.Show("请先在服务器列表中选择一条记录。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
@@ -138,7 +138,7 @@ namespace MinecraftVersionPlugin
         private void BtnRemoveServer_Click(object sender, RoutedEventArgs e)
         {
             var item = GridServers.SelectedItem as MinecraftVersionPlugin.ServerConfig;
-            if (item == null)
+            if (item is null)
             {
                 MessageBox.Show("请先选择要删除的服务器。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
@@ -150,7 +150,7 @@ namespace MinecraftVersionPlugin
         {
             var item = GridServers.SelectedItem as MinecraftVersionPlugin.ServerConfig;
             var detected = TxtDetectedName.Text?.Trim() ?? "";
-            if (item == null)
+            if (item is null)
             {
                 MessageBox.Show("请先选择要设置别名的服务器。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
@@ -175,7 +175,7 @@ namespace MinecraftVersionPlugin
         private void RefreshUIForSelectedServer()
         {
             var item = GridServers.SelectedItem as MinecraftVersionPlugin.ServerConfig;
-            if (item == null)
+            if (item is null)
             {
                 // 清理预览区
                 SetLocalPreview("-", "-", "-");
@@ -266,10 +266,10 @@ namespace MinecraftVersionPlugin
             try
             {
                 versionName = (string?)jo.version?.name ?? "";
-                if (jo.description != null)
+                if (jo.description is not null)
                 {
                     if (jo.description is string s) descText = s;
-                    else if (jo.description.text != null) descText = (string)jo.description.text;
+                    else if (jo.description.text is not null) descText = (string)jo.description.text;
                     else descText = jo.description.ToString();
                 }
             }

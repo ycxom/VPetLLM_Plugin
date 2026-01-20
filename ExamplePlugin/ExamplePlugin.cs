@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using VPetLLM;
-using VPetLLM.Core;
+using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 
 public class ExamplePlugin : IActionPlugin
 {
@@ -10,7 +10,7 @@ public class ExamplePlugin : IActionPlugin
     {
         get
         {
-            if (_vpetLLM == null) return "一个简单的示例插件。";
+            if (_vpetLLM is null) return "一个简单的示例插件。";
             switch (_vpetLLM.Settings.Language)
             {
                 case "ja":
@@ -36,12 +36,12 @@ public class ExamplePlugin : IActionPlugin
     {
         _vpetLLM = plugin;
         // 注意：不要覆盖 FilePath，PluginManager 已经正确设置了 DLL 文件路径
-        VPetLLM.Utils.Logger.Log("Example Plugin Initialized!");
+        VPetLLM.Utils.System.Logger.Log("Example Plugin Initialized!");
     }
 
     public Task<string> Function(string arguments)
     {
-        if (_vpetLLM == null) return Task.FromResult("VPetLLM instance is not initialized.");
+        if (_vpetLLM is null) return Task.FromResult("VPetLLM instance is not initialized.");
         var result = "Hello, I am an example plugin!";
         _vpetLLM.Log($"ExamplePlugin: Function called. Returning: {result}");
         return Task.FromResult(result);
@@ -49,12 +49,12 @@ public class ExamplePlugin : IActionPlugin
 
     public void Unload()
     {
-        VPetLLM.Utils.Logger.Log("Example Plugin Unloaded!");
+        VPetLLM.Utils.System.Logger.Log("Example Plugin Unloaded!");
     }
 
     public void Log(string message)
     {
-        if (_vpetLLM == null) return;
+        if (_vpetLLM is null) return;
         _vpetLLM.Log(message);
     }
 }

@@ -66,7 +66,7 @@ namespace WebSearchPlugin
                 try
                 {
                     var resultNodes = doc.DocumentNode.SelectNodes("//li[@class='b_algo']");
-                    if (resultNodes != null && resultNodes.Count > 0)
+                    if (resultNodes is not null && resultNodes.Count > 0)
                     {
                         foreach (var node in resultNodes.Take(10))
                         {
@@ -75,33 +75,33 @@ namespace WebSearchPlugin
                                 var titleNode = node.SelectSingleNode(".//h2/a");
                                 var snippetNode = node.SelectSingleNode(".//p | .//div[@class='b_caption']/p");
 
-                                if (titleNode != null)
+                                if (titleNode is not null)
                                 {
                                     results.Add(new SearchResult
                                     {
                                         Title = CleanText(titleNode.InnerText),
                                         Url = titleNode.GetAttributeValue("href", ""),
-                                        Snippet = snippetNode != null ? CleanText(snippetNode.InnerText) : ""
+                                        Snippet = snippetNode is not null ? CleanText(snippetNode.InnerText) : ""
                                     });
                                 }
                             }
                             catch (Exception nodeEx)
                             {
-                                VPetLLM.Utils.Logger.Log($"Bing node parse error: {nodeEx.Message}");
+                                VPetLLM.Utils.System.Logger.Log($"Bing node parse error: {nodeEx.Message}");
                             }
                         }
                     }
                 }
                 catch (Exception selectEx)
                 {
-                    VPetLLM.Utils.Logger.Log($"Bing SelectNodes error: {selectEx.Message}");
+                    VPetLLM.Utils.System.Logger.Log($"Bing SelectNodes error: {selectEx.Message}");
                 }
 
                 return results;
             }
             catch (Exception ex)
             {
-                VPetLLM.Utils.Logger.Log($"Bing search error: {ex.Message}");
+                VPetLLM.Utils.System.Logger.Log($"Bing search error: {ex.Message}");
                 return new List<SearchResult>();
             }
         }
@@ -123,7 +123,7 @@ namespace WebSearchPlugin
                 try
                 {
                     var resultNodes = doc.DocumentNode.SelectNodes("//div[@class='result c-container xpath-log']");
-                    if (resultNodes != null && resultNodes.Count > 0)
+                    if (resultNodes is not null && resultNodes.Count > 0)
                     {
                         foreach (var node in resultNodes.Take(10))
                         {
@@ -132,34 +132,34 @@ namespace WebSearchPlugin
                                 var titleNode = node.SelectSingleNode(".//h3/a");
                                 var snippetNode = node.SelectSingleNode(".//div[contains(@class, 'c-abstract')]");
 
-                                if (titleNode != null)
+                                if (titleNode is not null)
                                 {
                                     var href = titleNode.GetAttributeValue("href", "");
                                     results.Add(new SearchResult
                                     {
                                         Title = CleanText(titleNode.InnerText),
                                         Url = href,
-                                        Snippet = snippetNode != null ? CleanText(snippetNode.InnerText) : ""
+                                        Snippet = snippetNode is not null ? CleanText(snippetNode.InnerText) : ""
                                     });
                                 }
                             }
                             catch (Exception nodeEx)
                             {
-                                VPetLLM.Utils.Logger.Log($"Baidu node parse error: {nodeEx.Message}");
+                                VPetLLM.Utils.System.Logger.Log($"Baidu node parse error: {nodeEx.Message}");
                             }
                         }
                     }
                 }
                 catch (Exception selectEx)
                 {
-                    VPetLLM.Utils.Logger.Log($"Baidu SelectNodes error: {selectEx.Message}");
+                    VPetLLM.Utils.System.Logger.Log($"Baidu SelectNodes error: {selectEx.Message}");
                 }
 
                 return results;
             }
             catch (Exception ex)
             {
-                VPetLLM.Utils.Logger.Log($"Baidu search error: {ex.Message}");
+                VPetLLM.Utils.System.Logger.Log($"Baidu search error: {ex.Message}");
                 return new List<SearchResult>();
             }
         }
@@ -181,7 +181,7 @@ namespace WebSearchPlugin
                 try
                 {
                     var resultNodes = doc.DocumentNode.SelectNodes("//div[contains(@class, 'result')]");
-                    if (resultNodes != null && resultNodes.Count > 0)
+                    if (resultNodes is not null && resultNodes.Count > 0)
                     {
                         foreach (var node in resultNodes.Take(10))
                         {
@@ -190,33 +190,33 @@ namespace WebSearchPlugin
                                 var titleNode = node.SelectSingleNode(".//a[@class='result__a']");
                                 var snippetNode = node.SelectSingleNode(".//a[@class='result__snippet']");
 
-                                if (titleNode != null)
+                                if (titleNode is not null)
                                 {
                                     results.Add(new SearchResult
                                     {
                                         Title = CleanText(titleNode.InnerText),
                                         Url = titleNode.GetAttributeValue("href", ""),
-                                        Snippet = snippetNode != null ? CleanText(snippetNode.InnerText) : ""
+                                        Snippet = snippetNode is not null ? CleanText(snippetNode.InnerText) : ""
                                     });
                                 }
                             }
                             catch (Exception nodeEx)
                             {
-                                VPetLLM.Utils.Logger.Log($"DuckDuckGo node parse error: {nodeEx.Message}");
+                                VPetLLM.Utils.System.Logger.Log($"DuckDuckGo node parse error: {nodeEx.Message}");
                             }
                         }
                     }
                 }
                 catch (Exception selectEx)
                 {
-                    VPetLLM.Utils.Logger.Log($"DuckDuckGo SelectNodes error: {selectEx.Message}");
+                    VPetLLM.Utils.System.Logger.Log($"DuckDuckGo SelectNodes error: {selectEx.Message}");
                 }
 
                 return results;
             }
             catch (Exception ex)
             {
-                VPetLLM.Utils.Logger.Log($"DuckDuckGo search error: {ex.Message}");
+                VPetLLM.Utils.System.Logger.Log($"DuckDuckGo search error: {ex.Message}");
                 return new List<SearchResult>();
             }
         }

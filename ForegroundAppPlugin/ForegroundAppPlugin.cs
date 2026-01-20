@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Newtonsoft.Json;
-using VPetLLM.Core;
+using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 
 namespace ForegroundAppPlugin
 {
@@ -19,7 +19,7 @@ namespace ForegroundAppPlugin
         {
             get
             {
-                if (_vpetLLM == null) return "监视前台应用程序并将其详细信息（包括窗口标题）提供给 AI。";
+                if (_vpetLLM is null) return "监视前台应用程序并将其详细信息（包括窗口标题）提供给 AI。";
                 switch (_vpetLLM.Settings.Language)
                 {
                     case "ja":
@@ -88,7 +88,7 @@ namespace ForegroundAppPlugin
             LoadSetting();
             _cancellationTokenSource = new CancellationTokenSource();
             _monitoringTask = Task.Run(() => MonitorForegroundApp(_cancellationTokenSource.Token));
-            VPetLLM.Utils.Logger.Log("Foreground App Plugin Initialized and monitoring started!");
+            VPetLLM.Utils.System.Logger.Log("Foreground App Plugin Initialized and monitoring started!");
         }
 
         private async Task MonitorForegroundApp(CancellationToken token)
@@ -137,7 +137,7 @@ namespace ForegroundAppPlugin
                         {
                             chatMessage = $"The user is now using the application: {processName}, Time: {DateTime.Now}";
                         }
-                        VPetLLM.Handlers.PluginHandler.SendPluginMessage("ForegroundAppWatcher", chatMessage);
+                        VPetLLM.Handlers.Actions.PluginHandler.SendPluginMessage("ForegroundAppWatcher", chatMessage);
                     }
                 }
                 catch (Exception ex)
@@ -170,12 +170,12 @@ namespace ForegroundAppPlugin
         public void Unload()
         {
             _cancellationTokenSource?.Cancel();
-            VPetLLM.Utils.Logger.Log("Foreground App Plugin Unload signal sent.");
+            VPetLLM.Utils.System.Logger.Log("Foreground App Plugin Unload signal sent.");
         }
 
         public void Log(string message)
         {
-            if (_vpetLLM == null) return;
+            if (_vpetLLM is null) return;
             _vpetLLM.Log(message);
         }
 

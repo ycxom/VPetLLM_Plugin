@@ -67,13 +67,13 @@ namespace PixivPlugin.Services
         public async Task<PixivIllust?> GetRandomRankingImageAsync(string mode = "day")
         {
             var response = await GetRankingAsync(mode);
-            if (response?.Illusts == null || response.Illusts.Count == 0) return null;
+            if (response?.Illusts is null || response.Illusts.Count == 0) return null;
             return SelectRandom(response.Illusts);
         }
 
         public T SelectRandom<T>(IList<T> list)
         {
-            if (list == null || list.Count == 0)
+            if (list is null || list.Count == 0)
                 throw new ArgumentException("List cannot be null or empty", nameof(list));
             return list[_random.Next(list.Count)];
         }
@@ -83,7 +83,7 @@ namespace PixivPlugin.Services
         {
             var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             int ck = 0;
-            if (_getAuthKey != null) { try { ck = await _getAuthKey(); } catch { } }
+            if (_getAuthKey is not null) { try { ck = await _getAuthKey(); } catch { } }
             request.Headers.Add("X-Cache-Token", E(_steamId.ToString(), ts));
             request.Headers.Add("X-Request-Signature", E(M(), ts));
             request.Headers.Add("X-Check-Key", E(ck.ToString(), ts));

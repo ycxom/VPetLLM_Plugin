@@ -2,7 +2,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
 using Newtonsoft.Json;
-using VPetLLM.Core;
+using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 using PixivPlugin.Models;
 using PixivPlugin.Services;
 
@@ -17,7 +17,7 @@ namespace PixivPlugin
         {
             get
             {
-                if (_vpetLLM == null)
+                if (_vpetLLM is null)
                     return "搜索 Pixiv 图片或获取随机推荐图片。";
 
                 return _vpetLLM.Settings.Language switch
@@ -66,12 +66,12 @@ namespace PixivPlugin
             _imageLoader.SetImageProxyService(_imageProxyService);
             ApplyProxySettings();
 
-            VPetLLM.Utils.Logger.Log("Pixiv Plugin Initialized!");
+            VPetLLM.Utils.System.Logger.Log("Pixiv Plugin Initialized!");
         }
 
         private async Task<int> GetAuthKeyAsync()
         {
-            try { if (_vpetLLM?.MW != null) return await _vpetLLM.MW.GenerateAuthKey(); } catch { }
+            try { if (_vpetLLM?.MW is not null) return await _vpetLLM.MW.GenerateAuthKey(); } catch { }
             return 0;
         }
 
@@ -120,12 +120,12 @@ namespace PixivPlugin
 
         private async Task<string> SearchAndShowAsync(string keyword, int page = 1)
         {
-            if (_apiService == null || _imageLoader == null)
+            if (_apiService is null || _imageLoader is null)
                 return "插件未正确初始化。";
 
             var response = await _apiService.SearchAsync(keyword, page);
             
-            if (response?.Illusts == null || response.Illusts.Count == 0)
+            if (response?.Illusts is null || response.Illusts.Count == 0)
             {
                 return page > 1 
                     ? $"第 {page} 页没有更多与 \"{keyword}\" 相关的图片了。"
@@ -138,12 +138,12 @@ namespace PixivPlugin
 
         private async Task<string> RandomAndShowAsync()
         {
-            if (_apiService == null || _imageLoader == null)
+            if (_apiService is null || _imageLoader is null)
                 return "插件未正确初始化。";
 
             var illust = await _apiService.GetRandomRankingImageAsync();
             
-            if (illust == null)
+            if (illust is null)
             {
                 return "获取推荐图片失败，请稍后重试。";
             }
@@ -183,7 +183,7 @@ namespace PixivPlugin
         {
             SaveSettings();
             _imageLoader?.Dispose();
-            VPetLLM.Utils.Logger.Log("Pixiv Plugin Unloaded!");
+            VPetLLM.Utils.System.Logger.Log("Pixiv Plugin Unloaded!");
         }
 
         public void Log(string message)
@@ -242,7 +242,7 @@ namespace PixivPlugin
 
         private void ApplyProxySettings()
         {
-            if (_imageLoader == null)
+            if (_imageLoader is null)
                 return;
 
             if (!_settings.UseProxy)
@@ -255,7 +255,7 @@ namespace PixivPlugin
             if (_settings.FollowVPetLLMProxy)
             {
                 var vpetProxy = _vpetLLM?.Settings?.Proxy;
-                if (vpetProxy != null && vpetProxy.IsEnabled)
+                if (vpetProxy is not null && vpetProxy.IsEnabled)
                 {
                     // 如果跟随系统代理，则不设置自定义代理（让系统处理）
                     if (vpetProxy.FollowSystemProxy)

@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using VPetLLM.Core;
+using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 
 namespace MinecraftVersionPlugin
 {
@@ -22,7 +22,7 @@ namespace MinecraftVersionPlugin
         {
             get
             {
-                if (_vpetLLM == null) return "监听并识别我的世界（Java/基岩）版本与玩家事件，按标准JSON向AI推送。";
+                if (_vpetLLM is null) return "监听并识别我的世界（Java/基岩）版本与玩家事件，按标准JSON向AI推送。";
                 return _vpetLLM.Settings.Language switch
                 {
                     "ja" => "Minecraft（Java/Bedrock）のバージョンとプレイヤーイベントを監視し、標準JSONでAIに通知します。",
@@ -75,10 +75,10 @@ namespace MinecraftVersionPlugin
                 var path = Path.Combine(PluginDataDir, CacheFileName);
                 if (!File.Exists(path)) return;
                 var cache = JsonConvert.DeserializeObject<CacheState>(File.ReadAllText(path));
-                if (cache == null) return;
+                if (cache is null) return;
 
                 _lastReportedKey = cache.LastVersionKey ?? "";
-                if (cache.OnlineByServer != null)
+                if (cache.OnlineByServer is not null)
                 {
                     lock (_onlineLock)
                     {
@@ -193,7 +193,7 @@ namespace MinecraftVersionPlugin
             LoadCache();
             _cts = new CancellationTokenSource();
             _task = Task.Run(() => LoopAsync(_cts.Token));
-            VPetLLM.Utils.Logger.Log("Minecraft Version Plugin initialized and monitoring started.");
+            VPetLLM.Utils.System.Logger.Log("Minecraft Version Plugin initialized and monitoring started.");
         }
 
         private async Task LoopAsync(CancellationToken token)
@@ -244,7 +244,7 @@ namespace MinecraftVersionPlugin
                         {
                             foreach (var s in servers)
                             {
-                                if (s != null && s.Enabled && !string.IsNullOrWhiteSpace(s.Address))
+                                if (s is not null && s.Enabled && !string.IsNullOrWhiteSpace(s.Address))
                                 {
                                     await QueryLocalStatusAndDiffAsync(s, token);
                                 }
@@ -316,7 +316,7 @@ namespace MinecraftVersionPlugin
 
         private static bool VersionAllowed(string detected, string[] allowed)
         {
-            if (allowed == null || allowed.Length == 0) return true;
+            if (allowed is null || allowed.Length == 0) return true;
             if (string.IsNullOrWhiteSpace(detected)) return false;
             foreach (var v in allowed) if (string.Equals(v?.Trim(), detected.Trim(), StringComparison.OrdinalIgnoreCase)) return true;
             return false;
@@ -325,7 +325,7 @@ namespace MinecraftVersionPlugin
         public void Unload()
         {
             _cts?.Cancel();
-            VPetLLM.Utils.Logger.Log("Minecraft Version Plugin unload signal sent.");
+            VPetLLM.Utils.System.Logger.Log("Minecraft Version Plugin unload signal sent.");
         }
 
         public void Log(string message)
@@ -359,7 +359,7 @@ namespace MinecraftVersionPlugin
                     var list = new List<object>();
                     lock (_onlineLock)
                     {
-                        var servers = (_setting.Servers ?? new List<ServerConfig>()).Where(s => s != null).ToList();
+                        var servers = (_setting.Servers ?? new List<ServerConfig>()).Where(s => s is not null).ToList();
                         if (servers.Count > 0)
                         {
                             foreach (var s in servers)
@@ -373,7 +373,7 @@ namespace MinecraftVersionPlugin
                                     address = addr,
                                     alias = alias,
                                     version = ver ?? "",
-                                    online = set == null ? Array.Empty<string>() : set.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToArray()
+                                    online = set is null ? Array.Empty<string>() : set.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToArray()
                                 });
                             }
                         }
@@ -388,7 +388,7 @@ namespace MinecraftVersionPlugin
                                 address = addr,
                                 alias = alias,
                                 version = ver ?? "",
-                                online = set == null ? Array.Empty<string>() : set.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToArray()
+                                online = set is null ? Array.Empty<string>() : set.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToArray()
                             });
                         }
                     }
@@ -434,8 +434,8 @@ namespace MinecraftVersionPlugin
         private string GetServerDisplayName()
         {
             // 用于非服务器特定场景：优先第一个服务器的别名/地址，其次旧别名，再次默认
-            var s = _setting.Servers?.FirstOrDefault(x => x != null);
-            if (s != null)
+            var s = _setting.Servers?.FirstOrDefault(x => x is not null);
+            if (s is not null)
             {
                 if (!string.IsNullOrWhiteSpace(s.Alias)) return s.Alias.Trim();
                 if (!string.IsNullOrWhiteSpace(s.Address)) return s.Address.Trim();
@@ -456,18 +456,18 @@ namespace MinecraftVersionPlugin
         {
             try
             {
-                if (jo == null || jo.description == null) return "";
+                if (jo is null || jo.description is null) return "";
                 var desc = jo.description;
                 try { string s = (string)desc; if (!string.IsNullOrWhiteSpace(s)) return s; } catch { }
-                try { if (desc.text != null) { string t = (string)desc.text; if (!string.IsNullOrWhiteSpace(t)) return t; } } catch { }
+                try { if (desc.text is not null) { string t = (string)desc.text; if (!string.IsNullOrWhiteSpace(t)) return t; } } catch { }
                 try
                 {
-                    if (desc.extra != null)
+                    if (desc.extra is not null)
                     {
                         var sb = new StringBuilder();
                         foreach (var e in desc.extra)
                         {
-                            try { if (e.text != null) { string t = (string)e.text; if (!string.IsNullOrEmpty(t)) sb.Append(t); } } catch { }
+                            try { if (e.text is not null) { string t = (string)e.text; if (!string.IsNullOrEmpty(t)) sb.Append(t); } } catch { }
                         }
                         var combined = sb.ToString();
                         if (!string.IsNullOrWhiteSpace(combined)) return combined;
@@ -485,7 +485,7 @@ namespace MinecraftVersionPlugin
             {
                 if (_suppressSend) return;
                 var json = JsonConvert.SerializeObject(payload);
-                VPetLLM.Handlers.PluginHandler.SendPluginMessage("MinecraftVersionWatcher", json);
+                VPetLLM.Handlers.Actions.PluginHandler.SendPluginMessage("MinecraftVersionWatcher", json);
             }
             catch (Exception ex)
             {
@@ -542,7 +542,7 @@ namespace MinecraftVersionPlugin
                 var sample = new List<string>();
                 try
                 {
-                    if (jo.players?.sample != null)
+                    if (jo.players?.sample is not null)
                     {
                         foreach (var p in jo.players.sample)
                         {
@@ -595,7 +595,7 @@ namespace MinecraftVersionPlugin
                             lock (_onlineLock) { onlineSet.Add(p); }
                             var msg = $"[{displayName}] 玩家加入: {p}。在线: {string.Join(", ", onlineSet)}";
                             _vpetLLM?.Log(msg);
-                            VPetLLM.Handlers.PluginHandler.SendPluginMessage("MinecraftVersionWatcher", $"[{displayName}] join play: {p}。playl_ist: {string.Join(",", onlineSet)}");
+                            VPetLLM.Handlers.Actions.PluginHandler.SendPluginMessage("MinecraftVersionWatcher", $"[{displayName}] join play: {p}。playl_ist: {string.Join(",", onlineSet)}");
                         }
 
                         // 退出：onlineSet - newSet
@@ -605,7 +605,7 @@ namespace MinecraftVersionPlugin
                             lock (_onlineLock) { onlineSet.Remove(p); }
                             var msg = $"[{displayName}] 玩家退出: {p}。在线: {string.Join(", ", onlineSet)}";
                             _vpetLLM?.Log(msg);
-                            VPetLLM.Handlers.PluginHandler.SendPluginMessage("MinecraftVersionWatcher", $"[{displayName}] left play: {p}。playl_ist: {string.Join(",", onlineSet)}");
+                            VPetLLM.Handlers.Actions.PluginHandler.SendPluginMessage("MinecraftVersionWatcher", $"[{displayName}] left play: {p}。playl_ist: {string.Join(",", onlineSet)}");
                         }
                     }
                 }
@@ -624,13 +624,13 @@ namespace MinecraftVersionPlugin
                                 onlineSet.Clear();
                             }
                         }
-                        if (snapshot != null && snapshot.Count > 0)
+                        if (snapshot is not null && snapshot.Count > 0)
                         {
                             foreach (var p in snapshot)
                             {
                                 var msg = $"[{displayName}] 玩家退出: {p}。在线: ";
                                 _vpetLLM?.Log(msg);
-                                VPetLLM.Handlers.PluginHandler.SendPluginMessage("MinecraftVersionWatcher", $"[{displayName}] left play: {p}。playl_ist: ");
+                                VPetLLM.Handlers.Actions.PluginHandler.SendPluginMessage("MinecraftVersionWatcher", $"[{displayName}] left play: {p}。playl_ist: ");
                             }
                         }
                         // 标记该服务器已建立空基线
@@ -747,13 +747,13 @@ namespace MinecraftVersionPlugin
                         }
                         _hasBaselineServers.Add(serverAddress);
                     }
-                    if (snapshot != null && snapshot.Count > 0)
+                    if (snapshot is not null && snapshot.Count > 0)
                     {
                         foreach (var p in snapshot)
                         {
                             var msg = $"[{displayName}] 玩家退出: {p}。在线: ";
                             _vpetLLM?.Log(msg);
-                            VPetLLM.Handlers.PluginHandler.SendPluginMessage("MinecraftVersionWatcher", $"[{displayName}] left play: {p}。playl_ist: ");
+                            VPetLLM.Handlers.Actions.PluginHandler.SendPluginMessage("MinecraftVersionWatcher", $"[{displayName}] left play: {p}。playl_ist: ");
                         }
                     }
                 }
@@ -856,8 +856,8 @@ namespace MinecraftVersionPlugin
         public string GetDetectedNamePreview()
         {
             // 预览名称：优先别名（新 servers）、否则旧别名、再否则旧地址
-            var s = _setting.Servers?.FirstOrDefault(x => x != null);
-            if (s != null)
+            var s = _setting.Servers?.FirstOrDefault(x => x is not null);
+            if (s is not null)
             {
                 if (!string.IsNullOrWhiteSpace(s.Alias)) return s.Alias.Trim();
                 if (!string.IsNullOrWhiteSpace(s.Address)) return s.Address.Trim();

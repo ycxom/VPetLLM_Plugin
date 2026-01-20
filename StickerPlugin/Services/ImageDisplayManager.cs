@@ -56,7 +56,7 @@ namespace StickerPlugin.Services
 
                 // 加载程序集
                 _imagePluginAssembly = Assembly.LoadFrom(_dllPath);
-                if (_imagePluginAssembly == null)
+                if (_imagePluginAssembly is null)
                 {
                     LastError = "Failed to load VPet.Plugin.Imgae.dll";
                     return false;
@@ -64,7 +64,7 @@ namespace StickerPlugin.Services
 
                 // 获取 ImageUI 类型
                 var imageUIType = _imagePluginAssembly.GetType("VPet.Plugin.Imgae.ImageUI");
-                if (imageUIType == null)
+                if (imageUIType is null)
                 {
                     LastError = "ImageUI type not found in VPet.Plugin.Imgae.dll";
                     return false;
@@ -78,7 +78,7 @@ namespace StickerPlugin.Services
                     {
                         // 创建 ImageUI 实例（使用无参构造函数）
                         _imageUI = Activator.CreateInstance(imageUIType);
-                        if (_imageUI == null)
+                        if (_imageUI is null)
                         {
                             LastError = "Failed to create ImageUI instance";
                             return;
@@ -87,37 +87,37 @@ namespace StickerPlugin.Services
                         // 获取 Image 控件 - 尝试多种方式
                         // 方式1: 通过反射获取 Image 字段（internal/assembly 访问修饰符）
                         var imageField = imageUIType.GetField("Image", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-                        if (imageField != null)
+                        if (imageField is not null)
                         {
                             _imageControl = imageField.GetValue(_imageUI) as Image;
                         }
                         
                         // 方式2: 如果字段获取失败，尝试通过 LogicalTreeHelper 查找（适用于 XAML 加载后）
-                        if (_imageControl == null && _imageUI is UserControl uc)
+                        if (_imageControl is null && _imageUI is UserControl uc)
                         {
                             _imageControl = FindLogicalChild<Image>(uc);
                         }
 
                         // 方式3: 如果 LogicalTree 也失败，尝试 VisualTree（需要控件已渲染）
-                        if (_imageControl == null && _imageUI is UserControl uc2)
+                        if (_imageControl is null && _imageUI is UserControl uc2)
                         {
                             _imageControl = FindVisualChild<Image>(uc2);
                         }
 
                         // 方式4: 尝试通过 FindName 查找（XAML 中定义的 x:Name）
-                        if (_imageControl == null && _imageUI is FrameworkElement fe)
+                        if (_imageControl is null && _imageUI is FrameworkElement fe)
                         {
                             _imageControl = fe.FindName("Image") as Image;
                         }
 
-                        if (_imageControl == null)
+                        if (_imageControl is null)
                         {
                             LastError = "Failed to get Image control from ImageUI. The DLL may have been updated with incompatible changes.";
                             return;
                         }
 
                         // 将 ImageUI 添加到 UIGrid
-                        if (_imageUI is UserControl userControl && _mainWindow?.Main?.UIGrid != null)
+                        if (_imageUI is UserControl userControl && _mainWindow?.Main?.UIGrid is not null)
                         {
                             var uiGrid = _mainWindow.Main.UIGrid;
                             var childCount = uiGrid.Children.Count;
@@ -133,13 +133,13 @@ namespace StickerPlugin.Services
                     }
                 });
 
-                if (uiException != null)
+                if (uiException is not null)
                 {
                     LastError = $"UI initialization failed: {uiException.Message}";
                     return false;
                 }
 
-                if (_imageUI == null || _imageControl == null)
+                if (_imageUI is null || _imageControl is null)
                 {
                     if (string.IsNullOrEmpty(LastError))
                         LastError = "ImageUI or ImageControl is null after initialization";
@@ -175,7 +175,7 @@ namespace StickerPlugin.Services
                     return result;
                 
                 var descendant = FindVisualChild<T>(child);
-                if (descendant != null)
+                if (descendant is not null)
                     return descendant;
             }
             return null;
@@ -194,7 +194,7 @@ namespace StickerPlugin.Services
                 if (child is DependencyObject depChild)
                 {
                     var descendant = FindLogicalChild<T>(depChild);
-                    if (descendant != null)
+                    if (descendant is not null)
                         return descendant;
                 }
             }
@@ -206,7 +206,7 @@ namespace StickerPlugin.Services
         /// </summary>
         public async Task ShowImageFromBase64Async(string base64Data, int durationSeconds)
         {
-            if (!IsInitialized || _imageUI == null || _imageControl == null)
+            if (!IsInitialized || _imageUI is null || _imageControl is null)
             {
                 LastError = "ImageDisplayManager not initialized";
                 return;
@@ -285,7 +285,7 @@ namespace StickerPlugin.Services
                         }
 
                         // 设置隐藏定时器
-                        if (_hideTimer != null)
+                        if (_hideTimer is not null)
                         {
                             _hideTimer.Stop();
                             _hideTimer.Interval = TimeSpan.FromSeconds(durationSeconds);
@@ -309,7 +309,7 @@ namespace StickerPlugin.Services
         /// </summary>
         public async Task ShowImageAsync(string imagePath, int durationSeconds)
         {
-            if (!IsInitialized || _imageUI == null)
+            if (!IsInitialized || _imageUI is null)
             {
                 return;
             }
@@ -327,7 +327,7 @@ namespace StickerPlugin.Services
                     bitmap.Freeze();
 
                     // 设置图片源
-                    if (_imageControl != null)
+                    if (_imageControl is not null)
                     {
                         _imageControl.Source = bitmap;
                     }
@@ -339,7 +339,7 @@ namespace StickerPlugin.Services
                     }
 
                     // 设置隐藏定时器
-                    if (_hideTimer != null)
+                    if (_hideTimer is not null)
                     {
                         _hideTimer.Stop();
                         _hideTimer.Interval = TimeSpan.FromSeconds(durationSeconds);
@@ -358,7 +358,7 @@ namespace StickerPlugin.Services
         /// </summary>
         public void HideImage()
         {
-            if (_imageUI == null)
+            if (_imageUI is null)
             {
                 return;
             }
@@ -366,7 +366,7 @@ namespace StickerPlugin.Services
             Application.Current.Dispatcher.Invoke(() =>
             {
                 // 停止 GIF 动画并清除
-                if (_imageControl != null)
+                if (_imageControl is not null)
                 {
                     ImageBehavior.SetAnimatedSource(_imageControl, null);
                     _imageControl.Source = null;

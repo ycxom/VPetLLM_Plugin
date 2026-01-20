@@ -63,7 +63,7 @@ namespace PixivPlugin
             var isMultiPage = illust.PageCount > 1;
             var image = await _imageLoader.LoadImageAsync(thumbnailUrl, illust.Id, _currentPageIndex, isMultiPage);
             
-            if (image != null)
+            if (image is not null)
             {
                 imgPreview.Source = image;
                 HideLoading();

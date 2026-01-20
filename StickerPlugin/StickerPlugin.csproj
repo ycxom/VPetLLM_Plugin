@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <Reference Include="VPetLLM">
-      <HintPath>D:\CodeDesk\VPetLLM\VPetLLM\3000_VPetLLM\plugin\VPetLLM.dll</HintPath>
+      <HintPath>..\..\VPetLLM\3000_VPetLLM\plugin\VPetLLM.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

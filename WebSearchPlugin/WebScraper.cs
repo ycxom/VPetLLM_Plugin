@@ -21,7 +21,7 @@ namespace WebSearchPlugin
         {
             try
             {
-                VPetLLM.Utils.Logger.Log($"WebScraper: Fetching {url} (Local Mode)");
+                VPetLLM.Utils.System.Logger.Log($"WebScraper: Fetching {url} (Local Mode)");
 
                 // 获取网页内容
                 var html = await FetchHtml(url);
@@ -41,13 +41,13 @@ namespace WebSearchPlugin
                 // 后处理
                 markdown = PostProcessMarkdown(markdown, url);
 
-                VPetLLM.Utils.Logger.Log($"WebScraper: Successfully converted to Markdown ({markdown.Length} chars)");
+                VPetLLM.Utils.System.Logger.Log($"WebScraper: Successfully converted to Markdown ({markdown.Length} chars)");
 
                 return markdown;
             }
             catch (Exception ex)
             {
-                VPetLLM.Utils.Logger.Log($"WebScraper error: {ex.Message}");
+                VPetLLM.Utils.System.Logger.Log($"WebScraper error: {ex.Message}");
                 return $"错误：无法获取网页内容 - {ex.Message}";
             }
         }
@@ -67,7 +67,7 @@ namespace WebSearchPlugin
             }
             catch (HttpRequestException ex)
             {
-                VPetLLM.Utils.Logger.Log($"HTTP error fetching {url}: {ex.Message}");
+                VPetLLM.Utils.System.Logger.Log($"HTTP error fetching {url}: {ex.Message}");
                 throw;
             }
         }
@@ -81,7 +81,7 @@ namespace WebSearchPlugin
                 try
                 {
                     var nodes = doc.DocumentNode.SelectNodes($"//{tag}");
-                    if (nodes != null && nodes.Count > 0)
+                    if (nodes is not null && nodes.Count > 0)
                     {
                         foreach (var node in nodes)
                         {
@@ -91,14 +91,14 @@ namespace WebSearchPlugin
                 }
                 catch (Exception ex)
                 {
-                    VPetLLM.Utils.Logger.Log($"WebScraper: Error removing {tag}: {ex.Message}");
+                    VPetLLM.Utils.System.Logger.Log($"WebScraper: Error removing {tag}: {ex.Message}");
                 }
             }
 
             // 尝试提取主要内容区域
             var mainNode = ExtractMainContent(doc);
             
-            if (mainNode == null)
+            if (mainNode is null)
             {
                 mainNode = doc.DocumentNode;
             }
@@ -133,9 +133,9 @@ namespace WebSearchPlugin
                 try
                 {
                     var node = doc.DocumentNode.SelectSingleNode(selector);
-                    if (node != null && node.InnerText.Trim().Length > 200)
+                    if (node is not null && node.InnerText.Trim().Length > 200)
                     {
-                        VPetLLM.Utils.Logger.Log($"WebScraper: Found main content using selector: {selector}");
+                        VPetLLM.Utils.System.Logger.Log($"WebScraper: Found main content using selector: {selector}");
                         return node;
                     }
                 }
@@ -151,7 +151,7 @@ namespace WebSearchPlugin
             try
             {
                 var candidates = doc.DocumentNode.SelectNodes("//div | //section | //article");
-                if (candidates == null || candidates.Count == 0)
+                if (candidates is null || candidates.Count == 0)
                 {
                     return null;
                 }
@@ -169,15 +169,15 @@ namespace WebSearchPlugin
                     }
                 }
 
-                if (bestNode != null && bestScore > 100)
+                if (bestNode is not null && bestScore > 100)
                 {
-                    VPetLLM.Utils.Logger.Log($"WebScraper: Found content by density (score: {bestScore:F2})");
+                    VPetLLM.Utils.System.Logger.Log($"WebScraper: Found content by density (score: {bestScore:F2})");
                     return bestNode;
                 }
             }
             catch (Exception ex)
             {
-                VPetLLM.Utils.Logger.Log($"WebScraper: Error in density analysis: {ex.Message}");
+                VPetLLM.Utils.System.Logger.Log($"WebScraper: Error in density analysis: {ex.Message}");
             }
 
             return null;
@@ -203,7 +203,7 @@ namespace WebSearchPlugin
                 // 计算链接密度（链接文本 / 总文本）
                 var links = node.SelectNodes(".//a");
                 var linkTextLength = 0;
-                if (links != null)
+                if (links is not null)
                 {
                     foreach (var link in links)
                     {
@@ -334,7 +334,7 @@ namespace WebSearchPlugin
             try
             {
                 var items = listNode.SelectNodes(".//li");
-                if (items == null || items.Count == 0) return;
+                if (items is null || items.Count == 0) return;
 
                 int index = 1;
                 foreach (var item in items)
@@ -347,7 +347,7 @@ namespace WebSearchPlugin
             }
             catch (Exception ex)
             {
-                VPetLLM.Utils.Logger.Log($"WebScraper: Error processing list: {ex.Message}");
+                VPetLLM.Utils.System.Logger.Log($"WebScraper: Error processing list: {ex.Message}");
             }
         }
 

@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using VPetLLM.Core;
+using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 
 namespace WebSearchPlugin
 {
@@ -17,7 +17,7 @@ namespace WebSearchPlugin
         {
             get
             {
-                if (_vpetLLM == null) return "搜索互联网内容或获取网页内容（Markdown格式）";
+                if (_vpetLLM is null) return "搜索互联网内容或获取网页内容（Markdown格式）";
                 switch (_vpetLLM.Settings.Language)
                 {
                     case "ja": return "インターネットコンテンツを検索するか、Webページのコンテンツ（Markdown形式）を取得します。";
@@ -97,11 +97,11 @@ namespace WebSearchPlugin
                 
                 var proxyInfo = GetProxyInfo(proxyToUse);
                 var modeInfo = _settings.Api.UseApiMode ? "API Mode" : "Local Mode";
-                VPetLLM.Utils.Logger.Log($"WebSearch Plugin Initialized! ({modeInfo}, Proxy: {proxyInfo})");
+                VPetLLM.Utils.System.Logger.Log($"WebSearch Plugin Initialized! ({modeInfo}, Proxy: {proxyInfo})");
             }
             catch (Exception ex)
             {
-                VPetLLM.Utils.Logger.Log($"WebSearch Plugin Initialization Error: {ex.Message}");
+                VPetLLM.Utils.System.Logger.Log($"WebSearch Plugin Initialization Error: {ex.Message}");
                 throw;
             }
         }
@@ -120,13 +120,13 @@ namespace WebSearchPlugin
         private void OnSettingsSaved(WebSearchSettings newSettings)
         {
             _settings = newSettings;
-            if (_scraper != null) _scraper.MaxContentLength = _settings.MaxContentLength;
+            if (_scraper is not null) _scraper.MaxContentLength = _settings.MaxContentLength;
             CreateContentFetcher();
         }
 
         private void CreateContentFetcher()
         {
-            if (_httpClient == null || _scraper == null) return;
+            if (_httpClient is null || _scraper is null) return;
             var localFetcher = new LocalContentFetcher(_scraper);
             if (_settings.Api.UseApiMode)
             {
@@ -142,7 +142,7 @@ namespace WebSearchPlugin
 
         private async Task<int> GetAuthKeyAsync()
         {
-            try { if (_vpetLLM?.MW != null) return await _vpetLLM.MW.GenerateAuthKey(); } catch { }
+            try { if (_vpetLLM?.MW is not null) return await _vpetLLM.MW.GenerateAuthKey(); } catch { }
             return 0;
         }
 
@@ -199,7 +199,7 @@ namespace WebSearchPlugin
         {
             try
             {
-                if (_searchEngine == null || _scraper == null)
+                if (_searchEngine is null || _scraper is null)
                 {
                     return "错误：插件未正确初始化";
                 }
@@ -271,7 +271,7 @@ namespace WebSearchPlugin
             _vpetLLM?.Log($"WebSearch: Searching for '{query}'");
 
             // API 模式：通过 API 获取 Bing 搜索结果
-            if (_settings.Api.UseApiMode && _contentFetcher != null)
+            if (_settings.Api.UseApiMode && _contentFetcher is not null)
             {
                 return await HandleSearchViaApi(query);
             }
@@ -320,7 +320,7 @@ namespace WebSearchPlugin
 
         private async Task<string> HandleSearchLocal(string query)
         {
-            if (_searchEngine == null)
+            if (_searchEngine is null)
             {
                 return "错误：搜索引擎未初始化";
             }
@@ -362,7 +362,7 @@ namespace WebSearchPlugin
 
         private async Task<string> HandleFetch(string url)
         {
-            if (_contentFetcher == null)
+            if (_contentFetcher is null)
             {
                 return "错误：内容抓取器未初始化";
             }
@@ -397,7 +397,7 @@ namespace WebSearchPlugin
         public void Unload()
         {
             _httpClient?.Dispose();
-            VPetLLM.Utils.Logger.Log("WebSearch Plugin Unloaded!");
+            VPetLLM.Utils.System.Logger.Log("WebSearch Plugin Unloaded!");
         }
 
         public void Log(string message)

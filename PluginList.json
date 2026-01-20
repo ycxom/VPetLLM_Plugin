@@ -9,7 +9,7 @@
       "en": "Give red envelopes to lolisi on holidays!"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MoneyManagerPlugin/plugin/MoneyManagerPlugin.dll",
-    "SHA256": "0e8261b262444c00f4cafc799d8b10c3d3f9bc84d844116eb17e20a91a3b6acf"
+    "SHA256": "a1df7e3d69f95ffff385eb889a24d10b99987861977c147a474fc039094d8749"
   },
   "ReminderPlugin": {
     "Name": "reminder",
@@ -21,7 +21,7 @@
       "en": "Set a timed reminder."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ReminderPlugin/plugin/ReminderPlugin.dll",
-    "SHA256": "43f68795127007a95bdef489c2121b7a50f216c7f71153348258f6b4feca25bb"
+    "SHA256": "f048abc5f079952bd98180d6e4a62bd7c5d9c41ac7fffea1fa3fb492fabc3a4a"
   },
   "SystemInfoPlugin": {
     "Name": "system_info",
@@ -33,7 +33,7 @@
       "en": "Get the current operating system's version information."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/SystemInfoPlugin/plugin/SystemInfoPlugin.dll",
-    "SHA256": "f1efcc738df825f75e9e0b7a9cd7c30da0a8d81c913630988350b9c0e826752a"
+    "SHA256": "ce27c146ee7c382e9c411de077de4b87651d05a0d7f53e1cf456645f1ae0e94d"
   },
   "ForegroundAppPlugin": {
     "Name": "ForegroundAppWatcher",
@@ -45,7 +45,7 @@
       "en": "Monitors the foreground application and provides the name to the AI."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ForegroundAppPlugin/plugin/ForegroundAppPlugin.dll",
-    "SHA256": "0e8d23cc7c8e97b3537d131be68b4b1b9242568086870315abe17e7d253eae43"
+    "SHA256": "9e1cf9401fc11d8929ac506d194efb5522a6815bacaccd216fca315d6896b9d5"
   },
   "AppLauncherPlugin": {
     "Name": "AppLauncher",
@@ -57,7 +57,7 @@
       "en": "Allows AI to launch applications with support for custom app paths and automatic system app recognition."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/AppLauncherPlugin/plugin/AppLauncherPlugin.dll",
-    "SHA256": "f0b049d14494d3fc38d2bd6914d407a9c8ebb882d7e8ed1ab07e6b09015727e7"
+    "SHA256": "0e788bf43665140e4e376df5c1f930cc5777f975417c03e05b4947d03e7b8d6f"
   },
   "MinecraftVersionPlugin": {
     "Name": "MinecraftVersionWatcher",
@@ -69,7 +69,7 @@
       "en": "Watches Minecraft (Java/Bedrock) versions and notifies AI only if it matches allowed versions."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MinecraftVersionPlugin/plugin/MinecraftVersionPlugin.dll",
-    "SHA256": "8cb83bc5c75c4255709d068e7da45fc69562f7177e01a1fff9cb4951d42b34f8"
+    "SHA256": "c2b49006849fc6ef339faa46188ac72acd78012b9fcdff796b3dbb0702c8069f"
   },
   "MarkdownViewerPlugin": {
     "Name": "MarkdownViewer",
@@ -81,7 +81,7 @@
       "en": "Render and display standard Markdown documents in a standalone window. Use standard Markdown format. Supports headings, lists, code blocks, tables, etc."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MarkdownViewerPlugin/plugin/MarkdownViewerPlugin.dll",
-    "SHA256": "5dc25f0d4554d3039ef2ba82aee36135b26f833581352618ea0234a9d18c1f39"
+    "SHA256": "05551cdc525971bda49d4ee2f4bff6b8eceeaec24a145d22c1508d6e1e0fddc2"
   },
   "WebSearchPlugin": {
     "Name": "WebSearch",
@@ -93,7 +93,7 @@
       "en": "Search internet content or fetch webpage content (Markdown format)"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WebSearchPlugin/plugin/WebSearchPlugin.dll",
-    "SHA256": "d8ed59f680aae6036bb599b69006aa5e23f7fd27c83411e1dc9679a4826d08b1"
+    "SHA256": "c25c8c46a20de73b010dc8b0871bff5cfe8494cf9297bb62c7b276d7a51ec4ba"
   },
   "WeatherPlugin": {
     "Name": "Weather",
@@ -105,7 +105,7 @@
       "en": "Query weather information for China regions. Note: This API only supports China region data."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WeatherPlugin/plugin/WeatherPlugin.dll",
-    "SHA256": "1a3fdc5ac43b42f64221af7ce2500168a65e644e04a830a3b6317725fc5349c4"
+    "SHA256": "37e710b3700960301b7316b2477b034bfe18faeba1a3b988c22fb71c386693f8"
   },
   "PixivPlugin": {
     "Name": "Pixiv",

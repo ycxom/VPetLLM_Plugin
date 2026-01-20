@@ -102,7 +102,7 @@ namespace PixivPlugin.Services
             var actualUrl = url;
             var useProxyClient = false;
 
-            if (_imageProxyService != null && _imageProxyService.ShouldUseProxy && pid > 0)
+            if (_imageProxyService is not null && _imageProxyService.ShouldUseProxy && pid > 0)
             {
                 actualUrl = _imageProxyService.GetImageUrl(url, pid, pageIndex, isMultiPage);
                 useProxyClient = true; // 使用反向代理时不需要 Referer
@@ -121,7 +121,7 @@ namespace PixivPlugin.Services
                 var image = BytesToBitmapImage(bytes);
                 
                 // 添加到缓存
-                if (image != null)
+                if (image is not null)
                 {
                     AddToCache(actualUrl, image);
                 }
@@ -183,7 +183,7 @@ namespace PixivPlugin.Services
             var actualUrl = url;
             var useProxyClient = false;
 
-            if (_imageProxyService != null && _imageProxyService.ShouldUseProxy && pid > 0)
+            if (_imageProxyService is not null && _imageProxyService.ShouldUseProxy && pid > 0)
             {
                 actualUrl = _imageProxyService.GetImageUrl(url, pid, pageIndex, isMultiPage);
                 useProxyClient = true;
@@ -216,7 +216,7 @@ namespace PixivPlugin.Services
                     await fileStream.WriteAsync(buffer, 0, bytesRead);
                     downloadedBytes += bytesRead;
 
-                    if (totalBytes > 0 && progress != null)
+                    if (totalBytes > 0 && progress is not null)
                     {
                         var percentage = (int)((downloadedBytes * 100) / totalBytes);
                         progress.Report(percentage);

@@ -19,7 +19,7 @@ namespace WebSearchPlugin
         {
             try
             {
-                VPetLLM.Utils.Logger.Log($"LocalContentFetcher: Fetching {url}");
+                VPetLLM.Utils.System.Logger.Log($"LocalContentFetcher: Fetching {url}");
                 
                 var content = await _scraper.FetchAsMarkdown(url);
                 
@@ -54,7 +54,7 @@ namespace WebSearchPlugin
             }
             catch (Exception ex)
             {
-                VPetLLM.Utils.Logger.Log($"LocalContentFetcher error: {ex.Message}");
+                VPetLLM.Utils.System.Logger.Log($"LocalContentFetcher error: {ex.Message}");
                 return new FetchResult
                 {
                     Success = false,

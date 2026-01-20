@@ -2,7 +2,7 @@ using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using VPetLLM;
-using VPetLLM.Core;
+using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 
 public class ReminderPlugin : IActionPlugin
 {
@@ -12,7 +12,7 @@ public class ReminderPlugin : IActionPlugin
     {
         get
         {
-            if (_vpetLLM == null) return "设置一个定时提醒。";
+            if (_vpetLLM is null) return "设置一个定时提醒。";
             switch (_vpetLLM.Settings.Language)
             {
                 case "ja":
@@ -38,7 +38,7 @@ public class ReminderPlugin : IActionPlugin
     public void Initialize(VPetLLM.VPetLLM plugin)
     {
         _vpetLLM = plugin;
-        VPetLLM.Utils.Logger.Log("Reminder Plugin Initialized!");
+        VPetLLM.Utils.System.Logger.Log("Reminder Plugin Initialized!");
     }
 
     public Task<string> Function(string arguments)
@@ -84,7 +84,7 @@ public class ReminderPlugin : IActionPlugin
 
     private async Task ReminderTask(TimeSpan delay, string message)
     {
-        if (_vpetLLM == null) return;
+        if (_vpetLLM is null) return;
         await Task.Delay(delay);
 
         var aiName = _vpetLLM.Settings.AiName;
@@ -96,7 +96,7 @@ public class ReminderPlugin : IActionPlugin
         {
             // 2. 先让VPet窗口置顶
             var mainWindow = System.Windows.Application.Current.MainWindow;
-            if (mainWindow != null)
+            if (mainWindow is not null)
             {
                 mainWindow.Activate();
                 mainWindow.Topmost = true;
@@ -122,12 +122,12 @@ public class ReminderPlugin : IActionPlugin
 
     public void Unload()
     {
-        VPetLLM.Utils.Logger.Log("Reminder Plugin Unloaded!");
+        VPetLLM.Utils.System.Logger.Log("Reminder Plugin Unloaded!");
     }
 
     public void Log(string message)
     {
-        if (_vpetLLM == null) return;
+        if (_vpetLLM is null) return;
         _vpetLLM.Log(message);
     }
 }

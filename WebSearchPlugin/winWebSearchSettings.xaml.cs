@@ -112,7 +112,7 @@ namespace WebSearchPlugin
 
         private void UpdateBuiltInCredentialsUI()
         {
-            if (pnlCustomCredentials != null)
+            if (pnlCustomCredentials is not null)
             {
                 pnlCustomCredentials.IsEnabled = chkUseBuiltInCredentials.IsChecked != true;
             }

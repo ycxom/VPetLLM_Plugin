@@ -84,7 +84,7 @@ namespace MarkdownViewerPlugin
 
             void FlushList()
             {
-                if (listItems != null)
+                if (listItems is not null)
                 {
                     doc.Blocks.Add(listItems);
                     listItems = null;
@@ -294,7 +294,7 @@ namespace MarkdownViewerPlugin
                     var itemText = (mu.Success ? mu.Groups[1].Value : mo.Groups[1].Value).Trim();
                     var ordered = mo.Success;
 
-                    if (listItems == null || ordered != currentListOrdered)
+                    if (listItems is null || ordered != currentListOrdered)
                     {
                         FlushList();
                         listItems = ordered ? new List { MarkerStyle = TextMarkerStyle.Decimal } : new List { MarkerStyle = TextMarkerStyle.Disc };

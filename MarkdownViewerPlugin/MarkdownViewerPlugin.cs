@@ -1,12 +1,12 @@
 using System;
 using System.Threading.Tasks;
 using System.Windows;
-using VPetLLM.Core;
+using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 
 namespace MarkdownViewerPlugin
 {
     // 提供简单动作入口：传入内联 Markdown 文本
-    public class MarkdownViewerPlugin : IVPetLLMPlugin, IActionPlugin, VPetLLM.Core.IPluginTakeover
+    public class MarkdownViewerPlugin : IVPetLLMPlugin, IActionPlugin, IPluginTakeover
     {
         public string Name => "MarkdownViewer";
         public string Author => "ycxom";
@@ -14,7 +14,7 @@ namespace MarkdownViewerPlugin
         {
             get
             {
-                if (_vpetLLM == null) return "在独立窗口中渲染并显示标准 Markdown 文档。请使用标准 Markdown 格式，支持标题、列表、代码块、表格等。";
+                if (_vpetLLM is null) return "在独立窗口中渲染并显示标准 Markdown 文档。请使用标准 Markdown 格式，支持标题、列表、代码块、表格等。";
                 switch (_vpetLLM.Settings.Language)
                 {
                     case "ja": return "標準 Markdown ドキュメントを独立ウィンドウでレンダリングして表示します。標準 Markdown 形式を使用してください。見出し、リスト、コードブロック、テーブルなどをサポートします。";
@@ -51,7 +51,7 @@ namespace MarkdownViewerPlugin
             // 确保依赖可解析（temp 解压目录找不到依赖时，从原插件目录回退加载）
             try { DependencyResolver.Ensure(FilePath); } catch { }
 
-            VPetLLM.Utils.Logger.Log("MarkdownViewer Plugin Initialized.");
+            VPetLLM.Utils.System.Logger.Log("MarkdownViewer Plugin Initialized.");
         }
 
         public Task<string> Function(string arguments)
@@ -108,12 +108,12 @@ namespace MarkdownViewerPlugin
 
         public void Unload()
         {
-            VPetLLM.Utils.Logger.Log("MarkdownViewer Plugin Unloaded.");
+            VPetLLM.Utils.System.Logger.Log("MarkdownViewer Plugin Unloaded.");
         }
 
         public void Log(string message)
         {
-            if (_vpetLLM == null) return;
+            if (_vpetLLM is null) return;
             _vpetLLM.Log(message);
         }
 
@@ -171,7 +171,7 @@ namespace MarkdownViewerPlugin
         {
             try
             {
-                if (!_isTakingOver || _takeoverWindow == null)
+                if (!_isTakingOver || _takeoverWindow is null)
                     return Task.FromResult(false);
 
                 lock (_updateLock)
@@ -196,7 +196,7 @@ namespace MarkdownViewerPlugin
         {
             try
             {
-                if (!_isTakingOver || _takeoverWindow == null)
+                if (!_isTakingOver || _takeoverWindow is null)
                     return;
 
                 bool shouldRender = false;
@@ -212,13 +212,13 @@ namespace MarkdownViewerPlugin
                     }
                 }
 
-                if (shouldRender && contentToRender != null)
+                if (shouldRender && contentToRender is not null)
                 {
                     Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                     {
                         try
                         {
-                            if (_takeoverWindow != null && !_takeoverWindow.IsClosed)
+                            if (_takeoverWindow is not null && !_takeoverWindow.IsClosed)
                             {
                                 _takeoverWindow.RenderMarkdown(contentToRender);
                                 _lastUpdateTime = DateTime.Now;
@@ -253,11 +253,11 @@ namespace MarkdownViewerPlugin
                 var finalContent = _takeoverContent.ToString();
                 
                 // 最终统一更新：确保所有内容都被正确渲染
-                if (_takeoverWindow != null)
+                if (_takeoverWindow is not null)
                 {
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        if (_takeoverWindow != null && !_takeoverWindow.IsClosed)
+                        if (_takeoverWindow is not null && !_takeoverWindow.IsClosed)
                         {
                             Log($"MarkdownViewer: 执行最终渲染，内容长度: {finalContent.Length}");
                             

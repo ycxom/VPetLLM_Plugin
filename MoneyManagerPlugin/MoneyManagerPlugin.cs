@@ -2,7 +2,7 @@ using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using VPetLLM;
-using VPetLLM.Core;
+using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 
 public class MoneyManagerPlugin : IActionPlugin
 {
@@ -12,7 +12,7 @@ public class MoneyManagerPlugin : IActionPlugin
     {
         get
         {
-            if (_vpetLLM == null) return "节日里给萝莉斯包红包！";
+            if (_vpetLLM is null) return "节日里给萝莉斯包红包！";
             switch (_vpetLLM.Settings.Language)
             {
                 case "ja":
@@ -37,12 +37,12 @@ public class MoneyManagerPlugin : IActionPlugin
     public void Initialize(VPetLLM.VPetLLM plugin)
     {
         _vpetLLM = plugin;
-        VPetLLM.Utils.Logger.Log("Money Manager Plugin Initialized!");
+        VPetLLM.Utils.System.Logger.Log("Money Manager Plugin Initialized!");
     }
 
     public Task<string> Function(string arguments)
     {
-        if (_vpetLLM == null)
+        if (_vpetLLM is null)
         {
             return Task.FromResult("插件未初始化。");
         }
@@ -166,6 +166,6 @@ public class MoneyManagerPlugin : IActionPlugin
 
     public void Unload()
     {
-        VPetLLM.Utils.Logger.Log("Money Manager Plugin Unloaded!");
+        VPetLLM.Utils.System.Logger.Log("Money Manager Plugin Unloaded!");
     }
 }

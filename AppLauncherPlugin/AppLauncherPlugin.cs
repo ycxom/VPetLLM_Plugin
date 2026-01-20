@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using VPetLLM.Core;
+using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 
 namespace AppLauncherPlugin
 {
@@ -20,7 +20,7 @@ namespace AppLauncherPlugin
         {
             get
             {
-                if (_vpetLLM == null) return "允许AI启动应用程序，支持自定义应用路径和自动识别系统应用。";
+                if (_vpetLLM is null) return "允许AI启动应用程序，支持自定义应用路径和自动识别系统应用。";
                 switch (_vpetLLM.Settings.Language)
                 {
                     case "ja":
@@ -94,7 +94,7 @@ namespace AppLauncherPlugin
             {
                 ScanSteamGames();
             }
-            VPetLLM.Utils.Logger.Log("App Launcher Plugin Initialized!");
+            VPetLLM.Utils.System.Logger.Log("App Launcher Plugin Initialized!");
         }
 
         private void InitializeSystemApps()
@@ -271,7 +271,7 @@ namespace AppLauncherPlugin
                 var customApp = _setting.CustomApps.FirstOrDefault(app => 
                     app.Name.Equals(appName, StringComparison.OrdinalIgnoreCase));
                 
-                if (customApp != null)
+                if (customApp is not null)
                 {
                     return LaunchCustomApp(customApp);
                 }
@@ -281,7 +281,7 @@ namespace AppLauncherPlugin
                     app.Name.IndexOf(appName, StringComparison.OrdinalIgnoreCase) >= 0 ||
                     appName.IndexOf(app.Name, StringComparison.OrdinalIgnoreCase) >= 0);
                 
-                if (fuzzyCustomApp != null)
+                if (fuzzyCustomApp is not null)
                 {
                     return LaunchCustomApp(fuzzyCustomApp);
                 }
@@ -539,7 +539,7 @@ namespace AppLauncherPlugin
 
         public void Unload()
         {
-            VPetLLM.Utils.Logger.Log("App Launcher Plugin Unloaded!");
+            VPetLLM.Utils.System.Logger.Log("App Launcher Plugin Unloaded!");
         }
 
 
@@ -639,7 +639,7 @@ namespace AppLauncherPlugin
                 {
                     using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam"))
                     {
-                        if (key != null)
+                        if (key is not null)
                         {
                             string steamPath = key.GetValue("SteamPath")?.ToString();
                             if (!string.IsNullOrEmpty(steamPath) && Directory.Exists(steamPath))
@@ -805,7 +805,7 @@ namespace AppLauncherPlugin
 
         public void Log(string message)
         {
-            if (_vpetLLM == null) return;
+            if (_vpetLLM is null) return;
             _vpetLLM.Log(message);
         }
 

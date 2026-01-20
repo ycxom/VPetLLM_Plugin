@@ -25,7 +25,7 @@ namespace WeatherPlugin
             _settings = plugin.GetSettings();
 
             _cityDatabase = plugin.GetCityDatabase();
-            if (_cityDatabase != null)
+            if (_cityDatabase is not null)
             {
                 _citySearch = new CityVectorSearch(_cityDatabase);
 
@@ -54,7 +54,7 @@ namespace WeatherPlugin
         private void Button_Search_Click(object sender, RoutedEventArgs e)
         {
             var searchText = ComboBox_City.Text.Trim();
-            if (string.IsNullOrEmpty(searchText) || _citySearch == null)
+            if (string.IsNullOrEmpty(searchText) || _citySearch is null)
                 return;
 
             var results = _citySearch.FindTopMatches(searchText, 10);
@@ -101,7 +101,7 @@ namespace WeatherPlugin
             }
 
             // 查找城市 Adcode
-            if (_citySearch != null)
+            if (_citySearch is not null)
             {
                 var adcode = _citySearch.FindBestMatch(cityName);
                 if (adcode.HasValue)

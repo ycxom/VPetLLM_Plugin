@@ -14,7 +14,7 @@ namespace WeatherPlugin.Utils
         /// </summary>
         public static string FormatCurrentWeather(CurrentWeather weather)
         {
-            if (weather == null)
+            if (weather is null)
                 return "无法获取天气数据";
 
             var sb = new StringBuilder();
@@ -33,7 +33,7 @@ namespace WeatherPlugin.Utils
         /// </summary>
         public static string FormatForecast(Forecast forecast)
         {
-            if (forecast == null)
+            if (forecast is null)
                 return "无法获取天气预报数据";
 
             var sb = new StringBuilder();
@@ -56,7 +56,7 @@ namespace WeatherPlugin.Utils
         /// </summary>
         public static string FormatCurrentWeatherShort(CurrentWeather weather)
         {
-            if (weather == null)
+            if (weather is null)
                 return "无法获取天气数据";
 
             return $"{weather.Province}{weather.City}: {weather.Weather}, {weather.TemperatureFloat}°C, 湿度{weather.HumidityFloat}%, {weather.WindDirectionStr}风{weather.WindPower}级 (更新于{weather.ReportTime:HH:mm})";
@@ -67,7 +67,7 @@ namespace WeatherPlugin.Utils
         /// </summary>
         public static string FormatForecastShort(Forecast forecast)
         {
-            if (forecast == null || forecast.Casts.Count == 0)
+            if (forecast is null || forecast.Casts.Count == 0)
                 return "无法获取天气预报数据";
 
             var sb = new StringBuilder();

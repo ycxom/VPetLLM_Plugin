@@ -76,20 +76,20 @@ namespace WebSearchPlugin
                 {
                     var json = File.ReadAllText(path);
                     var settings = JsonConvert.DeserializeObject<WebSearchSettings>(json);
-                    if (settings != null)
+                    if (settings is not null)
                     {
                         settings._pluginDataDir = pluginDataDir;
-                        VPetLLM.Utils.Logger.Log($"WebSearch: Settings loaded from {path}");
+                        VPetLLM.Utils.System.Logger.Log($"WebSearch: Settings loaded from {path}");
                         return settings;
                     }
                 }
             }
             catch (Exception ex)
             {
-                VPetLLM.Utils.Logger.Log($"WebSearch: Error loading settings: {ex.Message}");
+                VPetLLM.Utils.System.Logger.Log($"WebSearch: Error loading settings: {ex.Message}");
             }
 
-            VPetLLM.Utils.Logger.Log("WebSearch: Using default settings");
+            VPetLLM.Utils.System.Logger.Log("WebSearch: Using default settings");
             var defaultSettings = new WebSearchSettings();
             defaultSettings._pluginDataDir = pluginDataDir;
             return defaultSettings;
@@ -110,11 +110,11 @@ namespace WebSearchPlugin
                 
                 var json = JsonConvert.SerializeObject(this, Formatting.Indented);
                 File.WriteAllText(path, json);
-                VPetLLM.Utils.Logger.Log($"WebSearch: Settings saved to {path}");
+                VPetLLM.Utils.System.Logger.Log($"WebSearch: Settings saved to {path}");
             }
             catch (Exception ex)
             {
-                VPetLLM.Utils.Logger.Log($"WebSearch: Error saving settings: {ex.Message}");
+                VPetLLM.Utils.System.Logger.Log($"WebSearch: Error saving settings: {ex.Message}");
             }
         }
 

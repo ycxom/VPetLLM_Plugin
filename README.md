@@ -168,7 +168,6 @@ public interface IActionPlugin : IVPetLLMPlugin
 ```csharp
 using System.Threading.Tasks;
 using VPetLLM;
-using VPetLLM.Core;
 
 public class ExamplePlugin : IActionPlugin
 {
@@ -178,7 +177,7 @@ public class ExamplePlugin : IActionPlugin
     {
         get
         {
-            if (_vpetLLM == null) return "一个简单的示例插件。";
+            if (_vpetLLM is null) return "一个简单的示例插件。";
             switch (_vpetLLM.Settings.Language)
             {
                 case "ja": return "呼び出されると固定の挨拶を返す簡単なサンプルプラグインです。";
@@ -205,7 +204,7 @@ public class ExamplePlugin : IActionPlugin
 
     public Task<string> Function(string arguments)
     {
-        if (_vpetLLM == null) return Task.FromResult("VPetLLM instance is not initialized.");
+        if (_vpetLLM is null) return Task.FromResult("VPetLLM instance is not initialized.");
         var result = "Hello, I am an example plugin!";
         _vpetLLM.Log($"ExamplePlugin: Function called. Returning: {result}");
         return Task.FromResult(result);
@@ -232,7 +231,6 @@ using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using VPetLLM;
-using VPetLLM.Core;
 
 public class ReminderPlugin : IActionPlugin
 {
@@ -242,7 +240,7 @@ public class ReminderPlugin : IActionPlugin
     {
         get
         {
-            if (_vpetLLM == null) return "设置一个定时提醒。";
+            if (_vpetLLM is null) return "设置一个定时提醒。";
             switch (_vpetLLM.Settings.Language)
             {
                 case "ja": return "タイマーリマインダーを設定します。";
@@ -316,7 +314,7 @@ public class ReminderPlugin : IActionPlugin
 
     private async Task ReminderTask(TimeSpan delay, string message)
     {
-        if (_vpetLLM == null) return;
+        if (_vpetLLM is null) return;
         await Task.Delay(delay);
 
         var aiName = _vpetLLM.Settings.AiName;
@@ -327,7 +325,7 @@ public class ReminderPlugin : IActionPlugin
         await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
         {
             var mainWindow = System.Windows.Application.Current.MainWindow;
-            if (mainWindow != null)
+            if (mainWindow is not null)
             {
                 mainWindow.Activate();
                 mainWindow.Topmost = true;

@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 using System.Windows;
-using VPetLLM.Core;
+using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 using StickerPlugin.Models;
 using StickerPlugin.Services;
 
@@ -21,7 +21,7 @@ namespace StickerPlugin
         {
             get
             {
-                if (_vpetLLM == null)
+                if (_vpetLLM is null)
                     return "搜索并发送表情包。";
 
                 return _vpetLLM.Settings.Language switch
@@ -146,7 +146,7 @@ namespace StickerPlugin
         /// </summary>
         private async Task SearchAndShowStickerAsync(string tags)
         {
-            if (_imageVectorService == null)
+            if (_imageVectorService is null)
                 return;
 
             try
@@ -154,7 +154,7 @@ namespace StickerPlugin
                 // 搜索表情包
                 var response = await _imageVectorService.SearchAsync(tags, limit: 1);
 
-                if (response == null || !response.Success || response.Results == null || response.Results.Count == 0)
+                if (response is null || !response.Success || response.Results is null || response.Results.Count == 0)
                     return;
 
                 // 选择最高分的结果
@@ -188,7 +188,7 @@ namespace StickerPlugin
         /// </summary>
         public async Task<string> GetSystemPromptAdditionAsync()
         {
-            if (_imageVectorService == null)
+            if (_imageVectorService is null)
             {
                 return string.Empty;
             }
@@ -371,7 +371,7 @@ namespace StickerPlugin
         /// </summary>
         public async Task<bool> TestConnectionAsync()
         {
-            if (_imageVectorService == null)
+            if (_imageVectorService is null)
             {
                 return false;
             }

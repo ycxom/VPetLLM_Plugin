@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using Newtonsoft.Json;
-using VPetLLM.Core;
+using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 using WeatherPlugin.Data;
 using WeatherPlugin.Models;
 using WeatherPlugin.Providers;
@@ -26,7 +26,7 @@ namespace WeatherPlugin
         {
             get
             {
-                if (_vpetLLM == null)
+                if (_vpetLLM is null)
                     return "查询中国地区天气信息。注意：该接口仅支持中国地区数据。";
 
                 return _vpetLLM.Settings.Language switch
@@ -73,7 +73,7 @@ namespace WeatherPlugin
             // 应用设置到提供商
             _weatherProvider.SetTimeout(_settings.TimeoutSeconds);
 
-            VPetLLM.Utils.Logger.Log("Weather Plugin Initialized!");
+            VPetLLM.Utils.System.Logger.Log("Weather Plugin Initialized!");
         }
 
         public async Task<string> Function(string arguments)
@@ -97,14 +97,14 @@ namespace WeatherPlugin
                 var queryType = typeMatch.Success ? typeMatch.Groups[1].Value.ToLower() : "current";
 
                 // 检查是否为非中国地区
-                if (_citySearch != null && _citySearch.IsNonChinaRegion(cityName))
+                if (_citySearch is not null && _citySearch.IsNonChinaRegion(cityName))
                 {
                     return "该接口仅支持中国地区天气数据查询，暂不支持其他国家和地区。";
                 }
 
                 // 查找城市 Adcode
                 int? adcode = null;
-                if (_citySearch != null)
+                if (_citySearch is not null)
                 {
                     adcode = _citySearch.FindBestMatch(cityName);
                 }
@@ -115,7 +115,7 @@ namespace WeatherPlugin
                 }
 
                 // 获取天气数据
-                if (_weatherProvider == null)
+                if (_weatherProvider is null)
                 {
                     return "天气服务未初始化，请稍后重试。";
                 }
@@ -123,7 +123,7 @@ namespace WeatherPlugin
                 if (queryType == "forecast")
                 {
                     var forecast = await _weatherProvider.GetForecastAsync(adcode.Value);
-                    if (forecast == null)
+                    if (forecast is null)
                     {
                         return $"获取 {cityName} 天气预报失败，请稍后重试。";
                     }
@@ -132,7 +132,7 @@ namespace WeatherPlugin
                 else
                 {
                     var weather = await _weatherProvider.GetCurrentWeatherAsync(adcode.Value);
-                    if (weather == null)
+                    if (weather is null)
                     {
                         return $"获取 {cityName} 当前天气失败，请稍后重试。";
                     }
@@ -153,7 +153,7 @@ namespace WeatherPlugin
         public void Unload()
         {
             SaveSettings();
-            VPetLLM.Utils.Logger.Log("Weather Plugin Unloaded!");
+            VPetLLM.Utils.System.Logger.Log("Weather Plugin Unloaded!");
         }
 
         public void Log(string message)

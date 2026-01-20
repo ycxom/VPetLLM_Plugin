@@ -67,7 +67,7 @@ namespace StickerPlugin.Models
             }
 
             // 优先从 VPet MODPath 查找（最快最准确）
-            if (modPaths != null)
+            if (modPaths is not null)
             {
                 var dllPath = FindImagePluginDllFromModPaths(modPaths);
                 if (!string.IsNullOrEmpty(dllPath))
@@ -305,7 +305,7 @@ namespace StickerPlugin.Models
             {
                 var json = File.ReadAllText(path);
                 var settings = JsonConvert.DeserializeObject<PluginSettings>(json);
-                if (settings == null)
+                if (settings is null)
                     return new PluginSettings();
 
                 // 迁移：如果使用内置凭证，清除自定义凭证字段（防止显示旧的内置值）

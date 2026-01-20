@@ -43,7 +43,7 @@ namespace WebSearchPlugin
             }
             catch (Exception ex) { apiError = ex.Message; }
 
-            if (_enableFallback && _fallbackFetcher != null)
+            if (_enableFallback && _fallbackFetcher is not null)
             {
                 var fallbackResult = await _fallbackFetcher.FetchAsync(url);
                 if (fallbackResult.Success) { fallbackResult.UsedFallback = true; return fallbackResult; }
@@ -67,7 +67,7 @@ namespace WebSearchPlugin
             ApiResponse? apiResponse;
             try { apiResponse = JsonConvert.DeserializeObject<ApiResponse>(json); }
             catch { return new FetchResult { Success = false, Mode = "API", ErrorMessage = "JSON parse error" }; }
-            if (apiResponse == null || !apiResponse.Success)
+            if (apiResponse is null || !apiResponse.Success)
                 return new FetchResult { Success = false, Mode = "API", ErrorMessage = "API returned false" };
             return new FetchResult { Success = true, Content = apiResponse.Content, Mode = "API", UsedFallback = false };
         }
@@ -77,7 +77,7 @@ namespace WebSearchPlugin
         {
             var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             int ck = 0;
-            if (_getAuthKey != null) { try { ck = await _getAuthKey(); } catch { } }
+            if (_getAuthKey is not null) { try { ck = await _getAuthKey(); } catch { } }
             request.Headers.Add("X-Cache-Token", E(_steamId.ToString(), ts));
             request.Headers.Add("X-Request-Signature", E(M(), ts));
             request.Headers.Add("X-Check-Key", E(ck.ToString(), ts));

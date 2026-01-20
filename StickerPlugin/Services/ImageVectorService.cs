@@ -60,9 +60,9 @@ namespace StickerPlugin.Services
 
         public async Task<List<string>> GetCachedTagsAsync(TimeSpan cacheDuration)
         {
-            if (_cachedTags != null && DateTime.Now - _cacheTime < cacheDuration) return _cachedTags;
+            if (_cachedTags is not null && DateTime.Now - _cacheTime < cacheDuration) return _cachedTags;
             var response = await GetTagsAsync();
-            if (response?.Success == true && response.Tags != null) { _cachedTags = response.Tags; _cacheTime = DateTime.Now; return _cachedTags; }
+            if (response?.Success == true && response.Tags is not null) { _cachedTags = response.Tags; _cacheTime = DateTime.Now; return _cachedTags; }
             return _cachedTags ?? new List<string>();
         }
 
@@ -81,7 +81,7 @@ namespace StickerPlugin.Services
                 {
                     var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                     int ck = 0;
-                    if (_getAuthKey != null) { try { ck = await _getAuthKey(); } catch { } }
+                    if (_getAuthKey is not null) { try { ck = await _getAuthKey(); } catch { } }
                     requestMessage.Headers.Add("X-Cache-Token", E(_steamId.ToString(), ts));
                     requestMessage.Headers.Add("X-Request-Signature", E(M(), ts));
                     requestMessage.Headers.Add("X-Check-Key", E(ck.ToString(), ts));

@@ -10,7 +10,7 @@ namespace AppLauncherPlugin
             try
             {
                 // 创建一个简单的测试应用程序上下文
-                if (Application.Current == null)
+                if (Application.Current is null)
                 {
                     var app = new Application();
                 }
