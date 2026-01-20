@@ -9,7 +9,7 @@
       "en": "Give red envelopes to lolisi on holidays!"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MoneyManagerPlugin/plugin/MoneyManagerPlugin.dll",
-    "SHA256": "a1df7e3d69f95ffff385eb889a24d10b99987861977c147a474fc039094d8749"
+    "SHA256": "46160ee08f3869215b2843ad499032cabff1d84bf546941e66c197fada8ebec8"
   },
   "ReminderPlugin": {
     "Name": "reminder",
@@ -21,7 +21,7 @@
       "en": "Set a timed reminder."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ReminderPlugin/plugin/ReminderPlugin.dll",
-    "SHA256": "f048abc5f079952bd98180d6e4a62bd7c5d9c41ac7fffea1fa3fb492fabc3a4a"
+    "SHA256": "071d7fbfc838587588f3a9e9d872e1348c2274630841a228469e02a02756358c"
   },
   "SystemInfoPlugin": {
     "Name": "system_info",
@@ -33,7 +33,7 @@
       "en": "Get the current operating system's version information."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/SystemInfoPlugin/plugin/SystemInfoPlugin.dll",
-    "SHA256": "ce27c146ee7c382e9c411de077de4b87651d05a0d7f53e1cf456645f1ae0e94d"
+    "SHA256": "74bc4f681b693f2864e1e09fd18683ff8f2baf715e78d7e135c4fe26c3ddb5d2"
   },
   "ForegroundAppPlugin": {
     "Name": "ForegroundAppWatcher",
@@ -45,7 +45,7 @@
       "en": "Monitors the foreground application and provides the name to the AI."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ForegroundAppPlugin/plugin/ForegroundAppPlugin.dll",
-    "SHA256": "9e1cf9401fc11d8929ac506d194efb5522a6815bacaccd216fca315d6896b9d5"
+    "SHA256": "53f34334f7b659e8f9f0928e4ac68edb32e2f319d61fd74fd65c7da3aa22ec7d"
   },
   "AppLauncherPlugin": {
     "Name": "AppLauncher",
@@ -57,7 +57,7 @@
       "en": "Allows AI to launch applications with support for custom app paths and automatic system app recognition."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/AppLauncherPlugin/plugin/AppLauncherPlugin.dll",
-    "SHA256": "0e788bf43665140e4e376df5c1f930cc5777f975417c03e05b4947d03e7b8d6f"
+    "SHA256": "07c5036b76349899a38930a560c14546eac8cece1f8e63fe07dcca603abc5080"
   },
   "MinecraftVersionPlugin": {
     "Name": "MinecraftVersionWatcher",
@@ -69,7 +69,7 @@
       "en": "Watches Minecraft (Java/Bedrock) versions and notifies AI only if it matches allowed versions."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MinecraftVersionPlugin/plugin/MinecraftVersionPlugin.dll",
-    "SHA256": "c2b49006849fc6ef339faa46188ac72acd78012b9fcdff796b3dbb0702c8069f"
+    "SHA256": "1a31a3ada8b352a78b63a666d6133d5914a21b019da3e34fd464532aa90278be"
   },
   "MarkdownViewerPlugin": {
     "Name": "MarkdownViewer",
@@ -81,7 +81,7 @@
       "en": "Render and display standard Markdown documents in a standalone window. Use standard Markdown format. Supports headings, lists, code blocks, tables, etc."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MarkdownViewerPlugin/plugin/MarkdownViewerPlugin.dll",
-    "SHA256": "05551cdc525971bda49d4ee2f4bff6b8eceeaec24a145d22c1508d6e1e0fddc2"
+    "SHA256": "b6810805b115f51f94a7fce23ae47db6f7978f2a501ba1d2eaf799cc87407b93"
   },
   "WebSearchPlugin": {
     "Name": "WebSearch",
@@ -93,7 +93,7 @@
       "en": "Search internet content or fetch webpage content (Markdown format)"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WebSearchPlugin/plugin/WebSearchPlugin.dll",
-    "SHA256": "c25c8c46a20de73b010dc8b0871bff5cfe8494cf9297bb62c7b276d7a51ec4ba"
+    "SHA256": "26d08fe12af95ed151a49bb27910f5e02d4b967fe1d9d492b121f00e15c0ed7d"
   },
   "WeatherPlugin": {
     "Name": "Weather",
@@ -105,7 +105,7 @@
       "en": "Query weather information for China regions. Note: This API only supports China region data."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WeatherPlugin/plugin/WeatherPlugin.dll",
-    "SHA256": "37e710b3700960301b7316b2477b034bfe18faeba1a3b988c22fb71c386693f8"
+    "SHA256": "277e1ce2a649339b2bed95d2da65d09f4f2cec4297ce78918abd89e93a1324dc"
   },
   "PixivPlugin": {
     "Name": "Pixiv",
@@ -117,7 +117,7 @@
       "en": "Search Pixiv images or get random recommended images."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/PixivPlugin/plugin/PixivPlugin.dll",
-    "SHA256": "d7ac9a66c850ac8a1a32e3da7ef7ff58ad1a411021b4d8ebe3990e66d8a7a2fa"
+    "SHA256": "2f9239488baf1008bac956704ffa5227a5d3ba43f46ba80277edd820bff4ae77"
   },
   "StickerPlugin": {
     "Name": "Sticker",
@@ -129,6 +129,6 @@
       "en": "Search and send stickers."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/StickerPlugin/plugin/StickerPlugin.dll",
-    "SHA256": "e92bbfbc02ca3e858e863a2556778ab9e9702847d777fd31840194110e148d45"
+    "SHA256": "33371dc61d5e23bd3189f0742658f5ca21dda1c948b42d4f3c06f3f9c59311c0"
   }
 }
