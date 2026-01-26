@@ -577,6 +577,45 @@ await _vpetLLM.PlayTTSAsync("要说的话");
 var animations = _vpetLLM.GetAvailableAnimations();
 ```
 
+### 🚀 直接调用 LLM
+
+插件可以通过 `LLMEntry` 接口直接调用 LLM 服务：
+
+```csharp
+// 在插件的 Function 方法中
+var response = await _vpetLLM.LLMEntry.CallAsync("你的消息");
+```
+
+**特性：**
+- 简单易用，一行代码即可调用
+- 自动记录调用日志（调用者、消息、响应、耗时）
+- 不影响主对话历史
+- 支持所有 LLM 提供商（OpenAI、Ollama、Gemini、Free）
+
+**使用示例：**
+
+```csharp
+public async Task<string> Function(string arguments)
+{
+    if (_vpetLLM?.LLMEntry == null)
+        return "LLM service not available";
+    
+    // 让 LLM 分析用户输入
+    var analysis = await _vpetLLM.LLMEntry.CallAsync($"分析：{arguments}");
+    return analysis;
+}
+```
+
+**日志输出：**
+```
+[LLM Call] Plugin:YourPluginName calling LLM
+[LLM Call] Message: 分析：...
+[LLM Call] Plugin:YourPluginName - Response in 2.34s
+[LLM Call] Response: ...
+```
+
+**注意：** 外部应用调用时，日志会显示为 `ExternalProgram:` 前缀，以区分插件调用。
+
 ---
 
 ## 📝 开发建议
