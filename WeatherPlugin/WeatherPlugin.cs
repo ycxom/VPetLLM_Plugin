@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using Newtonsoft.Json;
 using VPetLLM.Core.Abstractions.Interfaces.Plugin;
+using VPetLLM.Infrastructure.Configuration;
 using WeatherPlugin.Data;
 using WeatherPlugin.Models;
 using WeatherPlugin.Providers;
@@ -174,39 +175,12 @@ namespace WeatherPlugin
 
         public void LoadSettings()
         {
-            if (string.IsNullOrEmpty(PluginDataDir))
-                return;
-
-            var path = Path.Combine(PluginDataDir, SettingsFileName);
-            if (File.Exists(path))
-            {
-                try
-                {
-                    var json = File.ReadAllText(path);
-                    _settings = JsonConvert.DeserializeObject<WeatherSettings>(json) ?? new WeatherSettings();
-                }
-                catch
-                {
-                    _settings = new WeatherSettings();
-                }
-            }
+            _settings = PluginConfigHelper.Load<WeatherSettings>("Weather");
         }
 
         public void SaveSettings()
         {
-            if (string.IsNullOrEmpty(PluginDataDir))
-                return;
-
-            var path = Path.Combine(PluginDataDir, SettingsFileName);
-            try
-            {
-                var json = JsonConvert.SerializeObject(_settings, Formatting.Indented);
-                File.WriteAllText(path, json);
-            }
-            catch (Exception ex)
-            {
-                Log($"Failed to save settings: {ex.Message}");
-            }
+            PluginConfigHelper.Save("Weather", _settings);
         }
 
         public WeatherSettings GetSettings() => _settings;

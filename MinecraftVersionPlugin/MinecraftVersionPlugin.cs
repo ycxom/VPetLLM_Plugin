@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using VPetLLM.Core.Abstractions.Interfaces.Plugin;
+using VPetLLM.Infrastructure.Configuration;
 
 namespace MinecraftVersionPlugin
 {
@@ -408,27 +409,12 @@ namespace MinecraftVersionPlugin
 
         public void SaveSetting()
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(PluginDataDir))
-                    return;
-                Directory.CreateDirectory(PluginDataDir);
-                var path = Path.Combine(PluginDataDir, SettingFileName);
-                File.WriteAllText(path, JsonConvert.SerializeObject(_setting, Formatting.Indented));
-            }
-            catch (Exception ex)
-            {
-                _vpetLLM?.Log($"SaveSetting error: {ex.Message}");
-            }
+            PluginConfigHelper.Save("MinecraftVersionWatcher", _setting);
         }
 
         private void LoadSetting()
         {
-            if (string.IsNullOrEmpty(PluginDataDir)) return;
-            var path = Path.Combine(PluginDataDir, SettingFileName);
-            _setting = File.Exists(path)
-                ? (JsonConvert.DeserializeObject<Setting>(File.ReadAllText(path)) ?? new Setting())
-                : new Setting();
+            _setting = PluginConfigHelper.Load<Setting>("MinecraftVersionWatcher");
         }
 
         private string GetServerDisplayName()

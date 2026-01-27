@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using Newtonsoft.Json;
 using VPetLLM.Core.Abstractions.Interfaces.Plugin;
+using VPetLLM.Infrastructure.Configuration;
 
 namespace ForegroundAppPlugin
 {
@@ -200,23 +201,12 @@ namespace ForegroundAppPlugin
 
         public void SaveSetting()
         {
-            if (string.IsNullOrEmpty(PluginDataDir)) return;
-            var path = Path.Combine(PluginDataDir, SettingFileName);
-            File.WriteAllText(path, JsonConvert.SerializeObject(_setting, Formatting.Indented));
+            PluginConfigHelper.Save("ForegroundAppWatcher", _setting);
         }
 
         private void LoadSetting()
         {
-            if (string.IsNullOrEmpty(PluginDataDir)) return;
-            var path = Path.Combine(PluginDataDir, SettingFileName);
-            if (File.Exists(path))
-            {
-                _setting = JsonConvert.DeserializeObject<Setting>(File.ReadAllText(path)) ?? new Setting();
-            }
-            else
-            {
-                _setting = new Setting();
-            }
+            _setting = PluginConfigHelper.Load<Setting>("ForegroundAppWatcher");
         }
 
         public int GetJitterDelay() => _setting.JitterDelay;

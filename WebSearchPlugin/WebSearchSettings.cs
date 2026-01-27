@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Newtonsoft.Json;
+using VPetLLM.Infrastructure.Configuration;
 
 namespace WebSearchPlugin
 {
@@ -69,53 +70,13 @@ namespace WebSearchPlugin
 
         public static WebSearchSettings Load(string pluginDataDir = "")
         {
-            try
-            {
-                var path = GetSettingsPath(pluginDataDir);
-                if (File.Exists(path))
-                {
-                    var json = File.ReadAllText(path);
-                    var settings = JsonConvert.DeserializeObject<WebSearchSettings>(json);
-                    if (settings is not null)
-                    {
-                        settings._pluginDataDir = pluginDataDir;
-                        VPetLLM.Utils.System.Logger.Log($"WebSearch: Settings loaded from {path}");
-                        return settings;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                VPetLLM.Utils.System.Logger.Log($"WebSearch: Error loading settings: {ex.Message}");
-            }
-
-            VPetLLM.Utils.System.Logger.Log("WebSearch: Using default settings");
-            var defaultSettings = new WebSearchSettings();
-            defaultSettings._pluginDataDir = pluginDataDir;
-            return defaultSettings;
+            // pluginDataDir 参数保留以兼容，但不再使用
+            return PluginConfigHelper.Load<WebSearchSettings>("WebSearch");
         }
 
         public void Save()
         {
-            try
-            {
-                var path = GetSettingsPath(_pluginDataDir);
-                
-                // 确保目录存在
-                var dir = Path.GetDirectoryName(path);
-                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                {
-                    Directory.CreateDirectory(dir);
-                }
-                
-                var json = JsonConvert.SerializeObject(this, Formatting.Indented);
-                File.WriteAllText(path, json);
-                VPetLLM.Utils.System.Logger.Log($"WebSearch: Settings saved to {path}");
-            }
-            catch (Exception ex)
-            {
-                VPetLLM.Utils.System.Logger.Log($"WebSearch: Error saving settings: {ex.Message}");
-            }
+            PluginConfigHelper.Save("WebSearch", this);
         }
 
         /// <summary>

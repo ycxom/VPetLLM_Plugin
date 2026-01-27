@@ -57,7 +57,7 @@ VPetLLM 插件是一个实现了特定接口的 `.dll` 文件，它允许您：
 2. **项目类型**: 创建 `.NET 8.0` 类库项目（启用 WPF）
 3. **添加引用**: 
    - `VPet-Simulator.Windows.Interface.dll`（通过 NuGet）
-   - `VPetLLM.dll`（本地引用）
+   - `VPetLLM.dll`（本地引用，用于访问 `PluginConfigHelper`）
 
 ### 项目配置 (.csproj)
 
@@ -73,11 +73,13 @@ VPetLLM 插件是一个实现了特定接口的 `.dll` 文件，它允许您：
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="VPet-Simulator.Windows.Interface" Version="1.1.0.50" />
   </ItemGroup>
 
   <ItemGroup>
+    <!-- 引用 VPetLLM.dll 以使用 PluginConfigHelper -->
     <Reference Include="VPetLLM">
       <HintPath>你的VPetLLM.dll路径</HintPath>
       <Private>false</Private>
@@ -94,6 +96,11 @@ VPetLLM 插件是一个实现了特定接口的 `.dll` 文件，它允许您：
 
 </Project>
 ```
+
+**重要说明：**
+- `Microsoft.Data.Sqlite` 包是使用 `PluginConfigHelper` 所必需的
+- `VPetLLM.dll` 引用设置为 `Private=false`，避免复制到输出目录
+- 插件运行时会使用主程序的 `VPetLLM.dll`
 
 ---
 
@@ -369,9 +376,129 @@ public class ReminderPlugin : IActionPlugin
 public interface IPluginWithData
 {
     // 插件数据目录路径，由 VPetLLM 自动设置
+    // 注意：从 v2.11.40 开始，推荐使用 PluginConfigHelper 管理配置
     string PluginDataDir { get; set; }
 }
 ```
+
+### 配置管理（推荐方式）
+
+**从 v2.0 开始，所有插件配置统一存储在 SQLite 数据库中**，使用 `PluginConfigHelper` 进行管理。
+
+#### 完整示例
+
+```csharp
+using VPetLLM.Infrastructure.Configuration;
+
+public class MyPlugin : IVPetLLMPlugin, IActionPlugin, IPluginWithData
+{
+    private MySettings _settings = new();
+    public string PluginDataDir { get; set; } = ""; // 保留以兼容接口，但不再使用
+
+    public void Initialize(VPetLLM.VPetLLM plugin)
+    {
+        _vpetLLM = plugin;
+        
+        // 从数据库加载配置
+        LoadSettings();
+    }
+
+    private void LoadSettings()
+    {
+        // 一行代码从数据库加载配置
+        _settings = PluginConfigHelper.Load<MySettings>("MyPlugin");
+    }
+
+    private void SaveSettings()
+    {
+        // 一行代码保存配置到数据库
+        PluginConfigHelper.Save("MyPlugin", _settings);
+    }
+
+    public void Unload()
+    {
+        // 卸载时保存配置
+        SaveSettings();
+    }
+
+    // 配置类定义
+    public class MySettings
+    {
+        public string ApiKey { get; set; } = "";
+        public int Timeout { get; set; } = 30;
+        public bool Enabled { get; set; } = true;
+    }
+}
+```
+
+#### API 说明
+
+| 方法 | 说明 | 返回值 |
+|------|------|--------|
+| `Load<T>(pluginName)` | 从数据库加载配置 | 配置对象（不存在则返回默认值） |
+| `Save<T>(pluginName, config)` | 保存配置到数据库 | `bool`（成功/失败） |
+| `ExistsInDatabase(pluginName)` | 检查配置是否存在 | `bool` |
+| `GetDatabasePath()` | 获取数据库路径 | `string` |
+
+#### 配置存储位置
+
+- **数据库路径**: `%USERPROFILE%\Documents\VPetLLM\settings.db`
+- **表名**: `plugin_data`
+- **类型**: `"Plugin"`
+
+#### 优势
+
+- ✅ **极简 API**：只需 1 行代码完成读写
+- ✅ **统一管理**：所有配置存储在同一个数据库
+- ✅ **自动迁移**：启动时自动从 JSON 迁移到数据库
+- ✅ **多实例支持**：所有 VPet 实例共享配置
+- ✅ **错误处理**：内置异常处理和日志记录
+- ✅ **默认值**：配置不存在时自动返回 `new T()`
+
+#### 自动迁移
+
+首次启动时，如果检测到 JSON 配置文件（如 `PixivPlugin.json`），会：
+1. 自动读取 JSON 内容
+2. 迁移到数据库 `plugin_data` 表
+3. 删除 JSON 文件
+4. 下次启动直接从数据库加载
+
+**无需手动操作，完全自动化！**
+
+#### 旧方式（已过时，不推荐）
+
+```csharp
+// ❌ 旧方式：手动读写 JSON 文件
+private void LoadSettings()
+{
+    if (string.IsNullOrEmpty(PluginDataDir))
+        return;
+
+    var path = Path.Combine(PluginDataDir, "MyPlugin.json");
+    if (File.Exists(path))
+    {
+        var json = File.ReadAllText(path);
+        _settings = JsonConvert.DeserializeObject<MySettings>(json) ?? new MySettings();
+    }
+}
+
+private void SaveSettings()
+{
+    if (string.IsNullOrEmpty(PluginDataDir))
+        return;
+
+    var path = Path.Combine(PluginDataDir, "MyPlugin.json");
+    var json = JsonConvert.SerializeObject(_settings, Formatting.Indented);
+    File.WriteAllText(path, json);
+}
+```
+
+**为什么不推荐：**
+- ❌ 代码冗长（20+ 行 vs 1 行）
+- ❌ 需要手动处理异常
+- ❌ 需要检查目录和文件存在
+- ❌ 多实例配置不同步
+- ❌ 难以统一管理和备份
 
 ### IDynamicInfoPlugin
 
@@ -627,12 +754,14 @@ public async Task<string> Function(string arguments)
 3. **日志记录**: 使用 `VPetLLM.Utils.Logger.Log()` 或 `_vpetLLM.Log()` 记录调试信息
 4. **UI 线程**: 如需操作 UI，使用 `Application.Current.Dispatcher.Invoke()` 或 `InvokeAsync()`
 5. **资源清理**: 在 `Unload()` 方法中释放资源（如 HttpClient、定时器等）
+6. **配置管理**: 使用 `PluginConfigHelper` 管理插件配置，避免手动读写 JSON 文件
 
 ### 命名规范
 
 - **插件名称**：使用小写字母和下划线，如 `my_plugin`、`web_search`
 - **参数格式**：使用 `参数名(类型)` 格式，如 `time(int)`, `query(string)`
 - **示例格式**：提供完整的调用示例，帮助 AI 理解
+- **配置名称**：与插件目录名一致，如目录 `Pixiv` → 配置名 `"Pixiv"`
 
 ### 性能建议
 
@@ -640,3 +769,39 @@ public async Task<string> Function(string arguments)
 2. **缓存**：对于频繁访问的数据，考虑使用缓存
 3. **超时处理**：网络请求设置合理的超时时间
 4. **资源复用**：如 `HttpClient`，应在插件生命周期内复用
+5. **数据库访问**：`PluginConfigHelper` 每次调用都创建新连接，自动管理生命周期
+
+### 配置管理最佳实践
+
+```csharp
+// ✅ 推荐：使用 PluginConfigHelper
+private void LoadSettings()
+{
+    _settings = PluginConfigHelper.Load<MySettings>("MyPlugin");
+}
+
+private void SaveSettings()
+{
+    PluginConfigHelper.Save("MyPlugin", _settings);
+}
+
+// ❌ 不推荐：手动读写 JSON 文件
+private void LoadSettings()
+{
+    var path = Path.Combine(PluginDataDir, "MyPlugin.json");
+    if (File.Exists(path))
+    {
+        var json = File.ReadAllText(path);
+        _settings = JsonConvert.DeserializeObject<MySettings>(json);
+    }
+}
+```
+
+### 调试技巧
+
+1. **查看日志**：检查 `Debug.log` 文件中的插件日志
+2. **数据库查询**：使用 SQLite 工具查看配置数据
+   ```powershell
+   sqlite3 "$env:USERPROFILE\Documents\VPetLLM\settings.db" "SELECT * FROM plugin_data WHERE name = 'MyPlugin';"
+   ```
+3. **配置验证**：使用 `PluginConfigHelper.ExistsInDatabase("MyPlugin")` 检查配置是否存在

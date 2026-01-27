@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using Newtonsoft.Json;
 using VPetLLM.Core.Abstractions.Interfaces.Plugin;
+using VPetLLM.Infrastructure.Configuration;
 using PixivPlugin.Models;
 using PixivPlugin.Services;
 
@@ -195,39 +196,12 @@ namespace PixivPlugin
 
         public void LoadSettings()
         {
-            if (string.IsNullOrEmpty(PluginDataDir))
-                return;
-
-            var path = Path.Combine(PluginDataDir, SettingsFileName);
-            if (File.Exists(path))
-            {
-                try
-                {
-                    var json = File.ReadAllText(path);
-                    _settings = JsonConvert.DeserializeObject<PluginSettings>(json) ?? new PluginSettings();
-                }
-                catch
-                {
-                    _settings = new PluginSettings();
-                }
-            }
+            _settings = PluginConfigHelper.Load<PluginSettings>("Pixiv");
         }
 
         public void SaveSettings()
         {
-            if (string.IsNullOrEmpty(PluginDataDir))
-                return;
-
-            var path = Path.Combine(PluginDataDir, SettingsFileName);
-            try
-            {
-                var json = JsonConvert.SerializeObject(_settings, Formatting.Indented);
-                File.WriteAllText(path, json);
-            }
-            catch (Exception ex)
-            {
-                Log($"Failed to save settings: {ex.Message}");
-            }
+            PluginConfigHelper.Save("Pixiv", _settings);
         }
 
         public PluginSettings GetSettings() => _settings;

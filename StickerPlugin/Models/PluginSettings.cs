@@ -1,5 +1,6 @@
 using System.IO;
 using Newtonsoft.Json;
+using VPetLLM.Infrastructure.Configuration;
 
 namespace StickerPlugin.Models
 {
@@ -294,33 +295,17 @@ namespace StickerPlugin.Models
         /// </summary>
         public static PluginSettings Load(string pluginDataDir)
         {
-            if (string.IsNullOrEmpty(pluginDataDir))
-                return new PluginSettings();
-
-            var path = Path.Combine(pluginDataDir, SettingsFileName);
-            if (!File.Exists(path))
-                return new PluginSettings();
-
-            try
+            // pluginDataDir 参数保留以兼容，但不再使用
+            var settings = PluginConfigHelper.Load<PluginSettings>("Sticker");
+            
+            // 迁移：如果使用内置凭证，清除自定义凭证字段（防止显示旧的内置值）
+            if (settings.UseBuiltInCredentials)
             {
-                var json = File.ReadAllText(path);
-                var settings = JsonConvert.DeserializeObject<PluginSettings>(json);
-                if (settings is null)
-                    return new PluginSettings();
-
-                // 迁移：如果使用内置凭证，清除自定义凭证字段（防止显示旧的内置值）
-                if (settings.UseBuiltInCredentials)
-                {
-                    settings.ServiceUrl = "";
-                    settings.ApiKey = "";
-                }
-
-                return settings;
+                settings.ServiceUrl = "";
+                settings.ApiKey = "";
             }
-            catch
-            {
-                return new PluginSettings();
-            }
+            
+            return settings;
         }
 
         /// <summary>
@@ -328,22 +313,8 @@ namespace StickerPlugin.Models
         /// </summary>
         public void Save(string pluginDataDir)
         {
-            if (string.IsNullOrEmpty(pluginDataDir))
-                return;
-
-            try
-            {
-                if (!Directory.Exists(pluginDataDir))
-                    Directory.CreateDirectory(pluginDataDir);
-
-                var path = Path.Combine(pluginDataDir, SettingsFileName);
-                var json = JsonConvert.SerializeObject(this, Formatting.Indented);
-                File.WriteAllText(path, json);
-            }
-            catch
-            {
-                // 静默失败，日志由调用方处理
-            }
+            // pluginDataDir 参数保留以兼容，但不再使用
+            PluginConfigHelper.Save("Sticker", this);
         }
 
         /// <summary>
