@@ -53,6 +53,7 @@ namespace StickerPlugin
         private PluginSettings _settings = new();
         private ImageVectorService? _imageVectorService;
         private ImagePluginCoordinator? _imagePluginCoordinator; // Image插件协调器
+        private bool _coordinatorInitAttempted = false; // 是否已尝试初始化协调器
         private Random _random = new();
         private ulong _steamId = 0;
 
@@ -84,18 +85,10 @@ namespace StickerPlugin
                 _settings.UseBuiltInCredentials
             );
 
-            // 初始化 Image 插件协调器（必需）
-            _imagePluginCoordinator = new ImagePluginCoordinator(plugin.MW!, Log);
-            var coordinatorInitResult = _imagePluginCoordinator.Initialize();
-            if (coordinatorInitResult)
-            {
-                Log("ImagePluginCoordinator 初始化成功");
-            }
-            else
-            {
-                Log($"警告：未找到 {ImagePluginName} 插件，表情包功能将无法使用");
-                Log($"请从 Steam 创意工坊订阅: {ImagePluginWorkshopUrl}");
-            }
+            // 注意：不在这里初始化 ImagePluginCoordinator
+            // 因为此时其他插件可能还未加载完成
+            // 将在第一次使用时延迟初始化
+            Log("StickerPlugin 初始化完成，ImagePluginCoordinator 将在首次使用时初始化");
 
             // 预加载标签
             _ = Task.Run(async () =>
@@ -150,6 +143,40 @@ namespace StickerPlugin
         }
 
         /// <summary>
+        /// 获取或初始化 ImagePluginCoordinator（延迟初始化）
+        /// </summary>
+        private ImagePluginCoordinator? GetOrInitializeCoordinator()
+        {
+            if (!_coordinatorInitAttempted)
+            {
+                _coordinatorInitAttempted = true;
+                
+                if (_vpetLLM?.MW == null)
+                {
+                    Log("错误：MainWindow 未初始化");
+                    return null;
+                }
+
+                Log("开始初始化 ImagePluginCoordinator...");
+                _imagePluginCoordinator = new ImagePluginCoordinator(_vpetLLM.MW, Log);
+                
+                var initResult = _imagePluginCoordinator.Initialize();
+                if (initResult)
+                {
+                    Log("ImagePluginCoordinator 初始化成功");
+                }
+                else
+                {
+                    Log($"警告：未找到 {ImagePluginName} 插件");
+                    Log($"请从 Steam 创意工坊订阅: {ImagePluginWorkshopUrl}");
+                    _imagePluginCoordinator = null;
+                }
+            }
+            
+            return _imagePluginCoordinator;
+        }
+
+        /// <summary>
         /// 搜索并显示表情包
         /// </summary>
         private async Task SearchAndShowStickerAsync(string tags)
@@ -157,8 +184,9 @@ namespace StickerPlugin
             if (_imageVectorService is null)
                 return;
 
-            // 检查 Image 插件是否可用
-            if (_imagePluginCoordinator == null)
+            // 延迟初始化协调器
+            var coordinator = GetOrInitializeCoordinator();
+            if (coordinator == null)
             {
                 Log($"错误：{ImagePluginName} 插件未初始化");
                 ShowImagePluginMissingPrompt();
@@ -171,10 +199,10 @@ namespace StickerPlugin
             try
             {
                 // 检查是否可以使用独占模式（Image 插件可用）
-                if (_imagePluginCoordinator.CanUseExclusiveMode())
+                if (coordinator.CanUseExclusiveMode())
                 {
                     Log("启动独占会话");
-                    sessionId = await _imagePluginCoordinator.StartExclusiveSessionAsync();
+                    sessionId = await coordinator.StartExclusiveSessionAsync();
                     useExclusiveMode = true;
                     Log($"独占会话已启动，会话 ID: {sessionId}");
                 }
@@ -202,7 +230,7 @@ namespace StickerPlugin
                 if (!string.IsNullOrEmpty(bestResult.Base64))
                 {
                     Log("显示表情包");
-                    await _imagePluginCoordinator.ShowImageInSessionAsync(
+                    await coordinator.ShowImageInSessionAsync(
                         bestResult.Base64,
                         _settings.DisplayDurationSeconds
                     );
@@ -216,11 +244,11 @@ namespace StickerPlugin
             finally
             {
                 // 确保结束独占会话
-                if (useExclusiveMode && _imagePluginCoordinator != null && !string.IsNullOrEmpty(sessionId))
+                if (useExclusiveMode && coordinator != null && !string.IsNullOrEmpty(sessionId))
                 {
                     try
                     {
-                        await _imagePluginCoordinator.EndExclusiveSessionAsync();
+                        await coordinator.EndExclusiveSessionAsync();
                         Log("独占会话已结束");
                     }
                     catch (Exception ex)
