@@ -32,16 +32,6 @@ namespace StickerPlugin
             txtTagCount.Text = _settings.TagCount.ToString();
             txtCacheDuration.Text = _settings.CacheDurationMinutes.ToString();
             txtDisplayDuration.Text = _settings.DisplayDurationSeconds.ToString();
-            
-            // 显示有效的 DLL 路径（优先使用 VPet MODPath 查找）
-            var effectivePath = _settings.GetEffectiveDllPath(_plugin.GetModPaths());
-            txtDllPath.Text = effectivePath;
-            
-            // 如果是自动查找的路径，显示提示
-            if (string.IsNullOrEmpty(_settings.ImagePluginDllPath) && !string.IsNullOrEmpty(effectivePath))
-            {
-                txtDllPath.ToolTip = "自动检测到的路径";
-            }
         }
 
         private void UpdateCredentialsUI()
@@ -61,7 +51,6 @@ namespace StickerPlugin
             _settings.UseBuiltInCredentials = chkUseBuiltInCredentials.IsChecked == true;
             _settings.ServiceUrl = txtServiceUrl.Text.Trim();
             _settings.ApiKey = txtApiKey.Password;
-            _settings.ImagePluginDllPath = txtDllPath.Text.Trim();
 
             // 验证自定义凭证
             if (!_settings.UseBuiltInCredentials)
@@ -147,17 +136,15 @@ namespace StickerPlugin
 
         private void btnBrowse_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new OpenFileDialog
-            {
-                Title = "选择 VPet.Plugin.Imgae.dll",
-                Filter = "DLL 文件 (*.dll)|*.dll",
-                FileName = "VPet.Plugin.Imgae.dll"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                txtDllPath.Text = dialog.FileName;
-            }
+            // DLL 路径配置已弃用，不再需要
+            MessageBox.Show(
+                "StickerPlugin 现在完全依赖 VPet.Plugin.Image 插件。\n\n" +
+                "请从 Steam 创意工坊订阅「LLM表情包」插件：\n" +
+                "https://steamcommunity.com/sharedfiles/filedetails/?id=3657291049",
+                "提示",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+            );
         }
 
         private void btnSave_Click(object sender, RoutedEventArgs e)
@@ -199,7 +186,7 @@ namespace StickerPlugin
                 
                 if (string.IsNullOrEmpty(result))
                 {
-                    txtTestResult.Text = "表情包已发送（如果 DLL 已配置）";
+                    txtTestResult.Text = "表情包已发送（需要安装 VPet.Plugin.Image 插件）";
                     txtTestResult.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(100, 200, 100));
                 }
                 else

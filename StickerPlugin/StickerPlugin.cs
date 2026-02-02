@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 using StickerPlugin.Models;
@@ -9,10 +13,12 @@ namespace StickerPlugin
     /// <summary>
     /// VPetLLM 表情包插件
     /// 支持 AI 搜索并发送表情包
+    /// 依赖 VPet.Plugin.Image 插件显示表情包
     /// </summary>
     public class StickerPlugin : IActionPlugin, IPluginWithData, IDynamicInfoPlugin
     {
-        private const string WorkshopUrl = "https://steamcommunity.com/sharedfiles/filedetails/?id=3027023665";
+        private const string ImagePluginName = "LLM表情包";
+        private const string ImagePluginWorkshopUrl = "https://steamcommunity.com/sharedfiles/filedetails/?id=3657291049";
         
         public string Name => "Sticker";
         public string Author => "ycxom";
@@ -46,9 +52,8 @@ namespace StickerPlugin
         private VPetLLM.VPetLLM? _vpetLLM;
         private PluginSettings _settings = new();
         private ImageVectorService? _imageVectorService;
-        private ImageDisplayManager? _imageDisplayManager;
+        private ImagePluginCoordinator? _imagePluginCoordinator; // Image插件协调器
         private Random _random = new();
-        private bool _dllMissingPromptShown = false;
         private ulong _steamId = 0;
 
         public void Initialize(VPetLLM.VPetLLM plugin)
@@ -79,14 +84,17 @@ namespace StickerPlugin
                 _settings.UseBuiltInCredentials
             );
 
-            // 初始化图片显示管理器 - 优先使用 VPet 的 MODPath 查找 DLL
-            var dllPath = _settings.GetEffectiveDllPath(plugin.MW?.MODPath);
-            _imageDisplayManager = new ImageDisplayManager(plugin.MW, dllPath);
-            var initResult = _imageDisplayManager.Initialize();
-            
-            if (!initResult)
+            // 初始化 Image 插件协调器（必需）
+            _imagePluginCoordinator = new ImagePluginCoordinator(plugin.MW!, Log);
+            var coordinatorInitResult = _imagePluginCoordinator.Initialize();
+            if (coordinatorInitResult)
             {
-                Log($"ImageDisplayManager init failed: {_imageDisplayManager.LastError}");
+                Log("ImagePluginCoordinator 初始化成功");
+            }
+            else
+            {
+                Log($"警告：未找到 {ImagePluginName} 插件，表情包功能将无法使用");
+                Log($"请从 Steam 创意工坊订阅: {ImagePluginWorkshopUrl}");
             }
 
             // 预加载标签
@@ -149,37 +157,77 @@ namespace StickerPlugin
             if (_imageVectorService is null)
                 return;
 
+            // 检查 Image 插件是否可用
+            if (_imagePluginCoordinator == null)
+            {
+                Log($"错误：{ImagePluginName} 插件未初始化");
+                ShowImagePluginMissingPrompt();
+                return;
+            }
+
+            string? sessionId = null;
+            bool useExclusiveMode = false;
+
             try
             {
+                // 检查是否可以使用独占模式（Image 插件可用）
+                if (_imagePluginCoordinator.CanUseExclusiveMode())
+                {
+                    Log("启动独占会话");
+                    sessionId = await _imagePluginCoordinator.StartExclusiveSessionAsync();
+                    useExclusiveMode = true;
+                    Log($"独占会话已启动，会话 ID: {sessionId}");
+                }
+                else
+                {
+                    Log($"警告：{ImagePluginName} 插件不可用或未启用");
+                    ShowImagePluginMissingPrompt();
+                    return;
+                }
+
                 // 搜索表情包
                 var response = await _imageVectorService.SearchAsync(tags, limit: 1);
 
                 if (response is null || !response.Success || response.Results is null || response.Results.Count == 0)
+                {
+                    Log("未找到匹配的表情包");
                     return;
+                }
 
                 // 选择最高分的结果
                 var bestResult = response.Results.OrderByDescending(r => r.Score).First();
+                Log($"找到表情包，相似度: {bestResult.Score:F2}");
 
-                // 显示表情包
-                if (_imageDisplayManager?.IsInitialized == true)
+                // 显示表情包（通过 Image 插件）
+                if (!string.IsNullOrEmpty(bestResult.Base64))
                 {
-                    if (!string.IsNullOrEmpty(bestResult.Base64))
-                    {
-                        await _imageDisplayManager.ShowImageFromBase64Async(
-                            bestResult.Base64,
-                            _settings.DisplayDurationSeconds
-                        );
-                    }
-                }
-                else
-                {
-                    // 检测是否是 DLL 未找到的情况，弹出订阅提示
-                    ShowDllMissingPrompt();
+                    Log("显示表情包");
+                    await _imagePluginCoordinator.ShowImageInSessionAsync(
+                        bestResult.Base64,
+                        _settings.DisplayDurationSeconds
+                    );
+                    Log("表情包显示完成");
                 }
             }
             catch (Exception ex)
             {
                 Log($"Sticker error: {ex.Message}");
+            }
+            finally
+            {
+                // 确保结束独占会话
+                if (useExclusiveMode && _imagePluginCoordinator != null && !string.IsNullOrEmpty(sessionId))
+                {
+                    try
+                    {
+                        await _imagePluginCoordinator.EndExclusiveSessionAsync();
+                        Log("独占会话已结束");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log($"结束独占会话失败: {ex.Message}");
+                    }
+                }
             }
         }
 
@@ -286,22 +334,17 @@ namespace StickerPlugin
         }
 
         /// <summary>
-        /// 显示 DLL 缺失提示（仅显示一次）
+        /// 显示 Image 插件缺失提示
         /// </summary>
-        private void ShowDllMissingPrompt()
+        private void ShowImagePluginMissingPrompt()
         {
-            if (_dllMissingPromptShown)
-                return;
-
-            _dllMissingPromptShown = true;
-
             Application.Current.Dispatcher.Invoke(() =>
             {
                 var result = MessageBox.Show(
-                    $"表情包显示功能需要订阅 Steam 创意工坊插件。\n\n" +
-                    $"请订阅后重启 VPet 以启用表情包显示功能。\n\n" +
+                    $"表情包显示功能需要安装「{ImagePluginName}」插件。\n\n" +
+                    $"请从 Steam 创意工坊订阅后重启 VPet。\n\n" +
                     $"点击「是」复制订阅链接到剪贴板。\n\n" +
-                    $"链接: {WorkshopUrl}",
+                    $"链接: {ImagePluginWorkshopUrl}",
                     "缺少前置插件",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Information
@@ -311,7 +354,7 @@ namespace StickerPlugin
                 {
                     try
                     {
-                        Clipboard.SetText(WorkshopUrl);
+                        Clipboard.SetText(ImagePluginWorkshopUrl);
                         MessageBox.Show("链接已复制到剪贴板！", "复制成功", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     catch
@@ -326,7 +369,7 @@ namespace StickerPlugin
         {
             SaveSettings();
             _imageVectorService?.Dispose();
-            _imageDisplayManager?.Dispose();
+            _imagePluginCoordinator?.Dispose();
         }
 
         public void Log(string message)
@@ -379,8 +422,9 @@ namespace StickerPlugin
         }
 
         /// <summary>
-        /// 获取 VPet 的 MODPath 列表
+        /// 获取 VPet 的 MODPath 列表（已弃用，保留以兼容）
         /// </summary>
+        [Obsolete("不再需要 MODPath，StickerPlugin 现在完全依赖 VPet.Plugin.Image")]
         public IEnumerable<System.IO.DirectoryInfo>? GetModPaths()
         {
             return _vpetLLM?.MW?.MODPath;

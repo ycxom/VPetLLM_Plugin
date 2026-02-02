@@ -30,6 +30,7 @@
     <Compile Include="Models\PluginSettings.cs" />
     <Compile Include="Services\ImageVectorService.cs" />
     <Compile Include="Services\ImageDisplayManager.cs" />
+    <Compile Include="Services\ImagePluginCoordinator.cs" />
     <Compile Include="winStickerSetting.xaml.cs">
       <DependentUpon>winStickerSetting.xaml</DependentUpon>
     </Compile>

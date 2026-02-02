@@ -10,10 +10,18 @@ using WpfAnimatedGif;
 namespace StickerPlugin.Services
 {
     /// <summary>
-    /// 图片显示管理器
-    /// 通过反射加载 VPet.Plugin.Imgae.dll 并控制图片显示
-    /// 支持静态图片和 GIF 动画
+    /// 图片显示管理器（已弃用）
+    /// 
+    /// 此类已被 ImagePluginCoordinator 替代，不再使用。
+    /// 保留此文件仅为向后兼容，新代码请使用 ImagePluginCoordinator。
+    /// 
+    /// 迁移说明：
+    /// - 旧方式：StickerPlugin -> ImageDisplayManager -> Hook DLL -> 显示图片
+    /// - 新方式：StickerPlugin -> ImagePluginCoordinator -> VPet.Plugin.Image -> 显示图片
+    /// 
+    /// 参考文档：MIGRATION_TO_IMAGE_PLUGIN.md
     /// </summary>
+    [Obsolete("此类已弃用，请使用 ImagePluginCoordinator 替代。参考 MIGRATION_TO_IMAGE_PLUGIN.md")]
     public class ImageDisplayManager : IDisposable
     {
         private readonly IMainWindow _mainWindow;
