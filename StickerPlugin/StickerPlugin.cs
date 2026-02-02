@@ -15,7 +15,7 @@ namespace StickerPlugin
     /// 支持 AI 搜索并发送表情包
     /// 依赖 VPet.Plugin.Image 插件显示表情包
     /// </summary>
-    public class StickerPlugin : IActionPlugin, IPluginWithData, IDynamicInfoPlugin
+    public class StickerPlugin : IActionPlugin, IPluginWithData, IDynamicInfoPlugin, IProcessingLifecyclePlugin
     {
         private const string ImagePluginName = "LLM表情包";
         private const string ImagePluginWorkshopUrl = "https://steamcommunity.com/sharedfiles/filedetails/?id=3657291049";
@@ -129,7 +129,8 @@ namespace StickerPlugin
                 if (string.IsNullOrWhiteSpace(tagsStr))
                     return string.Empty;
 
-                    await SearchAndShowStickerAsync(tagsStr);
+                    // 使用生命周期管理的会话
+                    await SearchAndShowStickerAsync(tagsStr, GetOrInitializeCoordinator(), _lifecycleSessionId);
                     return string.Empty;
                 }
 
@@ -147,30 +148,52 @@ namespace StickerPlugin
         /// </summary>
         private ImagePluginCoordinator? GetOrInitializeCoordinator()
         {
-            if (!_coordinatorInitAttempted)
+            // 如果已经有有效的协调器，检查它是否仍然可用
+            if (_imagePluginCoordinator != null)
             {
-                _coordinatorInitAttempted = true;
-                
-                if (_vpetLLM?.MW == null)
+                // 简单检查：尝试调用 CanUseExclusiveMode
+                try
                 {
-                    Log("错误：MainWindow 未初始化");
-                    return null;
+                    // 如果协调器仍然有效，直接返回
+                    _imagePluginCoordinator.CanUseExclusiveMode();
+                    return _imagePluginCoordinator;
                 }
-
-                Log("开始初始化 ImagePluginCoordinator...");
-                _imagePluginCoordinator = new ImagePluginCoordinator(_vpetLLM.MW, Log);
-                
-                var initResult = _imagePluginCoordinator.Initialize();
-                if (initResult)
+                catch
                 {
-                    Log("ImagePluginCoordinator 初始化成功");
-                }
-                else
-                {
-                    Log($"警告：未找到 {ImagePluginName} 插件");
-                    Log($"请从 Steam 创意工坊订阅: {ImagePluginWorkshopUrl}");
+                    // 协调器已失效，需要重新初始化
+                    Log("检测到协调器已失效，尝试重新初始化...");
                     _imagePluginCoordinator = null;
+                    _coordinatorInitAttempted = false; // 重置标志，允许重新初始化
                 }
+            }
+
+            // 如果之前尝试过但失败了，不再重试（避免重复错误提示）
+            if (_coordinatorInitAttempted)
+            {
+                return null;
+            }
+
+            _coordinatorInitAttempted = true;
+            
+            if (_vpetLLM?.MW == null)
+            {
+                Log("错误：MainWindow 未初始化");
+                return null;
+            }
+
+            Log("开始初始化 ImagePluginCoordinator...");
+            _imagePluginCoordinator = new ImagePluginCoordinator(_vpetLLM.MW, Log);
+            
+            var initResult = _imagePluginCoordinator.Initialize();
+            if (initResult)
+            {
+                Log("ImagePluginCoordinator 初始化成功");
+            }
+            else
+            {
+                Log($"警告：未找到 {ImagePluginName} 插件");
+                Log($"请从 Steam 创意工坊订阅: {ImagePluginWorkshopUrl}");
+                _imagePluginCoordinator = null;
             }
             
             return _imagePluginCoordinator;
@@ -179,40 +202,20 @@ namespace StickerPlugin
         /// <summary>
         /// 搜索并显示表情包
         /// </summary>
-        private async Task SearchAndShowStickerAsync(string tags)
+        private async Task SearchAndShowStickerAsync(string tags, ImagePluginCoordinator? coordinator, string? sessionId)
         {
             if (_imageVectorService is null)
                 return;
 
-            // 延迟初始化协调器
-            var coordinator = GetOrInitializeCoordinator();
-            if (coordinator == null)
+            // 检查协调器和会话
+            if (coordinator == null || string.IsNullOrEmpty(sessionId))
             {
-                Log($"错误：{ImagePluginName} 插件未初始化");
-                ShowImagePluginMissingPrompt();
+                Log($"错误：独占会话未启动");
                 return;
             }
 
-            string? sessionId = null;
-            bool useExclusiveMode = false;
-
             try
             {
-                // 检查是否可以使用独占模式（Image 插件可用）
-                if (coordinator.CanUseExclusiveMode())
-                {
-                    Log("启动独占会话");
-                    sessionId = await coordinator.StartExclusiveSessionAsync();
-                    useExclusiveMode = true;
-                    Log($"独占会话已启动，会话 ID: {sessionId}");
-                }
-                else
-                {
-                    Log($"警告：{ImagePluginName} 插件不可用或未启用");
-                    ShowImagePluginMissingPrompt();
-                    return;
-                }
-
                 // 搜索表情包
                 var response = await _imageVectorService.SearchAsync(tags, limit: 1);
 
@@ -240,22 +243,6 @@ namespace StickerPlugin
             catch (Exception ex)
             {
                 Log($"Sticker error: {ex.Message}");
-            }
-            finally
-            {
-                // 确保结束独占会话
-                if (useExclusiveMode && coordinator != null && !string.IsNullOrEmpty(sessionId))
-                {
-                    try
-                    {
-                        await coordinator.EndExclusiveSessionAsync();
-                        Log("独占会话已结束");
-                    }
-                    catch (Exception ex)
-                    {
-                        Log($"结束独占会话失败: {ex.Message}");
-                    }
-                }
             }
         }
 
@@ -456,6 +443,89 @@ namespace StickerPlugin
         public IEnumerable<System.IO.DirectoryInfo>? GetModPaths()
         {
             return _vpetLLM?.MW?.MODPath;
+        }
+
+        #endregion
+
+        #region IProcessingLifecyclePlugin
+
+        private string? _lifecycleSessionId;
+
+        /// <summary>
+        /// 在 VPetLLM 开始处理用户输入之前调用
+        /// 立即启动独占会话以屏蔽气泡触发
+        /// </summary>
+        public async Task<object?> OnProcessingStartAsync(string userInput)
+        {
+            try
+            {
+                var coordinator = GetOrInitializeCoordinator();
+                if (coordinator != null && coordinator.CanUseExclusiveMode())
+                {
+                    Log("VPetLLM 开始处理，立即启动独占会话以屏蔽气泡触发");
+                    _lifecycleSessionId = await coordinator.StartExclusiveSessionAsync();
+                    Log($"独占会话已启动，会话 ID: {_lifecycleSessionId}");
+                    return _lifecycleSessionId;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"OnProcessingStartAsync 失败: {ex.Message}");
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 在 LLM 开始返回响应时调用
+        /// </summary>
+        public Task OnResponseStartAsync(object? context)
+        {
+            // 不需要特殊处理
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// 在 VPetLLM 完成处理后调用
+        /// 结束独占会话
+        /// </summary>
+        public async Task OnProcessingCompleteAsync(object? context)
+        {
+            try
+            {
+                var coordinator = GetOrInitializeCoordinator();
+                if (coordinator != null && !string.IsNullOrEmpty(_lifecycleSessionId))
+                {
+                    await coordinator.EndExclusiveSessionAsync(_lifecycleSessionId);
+                    Log("独占会话已结束（生命周期）");
+                    _lifecycleSessionId = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"OnProcessingCompleteAsync 失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 在处理过程中发生错误时调用
+        /// 确保结束独占会话
+        /// </summary>
+        public async Task OnProcessingErrorAsync(object? context, Exception exception)
+        {
+            try
+            {
+                var coordinator = GetOrInitializeCoordinator();
+                if (coordinator != null && !string.IsNullOrEmpty(_lifecycleSessionId))
+                {
+                    await coordinator.EndExclusiveSessionAsync(_lifecycleSessionId);
+                    Log("独占会话已结束（错误处理）");
+                    _lifecycleSessionId = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"OnProcessingErrorAsync 失败: {ex.Message}");
+            }
         }
 
         #endregion

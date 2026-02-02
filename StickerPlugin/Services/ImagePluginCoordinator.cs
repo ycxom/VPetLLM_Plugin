@@ -97,6 +97,7 @@ namespace StickerPlugin.Services
         {
             if (!_initialized || _imagePluginCoordinator == null || _coordinatorType == null)
             {
+                _log("CanUseExclusiveMode: 协调器未初始化或已释放");
                 return false;
             }
 
