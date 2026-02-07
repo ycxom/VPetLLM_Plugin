@@ -529,14 +529,70 @@ CMDコマンドを実行してユーザーを支援できます。CMD構文を�
                     return dangerCheck;
                 }
 
+                // 显示命令确认弹窗
+                var confirmResult = await ShowCommandConfirmDialogAsync(arguments);
+                if (!confirmResult.Confirmed)
+                {
+                    return GetLocalizedMessage("command_cancelled");
+                }
+
+                // 使用用户可能修改过的命令
+                var commandToExecute = confirmResult.Command;
+
+                // 再次检查修改后的命令是否危险
+                if (commandToExecute != arguments)
+                {
+                    var dangerCheckModified = CheckDangerousCommand(commandToExecute);
+                    if (!string.IsNullOrEmpty(dangerCheckModified))
+                    {
+                        return dangerCheckModified;
+                    }
+                }
+
                 // 执行命令
-                return await ExecuteCommandAsync(arguments);
+                return await ExecuteCommandAsync(commandToExecute);
             }
             catch (Exception ex)
             {
                 _vpetLLM?.Log($"Terminal: Error in Function: {ex.Message}");
                 return $"Error: {ex.Message}";
             }
+        }
+
+        /// <summary>
+        /// 显示命令确认弹窗
+        /// </summary>
+        private Task<(bool Confirmed, string Command)> ShowCommandConfirmDialogAsync(string command)
+        {
+            var tcs = new TaskCompletionSource<(bool, string)>();
+
+            try
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var language = GetLanguage();
+                    var shellName = _currentShell.ToString();
+
+                    var confirmWindow = new winCommandConfirm(command, shellName, language);
+                    var result = confirmWindow.ShowDialog();
+
+                    if (result == true && confirmWindow.IsConfirmed)
+                    {
+                        tcs.SetResult((true, confirmWindow.Command));
+                    }
+                    else
+                    {
+                        tcs.SetResult((false, command));
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _vpetLLM?.Log($"Terminal: Error showing confirm dialog: {ex.Message}");
+                tcs.SetResult((false, command));
+            }
+
+            return tcs.Task;
         }
 
         private string HandleAction(string action)
@@ -924,6 +980,11 @@ CMDコマンドを実行してユーザーを支援できます。CMD構文を�
                 ("settings_opened", "zh-hant") => "設置窗口已打開。",
                 ("settings_opened", "ja") => "設定ウィンドウが開きました。",
                 ("settings_opened", _) => "Settings window opened.",
+
+                ("command_cancelled", "zh-hans") => "用户取消了命令执行。",
+                ("command_cancelled", "zh-hant") => "用戶取消了命令執行。",
+                ("command_cancelled", "ja") => "ユーザーがコマンドの実行をキャンセルしました。",
+                ("command_cancelled", _) => "User cancelled the command execution.",
 
                 _ => messageType
             };

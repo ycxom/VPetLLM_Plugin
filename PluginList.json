@@ -141,6 +141,6 @@
       "en": "Allows AI to execute terminal commands, supporting PowerShell and CMD."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/TerminalPlugin/plugin/TerminalPlugin.dll",
-    "SHA256": "c3232bcc9607d6b3756accc65cabd6981f151fbc6c354d093186e83661347dc7"
+    "SHA256": "99e8a493985ba18cd0ac0acf7a6ba1280392c6fedbe587d9b59b655139ad6f7c"
   }
 }
