@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <OutputType>Library</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="VPet-Simulator.Windows.Interface" Version="1.1.0.50" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="VPetLLM">
+      <HintPath>..\..\VPetLLM\3000_VPetLLM\plugin\VPetLLM.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="CopyPlugin" AfterTargets="Build">
+    <ItemGroup>
+      <PluginFiles Include="$(OutDir)$(TargetName).dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="plugin" />
+  </Target>
+
+  <Target Name="UpdateSHA" AfterTargets="CopyPlugin">
+    <PropertyGroup>
+      <HelperProject>$(MSBuildProjectDirectory)\..\UpdateSHA_Helper\UpdateSHA_Helper.csproj</HelperProject>
+      <HelperExe>$(MSBuildProjectDirectory)\..\UpdateSHA_Helper\bin\$(Configuration)\net8.0\UpdateSHA_Helper.exe</HelperExe>
+      <PluginListPath>$(MSBuildProjectDirectory)\..\PluginList.json</PluginListPath>
+      <TargetDllPath>$(ProjectDir)plugin\$(TargetName).dll</TargetDllPath>
+      <BuildHelperCommand>dotnet build "$(HelperProject)" -c $(Configuration)</BuildHelperCommand>
+      <ExecHelperCommand>"$(HelperExe)" "$(ProjectName)" "$(TargetDllPath)" "$(PluginListPath)"</ExecHelperCommand>
+    </PropertyGroup>
+    <Message Text="Building SHA Helper..." Importance="high" />
+    <Exec Command="$(BuildHelperCommand)" />
+    <Message Text="Executing SHA Helper: $(ExecHelperCommand)" Importance="high" />
+    <Exec Command="$(ExecHelperCommand)" />
+  </Target>
+
+</Project>

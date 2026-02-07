@@ -130,5 +130,17 @@
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/StickerPlugin/plugin/StickerPlugin.dll",
     "SHA256": "5045b5f0a366e65356e0557c0a3cd7c3111d7c4c1d7126d61ee4f0617e65a60a"
+  },
+  "TerminalPlugin": {
+    "Name": "Terminal",
+    "Author": "ycxom",
+    "Description": {
+      "ja": "AIがターミナルコマンドを実行できるようにし、PowerShellとCMDをサポートします。",
+      "zh-hans": "允许AI执行终端命令，支持PowerShell和CMD。",
+      "zh-hant": "允許AI執行終端命令，支持PowerShell和CMD。",
+      "en": "Allows AI to execute terminal commands, supporting PowerShell and CMD."
+    },
+    "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/TerminalPlugin/plugin/TerminalPlugin.dll",
+    "SHA256": "c3232bcc9607d6b3756accc65cabd6981f151fbc6c354d093186e83661347dc7"
   }
 }

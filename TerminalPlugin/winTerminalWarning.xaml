@@ -1,0 +1,82 @@
+<Window x:Class="TerminalPlugin.winTerminalWarning"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Terminal Plugin - Security Warning"
+        Height="450" Width="500"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="#1E1E1E">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Warning Icon and Title -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,15">
+            <TextBlock Text="!!!" FontSize="28" Foreground="#FF6B6B" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBlock x:Name="txtTitle" Text="Security Warning" FontSize="24" Foreground="#FF6B6B" FontWeight="Bold" VerticalAlignment="Center"/>
+            <TextBlock Text="!!!" FontSize="28" Foreground="#FF6B6B" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+        </StackPanel>
+
+        <!-- Warning Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <TextBlock x:Name="txtWarningContent"
+                       TextWrapping="Wrap"
+                       Foreground="#E0E0E0"
+                       FontSize="14"
+                       LineHeight="24">
+                <Run FontWeight="Bold" Foreground="#FFD93D">This plugin allows AI to execute terminal commands on your computer.</Run>
+                <LineBreak/><LineBreak/>
+                <Run>Before enabling this plugin, please understand:</Run>
+                <LineBreak/><LineBreak/>
+                <Run Foreground="#FF6B6B">1. AI may execute commands that could harm your system</Run>
+                <LineBreak/>
+                <Run Foreground="#FF6B6B">2. You MUST be able to understand and verify commands before AI executes them</Run>
+                <LineBreak/>
+                <Run Foreground="#FF6B6B">3. If you cannot determine whether a command is safe, DO NOT enable this plugin</Run>
+                <LineBreak/><LineBreak/>
+                <Run FontWeight="Bold">To continue, please type the confirmation text below:</Run>
+            </TextBlock>
+        </ScrollViewer>
+
+        <!-- Confirmation Input -->
+        <StackPanel Grid.Row="2" Margin="0,15,0,15">
+            <TextBlock x:Name="txtConfirmHint"
+                       Text="Please enter: I understand the risks"
+                       Foreground="#888888"
+                       FontSize="12"
+                       Margin="0,0,0,5"/>
+            <TextBox x:Name="txtConfirmInput"
+                     Height="35"
+                     FontSize="14"
+                     Background="#2D2D2D"
+                     Foreground="#E0E0E0"
+                     BorderBrush="#444444"
+                     Padding="8,6"
+                     TextChanged="TxtConfirmInput_TextChanged"/>
+        </StackPanel>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button x:Name="btnConfirm"
+                    Content="Confirm"
+                    Width="120" Height="35"
+                    Margin="0,0,15,0"
+                    IsEnabled="False"
+                    Click="BtnConfirm_Click"
+                    Background="#4A4A4A"
+                    Foreground="#888888"
+                    BorderBrush="#555555"/>
+            <Button x:Name="btnCancel"
+                    Content="Cancel"
+                    Width="120" Height="35"
+                    Click="BtnCancel_Click"
+                    Background="#3D3D3D"
+                    Foreground="#E0E0E0"
+                    BorderBrush="#555555"/>
+        </StackPanel>
+    </Grid>
+</Window>

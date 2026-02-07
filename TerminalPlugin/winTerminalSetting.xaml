@@ -1,0 +1,129 @@
+<Window x:Class="TerminalPlugin.winTerminalSetting"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Terminal Plugin - Settings"
+        Height="400" Width="450"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="#1E1E1E">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title -->
+        <TextBlock x:Name="txtTitle"
+                   Grid.Row="0"
+                   Text="Terminal Settings"
+                   FontSize="20"
+                   Foreground="#E0E0E0"
+                   FontWeight="Bold"
+                   Margin="0,0,0,20"/>
+
+        <!-- Settings Content -->
+        <StackPanel Grid.Row="1">
+            <!-- Shell Info -->
+            <Border Background="#2D2D2D" CornerRadius="5" Padding="15" Margin="0,0,0,15">
+                <StackPanel>
+                    <TextBlock x:Name="txtShellInfoTitle"
+                               Text="Shell Information"
+                               FontSize="14"
+                               Foreground="#E0E0E0"
+                               FontWeight="Bold"
+                               Margin="0,0,0,10"/>
+                    <TextBlock x:Name="txtCurrentShell"
+                               Text="Current Shell: PowerShell"
+                               Foreground="#88C0D0"
+                               FontSize="13"/>
+                    <TextBlock x:Name="txtPwshStatus"
+                               Text="PowerShell 7 (pwsh): Available"
+                               Foreground="#A3BE8C"
+                               FontSize="12"
+                               Margin="0,5,0,0"/>
+                    <TextBlock x:Name="txtPsStatus"
+                               Text="Windows PowerShell: Available"
+                               Foreground="#A3BE8C"
+                               FontSize="12"
+                               Margin="0,3,0,0"/>
+                    <TextBlock x:Name="txtCmdStatus"
+                               Text="CMD: Available"
+                               Foreground="#A3BE8C"
+                               FontSize="12"
+                               Margin="0,3,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Enable Toggle -->
+            <Border Background="#2D2D2D" CornerRadius="5" Padding="15" Margin="0,0,0,15">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock x:Name="txtEnableTitle"
+                                   Text="Enable Terminal for AI"
+                                   FontSize="14"
+                                   Foreground="#E0E0E0"
+                                   FontWeight="Bold"/>
+                        <TextBlock x:Name="txtEnableDesc"
+                                   Text="Allow AI to execute terminal commands"
+                                   Foreground="#888888"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <CheckBox x:Name="chkEnableTerminal"
+                              Grid.Column="1"
+                              VerticalAlignment="Center"
+                              Checked="ChkEnableTerminal_Changed"
+                              Unchecked="ChkEnableTerminal_Changed"/>
+                </Grid>
+            </Border>
+
+            <!-- Warning -->
+            <Border x:Name="borderWarning"
+                    Background="#3D2020"
+                    BorderBrush="#FF6B6B"
+                    BorderThickness="1"
+                    CornerRadius="5"
+                    Padding="15"
+                    Visibility="Visible">
+                <StackPanel>
+                    <TextBlock x:Name="txtWarningTitle"
+                               Text="Warning"
+                               FontSize="14"
+                               Foreground="#FF6B6B"
+                               FontWeight="Bold"/>
+                    <TextBlock x:Name="txtWarningDesc"
+                               Text="When enabled, AI can execute commands that may modify your system. Only enable if you can verify command safety."
+                               Foreground="#E0E0E0"
+                               FontSize="12"
+                               TextWrapping="Wrap"
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button x:Name="btnSave"
+                    Content="Save"
+                    Width="100" Height="35"
+                    Margin="0,0,10,0"
+                    Click="BtnSave_Click"
+                    Background="#4CAF50"
+                    Foreground="White"
+                    BorderBrush="#45A049"/>
+            <Button x:Name="btnClose"
+                    Content="Close"
+                    Width="100" Height="35"
+                    Click="BtnClose_Click"
+                    Background="#3D3D3D"
+                    Foreground="#E0E0E0"
+                    BorderBrush="#555555"/>
+        </StackPanel>
+    </Grid>
+</Window>
