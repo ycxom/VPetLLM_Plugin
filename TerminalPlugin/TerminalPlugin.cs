@@ -2,12 +2,12 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using VPetLLM.Core.Abstractions.Interfaces.Plugin;
+using VPetLLM.Infrastructure.Configuration;
 
 namespace TerminalPlugin
 {
@@ -84,7 +84,6 @@ namespace TerminalPlugin
         private TerminalSettings _settings = new TerminalSettings();
         private const int DefaultTimeoutSeconds = 30;
         private const int MaxOutputLength = 4000;
-        private const string SettingFileName = "TerminalPlugin.json";
 
         public enum ShellType
         {
@@ -880,20 +879,9 @@ CMDコマンドを実行してユーザーを支援できます。CMD構文を�
 
         private void LoadSettings()
         {
-            if (string.IsNullOrEmpty(PluginDataDir)) return;
-
             try
             {
-                var path = Path.Combine(PluginDataDir, SettingFileName);
-                if (File.Exists(path))
-                {
-                    var json = File.ReadAllText(path);
-                    _settings = JsonSerializer.Deserialize<TerminalSettings>(json) ?? new TerminalSettings();
-                }
-                else
-                {
-                    _settings = new TerminalSettings();
-                }
+                _settings = PluginConfigHelper.Load<TerminalSettings>("Terminal");
             }
             catch (Exception ex)
             {
@@ -904,21 +892,9 @@ CMDコマンドを実行してユーザーを支援できます。CMD構文を�
 
         private void SaveSettings()
         {
-            if (string.IsNullOrEmpty(PluginDataDir)) return;
-
             try
             {
-                if (!Directory.Exists(PluginDataDir))
-                {
-                    Directory.CreateDirectory(PluginDataDir);
-                }
-
-                var path = Path.Combine(PluginDataDir, SettingFileName);
-                var json = JsonSerializer.Serialize(_settings, new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                });
-                File.WriteAllText(path, json);
+                PluginConfigHelper.Save("Terminal", _settings);
             }
             catch (Exception ex)
             {
