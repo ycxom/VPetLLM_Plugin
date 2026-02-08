@@ -778,8 +778,10 @@ CMDコマンドを実行してユーザーを支援できます。CMD構文を�
                 }
                 else
                 {
-                    // PowerShell (pwsh or powershell): 设置输出编码为 UTF-8
-                    var psCommand = $"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; {command}";
+                    // PowerShell (pwsh or powershell): 使用脚本块设置 UTF-8 编码并执行命令
+                    // 使用 & { } 脚本块确保命令在正确的上下文中执行
+                    var escapedCommand = command.Replace("'", "''");
+                    var psCommand = $"& {{ $OutputEncoding = [System.Text.Encoding]::UTF8; [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; Invoke-Expression '{escapedCommand}' }}";
                     startInfo = new ProcessStartInfo
                     {
                         FileName = _shellPath,
