@@ -763,10 +763,11 @@ CMDコマンドを実行してユーザーを支援できます。CMD構文を�
 
                 if (_currentShell == ShellType.Cmd)
                 {
+                    // CMD: 先切换到 UTF-8 代码页 (65001)，然后执行命令
                     startInfo = new ProcessStartInfo
                     {
                         FileName = "cmd.exe",
-                        Arguments = $"/c {command}",
+                        Arguments = $"/c chcp 65001 >nul && {command}",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
@@ -777,11 +778,12 @@ CMDコマンドを実行してユーザーを支援できます。CMD構文を�
                 }
                 else
                 {
-                    // PowerShell (pwsh or powershell)
+                    // PowerShell (pwsh or powershell): 设置输出编码为 UTF-8
+                    var psCommand = $"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; {command}";
                     startInfo = new ProcessStartInfo
                     {
                         FileName = _shellPath,
-                        Arguments = $"-NoProfile -NonInteractive -Command \"{command.Replace("\"", "\\\"")}\"",
+                        Arguments = $"-NoProfile -NonInteractive -Command \"{psCommand.Replace("\"", "\\\"")}\"",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
