@@ -142,5 +142,17 @@
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/TerminalPlugin/plugin/TerminalPlugin.dll",
     "SHA256": "eeb41d2ff1c913c885dda3c46f13cac1f706a8241ec52fb898d18c99c29af9b8"
+  },
+  "OneBotPlugin": {
+    "Name": "onebot",
+    "Author": "ycxom",
+    "Description": {
+      "ja": "OneBotプロトコルプラグイン。QQメッセージの送受信をサポート（NapCat/Lagrange等）。",
+      "zh-hans": "OneBot 协议插件，支持接收/发送 QQ 消息（NapCat/Lagrange 等）。",
+      "zh-hant": "OneBot 協議插件，支援接收/傳送 QQ 訊息（NapCat/Lagrange 等）。",
+      "en": "OneBot protocol plugin. Send and receive QQ messages via NapCat/Lagrange etc."
+    },
+    "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/OneBotPlugin/plugin/OneBotPlugin.dll",
+    "SHA256": "f2e7b7b9f14e33f1f97edd90e46b1101a67789c2658e6cd69c15d02d638f5334"
   }
 }
