@@ -118,11 +118,11 @@ namespace OneBotPlugin
         {
             object message;
             if (!string.IsNullOrEmpty(image) && !string.IsNullOrEmpty(text))
-                message = CQCodeParser.BuildTextAndImageMessage(text, image);
+                message = CQCodeParser.ParseTextWithOptionalImage(text, image);
             else if (!string.IsNullOrEmpty(image))
                 message = CQCodeParser.BuildImageMessage(image);
             else
-                message = CQCodeParser.BuildTextMessage(text);
+                message = CQCodeParser.ParseTextToSegments(text);
 
             var msgParams = new SendMsgParams { Message = message };
 

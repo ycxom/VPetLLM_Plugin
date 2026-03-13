@@ -79,6 +79,70 @@ namespace OneBotPlugin
             };
         }
 
+        /// <summary>
+        /// Parse text that may contain CQ codes into proper message segments.
+        /// e.g., "[CQ:at,qq=123] hello" → [at segment, text segment]
+        /// Plain text without CQ codes → [text segment]
+        /// </summary>
+        public static object ParseTextToSegments(string text)
+        {
+            if (!text.Contains("[CQ:"))
+                return BuildTextMessage(text);
+
+            var segments = new List<object>();
+            var regex = new Regex(@"\[CQ:(\w+)((?:,[^,\]]+)*)\]");
+            int lastIndex = 0;
+
+            foreach (Match match in regex.Matches(text))
+            {
+                if (match.Index > lastIndex)
+                {
+                    var preceding = text[lastIndex..match.Index];
+                    if (preceding.Length > 0)
+                        segments.Add(new { type = "text", data = (object)new { text = preceding } });
+                }
+
+                var cqType = match.Groups[1].Value;
+                var paramsStr = match.Groups[2].Value;
+                var data = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(paramsStr))
+                {
+                    foreach (var param in paramsStr.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        var eqIdx = param.IndexOf('=');
+                        if (eqIdx > 0)
+                            data[param[..eqIdx].Trim()] = param[(eqIdx + 1)..].Trim();
+                    }
+                }
+                segments.Add(new { type = cqType, data = (object)data });
+                lastIndex = match.Index + match.Length;
+            }
+
+            if (lastIndex < text.Length)
+            {
+                var trailing = text[lastIndex..];
+                if (trailing.Length > 0)
+                    segments.Add(new { type = "text", data = (object)new { text = trailing } });
+            }
+
+            return segments.Count > 0 ? segments.ToArray() : BuildTextMessage(text);
+        }
+
+        /// <summary>
+        /// Parse text (with optional CQ codes) and optionally append an image segment.
+        /// </summary>
+        public static object ParseTextWithOptionalImage(string text, string? image)
+        {
+            if (string.IsNullOrEmpty(image))
+                return ParseTextToSegments(text);
+
+            var file = NormalizeImageSource(image);
+            var baseSegments = ParseTextToSegments(text);
+            var list = (baseSegments is object[] arr) ? new List<object>(arr) : new List<object> { baseSegments };
+            list.Add(new { type = "image", data = (object)new { file } });
+            return list.ToArray();
+        }
+
         public static object BuildReplyMessage(long messageId, string text)
         {
             return new object[]
