@@ -33,14 +33,21 @@
     <Compile Include="winAvailableApps.xaml.cs">
       <DependentUpon>winAvailableApps.xaml</DependentUpon>
     </Compile>
+    <Compile Include="winLaunchConfirm.xaml.cs">
+      <DependentUpon>winLaunchConfirm.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
-  
+
   <ItemGroup>
     <Page Include="winAppLauncherSetting.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="winAvailableApps.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="winLaunchConfirm.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

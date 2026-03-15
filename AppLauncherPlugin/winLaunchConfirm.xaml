@@ -1,11 +1,10 @@
-<Window x:Class="TerminalPlugin.winCommandConfirm"
+<Window x:Class="AppLauncherPlugin.winLaunchConfirm"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Terminal - Command Confirmation"
-        Height="320" Width="550"
+        Title="AppLauncher - Launch Confirmation"
+        SizeToContent="Height" Width="450"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="CanResizeWithGrip"
-        MinHeight="250" MinWidth="400"
+        ResizeMode="NoResize"
         Background="#F5F5F5">
     <Window.Resources>
         <Style x:Key="BtnPrimary" TargetType="Button">
@@ -69,7 +68,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -78,55 +76,42 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
             <TextBlock Text="&#x26A0;" FontSize="20" Foreground="#FF8C00" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <TextBlock x:Name="txtTitle"
-                       Text="AI requests to execute the following command:"
+                       Text="AI requests to launch the following application:"
                        FontSize="16"
                        Foreground="#323130"
                        VerticalAlignment="Center"/>
         </StackPanel>
 
-        <!-- Shell Info -->
-        <TextBlock x:Name="txtShellInfo"
-                   Grid.Row="1"
-                   Text="Shell: PowerShell"
-                   Foreground="#605E5C"
-                   FontSize="12"
-                   Margin="0,0,0,10"/>
-
-        <!-- Command Input -->
-        <Border Grid.Row="2"
+        <!-- App Name -->
+        <Border Grid.Row="1"
                 Background="#FFFFFF"
                 BorderBrush="#E1DFDD"
                 BorderThickness="1"
                 CornerRadius="8"
-                Margin="0,0,0,10">
-            <TextBox x:Name="txtCommand"
-                     AcceptsReturn="True"
-                     TextWrapping="Wrap"
-                     VerticalScrollBarVisibility="Auto"
-                     FontFamily="Consolas, Courier New, monospace"
-                     FontSize="14"
-                     Background="Transparent"
-                     Foreground="#0078D4"
-                     BorderThickness="0"
-                     Padding="10"/>
+                Margin="0,0,0,10"
+                Padding="12,8">
+            <TextBlock x:Name="txtAppName"
+                       FontFamily="Consolas, Courier New, monospace"
+                       FontSize="16"
+                       Foreground="#0078D4"
+                       TextWrapping="Wrap"/>
         </Border>
 
-        <!-- Warning -->
-        <TextBlock x:Name="txtWarning"
-                   Grid.Row="3"
-                   Text="Please verify the command before execution. You can modify it if needed."
+        <!-- Countdown Warning -->
+        <TextBlock x:Name="txtCountdown"
+                   Grid.Row="2"
                    Foreground="#D13438"
                    FontSize="12"
                    TextWrapping="Wrap"
                    Margin="0,0,0,15"/>
 
         <!-- Buttons -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button x:Name="btnExecute"
-                    Content="Execute"
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="btnLaunch"
+                    Content="Launch"
                     Width="100" Height="35"
                     Margin="0,0,10,0"
-                    Click="BtnExecute_Click"
+                    Click="BtnLaunch_Click"
                     Style="{StaticResource BtnPrimary}"/>
             <Button x:Name="btnCancel"
                     Content="Cancel"

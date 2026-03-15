@@ -3,7 +3,65 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Pixiv 图片预览" Height="700" Width="600"
         WindowStartupLocation="CenterScreen"
-        Background="#FF2D2D30">
+        Background="#F5F5F5">
+    <Window.Resources>
+        <Style x:Key="BtnPrimary" TargetType="Button">
+            <Setter Property="Background" Value="#0078D4"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#0078D4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#106EBE"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#005A9E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="BtnSecondary" TargetType="Button">
+            <Setter Property="Background" Value="#F3F2F1"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#EDEBE9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E1DFDD"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -12,29 +70,26 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 图片显示区域 -->
-        <Border Grid.Row="0" Background="#FF1E1E1E" Margin="10">
+        <Border Grid.Row="0" Background="#FAFAFA" BorderBrush="#E1DFDD" BorderThickness="1" Margin="10">
             <Grid>
-                <Image x:Name="imgPreview" Stretch="Uniform" />
-                <TextBlock x:Name="txtLoading" Text="加载中..." 
+                <Image x:Name="imgPreview" Stretch="Uniform"/>
+                <TextBlock x:Name="txtLoading" Text="加载中..."
                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Foreground="White" FontSize="16" Visibility="Collapsed"/>
-                <TextBlock x:Name="txtError" Text="图片加载失败" 
+                           Foreground="#323130" FontSize="16" Visibility="Collapsed"/>
+                <TextBlock x:Name="txtError" Text="图片加载失败"
                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Foreground="#FFFF6B6B" FontSize="16" Visibility="Collapsed"/>
+                           Foreground="#D13438" FontSize="16" Visibility="Collapsed"/>
             </Grid>
         </Border>
 
-        <!-- 图片信息区域 -->
         <StackPanel Grid.Row="1" Margin="10,0,10,10">
-            <TextBlock x:Name="txtTitle" Text="标题" Foreground="White" FontSize="16" 
+            <TextBlock x:Name="txtTitle" Text="标题" Foreground="#323130" FontSize="16"
                        FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,5"/>
-            <TextBlock x:Name="txtAuthor" Text="作者" Foreground="#FFAAAAAA" FontSize="13" Margin="0,0,0,5"/>
-            <TextBlock x:Name="txtTags" Text="标签" Foreground="#FF888888" FontSize="12" 
+            <TextBlock x:Name="txtAuthor" Text="作者" Foreground="#605E5C" FontSize="13" Margin="0,0,0,5"/>
+            <TextBlock x:Name="txtTags" Text="标签" Foreground="#605E5C" FontSize="12"
                        TextWrapping="Wrap" MaxHeight="40"/>
         </StackPanel>
 
-        <!-- 导航和页码 -->
         <Grid Grid.Row="2" Margin="10,0,10,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
@@ -42,34 +97,33 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button x:Name="btnPrevious" Content="◀ 上一张" Grid.Column="0" 
+            <Button x:Name="btnPrevious" Content="&#x25C0; 上一张" Grid.Column="0"
                     Width="100" Height="32" Click="btnPrevious_Click"
-                    Background="#FF3C3C3C" Foreground="White" BorderThickness="0"/>
-            
-            <TextBlock x:Name="txtPageInfo" Grid.Column="1" 
+                    Style="{StaticResource BtnSecondary}"/>
+
+            <TextBlock x:Name="txtPageInfo" Grid.Column="1"
                        HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Foreground="White" FontSize="14"/>
-            
-            <Button x:Name="btnNext" Content="下一张 ▶" Grid.Column="2" 
+                       Foreground="#323130" FontSize="14"/>
+
+            <Button x:Name="btnNext" Content="下一张 &#x25B6;" Grid.Column="2"
                     Width="100" Height="32" Click="btnNext_Click"
-                    Background="#FF3C3C3C" Foreground="White" BorderThickness="0"/>
+                    Style="{StaticResource BtnSecondary}"/>
         </Grid>
 
-        <!-- 下载区域 -->
         <Grid Grid.Row="3" Margin="10,0,10,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <ProgressBar x:Name="progressDownload" Grid.Column="0" Height="25" 
+            <ProgressBar x:Name="progressDownload" Grid.Column="0" Height="25"
                          Margin="0,0,10,0" Visibility="Collapsed"/>
-            <TextBlock x:Name="txtDownloadStatus" Grid.Column="0" 
-                       VerticalAlignment="Center" Foreground="#FF888888" FontSize="12"/>
-            
-            <Button x:Name="btnDownload" Content="下载原图" Grid.Column="1" 
+            <TextBlock x:Name="txtDownloadStatus" Grid.Column="0"
+                       VerticalAlignment="Center" Foreground="#605E5C" FontSize="12"/>
+
+            <Button x:Name="btnDownload" Content="下载原图" Grid.Column="1"
                     Width="100" Height="32" Click="btnDownload_Click"
-                    Background="#FF0078D4" Foreground="White" BorderThickness="0"/>
+                    Style="{StaticResource BtnPrimary}"/>
         </Grid>
     </Grid>
 </Window>

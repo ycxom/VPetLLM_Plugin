@@ -10,66 +10,101 @@
 
     <Window.Resources>
         <Style x:Key="SectionTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#323130"/>
             <Setter Property="Margin" Value="0,0,0,10"/>
         </Style>
 
         <Style x:Key="SettingLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#555555"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#605E5C"/>
             <Setter Property="Margin" Value="0,0,0,5"/>
         </Style>
 
         <Style x:Key="DescriptionText" TargetType="TextBlock">
             <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#888888"/>
+            <Setter Property="Foreground" Value="#605E5C"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="Margin" Value="0,5,0,0"/>
         </Style>
 
         <Style x:Key="ModernTextBox" TargetType="TextBox">
-            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Padding" Value="8,6"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Background" Value="White"/>
         </Style>
 
         <Style x:Key="PrimaryButton" TargetType="Button">
             <Setter Property="Background" Value="#0078D4"/>
             <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#0078D4"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Padding" Value="20,8"/>
-            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                CornerRadius="3"
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="4"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#106EBE"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#005A9E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#005A9E"/>
-                </Trigger>
-            </Style.Triggers>
         </Style>
 
-        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Background" Value="#E1E1E1"/>
-            <Setter Property="Foreground" Value="#333333"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#D1D1D1"/>
-                </Trigger>
-            </Style.Triggers>
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#F3F2F1"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="20,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#EDEBE9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E1DFDD"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
         </Style>
     </Window.Resources>
 
@@ -81,22 +116,21 @@
 
         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <!-- 代理设置 -->
                 <TextBlock Text="代理设置" Style="{StaticResource SectionTitle}"/>
-                <Border Background="White" Padding="15" CornerRadius="5" Margin="0,0,0,20">
+                <Border Background="#FFFFFF" Padding="15" CornerRadius="8" BorderBrush="#E1DFDD" BorderThickness="1" Margin="0,0,0,20">
                     <StackPanel>
-                        <CheckBox x:Name="chkUseVPetLLMProxy" Content="使用 VPetLLM 的代理配置" FontSize="13" Checked="OnProxyModeChanged" Unchecked="OnProxyModeChanged"/>
+                        <CheckBox x:Name="chkUseVPetLLMProxy" Content="使用 VPetLLM 的代理配置" Checked="OnProxyModeChanged" Unchecked="OnProxyModeChanged"/>
                         <TextBlock Style="{StaticResource DescriptionText}" Margin="0,5,0,15">
                             自动使用 VPetLLM 主程序的代理设置（推荐）
                         </TextBlock>
 
-                        <CheckBox x:Name="chkEnableCustomProxy" Content="使用自定义代理" FontSize="13" Checked="OnProxyModeChanged" Unchecked="OnProxyModeChanged"/>
+                        <CheckBox x:Name="chkEnableCustomProxy" Content="使用自定义代理" Checked="OnProxyModeChanged" Unchecked="OnProxyModeChanged"/>
                         <TextBlock Style="{StaticResource DescriptionText}" Margin="0,5,0,10">
                             配置插件专用的代理设置
                         </TextBlock>
 
                         <StackPanel x:Name="pnlCustomProxy" Margin="20,10,0,0">
-                            <CheckBox x:Name="chkUseSystemProxy" Content="使用系统代理" FontSize="13" Margin="0,0,0,10" Checked="OnSystemProxyChanged" Unchecked="OnSystemProxyChanged"/>
+                            <CheckBox x:Name="chkUseSystemProxy" Content="使用系统代理" Margin="0,0,0,10" Checked="OnSystemProxyChanged" Unchecked="OnSystemProxyChanged"/>
 
                             <StackPanel x:Name="pnlProxyAddress">
                                 <TextBlock Text="代理协议" Style="{StaticResource SettingLabel}"/>
@@ -116,17 +150,16 @@
                     </StackPanel>
                 </Border>
 
-                <!-- API 模式设置 -->
                 <TextBlock Text="内容抓取模式" Style="{StaticResource SectionTitle}"/>
-                <Border Background="White" Padding="15" CornerRadius="5" Margin="0,0,0,20">
+                <Border Background="#FFFFFF" Padding="15" CornerRadius="8" BorderBrush="#E1DFDD" BorderThickness="1" Margin="0,0,0,20">
                     <StackPanel>
-                        <CheckBox x:Name="chkUseApiMode" Content="使用 API 模式" FontSize="13" Checked="OnApiModeChanged" Unchecked="OnApiModeChanged"/>
+                        <CheckBox x:Name="chkUseApiMode" Content="使用 API 模式" Checked="OnApiModeChanged" Unchecked="OnApiModeChanged"/>
                         <TextBlock Style="{StaticResource DescriptionText}" Margin="0,5,0,15">
                             使用远程 API 获取网页内容（Markdown 格式），关闭则使用本地 HTML 解析
                         </TextBlock>
 
                         <StackPanel x:Name="pnlApiSettings" Margin="20,0,0,0">
-                            <CheckBox x:Name="chkUseBuiltInCredentials" Content="使用内置 API 凭证（推荐）" FontSize="13" Checked="OnBuiltInCredentialsChanged" Unchecked="OnBuiltInCredentialsChanged"/>
+                            <CheckBox x:Name="chkUseBuiltInCredentials" Content="使用内置 API 凭证（推荐）" Checked="OnBuiltInCredentialsChanged" Unchecked="OnBuiltInCredentialsChanged"/>
                             <TextBlock Style="{StaticResource DescriptionText}" Margin="0,5,0,15">
                                 使用预配置的 API 服务，无需额外设置
                             </TextBlock>
@@ -134,7 +167,7 @@
                             <StackPanel x:Name="pnlCustomCredentials">
                                 <TextBlock Text="API 地址" Style="{StaticResource SettingLabel}"/>
                                 <TextBox x:Name="txtApiUrl" Style="{StaticResource ModernTextBox}" Margin="0,0,0,5"/>
-                                <TextBlock x:Name="txtApiUrlError" Style="{StaticResource DescriptionText}" Foreground="Red" Visibility="Collapsed"/>
+                                <TextBlock x:Name="txtApiUrlError" Style="{StaticResource DescriptionText}" Foreground="#D13438" Visibility="Collapsed"/>
                                 <TextBlock Style="{StaticResource DescriptionText}" Margin="0,0,0,15">
                                     自定义 API 端点地址
                                 </TextBlock>
@@ -143,7 +176,7 @@
                                 <TextBox x:Name="txtBearerToken" Style="{StaticResource ModernTextBox}" Margin="0,0,0,15"/>
                             </StackPanel>
 
-                            <CheckBox x:Name="chkEnableFallback" Content="API 失败时降级到本地模式" FontSize="13"/>
+                            <CheckBox x:Name="chkEnableFallback" Content="API 失败时降级到本地模式"/>
                             <TextBlock Style="{StaticResource DescriptionText}" Margin="0,5,0,0">
                                 当 API 请求失败时，自动使用本地 HTML 解析作为备用方案
                             </TextBlock>
@@ -151,9 +184,8 @@
                     </StackPanel>
                 </Border>
 
-                <!-- 搜索设置 -->
                 <TextBlock Text="搜索设置" Style="{StaticResource SectionTitle}"/>
-                <Border Background="White" Padding="15" CornerRadius="5">
+                <Border Background="#FFFFFF" Padding="15" CornerRadius="8" BorderBrush="#E1DFDD" BorderThickness="1">
                     <StackPanel>
                         <TextBlock Text="最大搜索结果数" Style="{StaticResource SettingLabel}"/>
                         <TextBox x:Name="txtMaxResults" Style="{StaticResource ModernTextBox}" Margin="0,0,0,15"/>

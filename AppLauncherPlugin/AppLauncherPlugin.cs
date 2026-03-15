@@ -191,7 +191,7 @@ namespace AppLauncherPlugin
             }
         }
 
-        public Task<string> Function(string arguments)
+        public async Task<string> Function(string arguments)
         {
             try
             {
@@ -209,23 +209,23 @@ namespace AppLauncherPlugin
                                 var settingWindow = new winAppLauncherSetting(this);
                                 settingWindow.Show();
                             });
-                            return Task.FromResult("设置窗口已打开。");
+                            return "设置窗口已打开。";
                         }
                         catch (Exception ex)
                         {
                             _vpetLLM?.Log($"AppLauncher: Error opening settings: {ex.Message}");
-                            return Task.FromResult($"打开设置窗口失败: {ex.Message}");
+                            return $"打开设置窗口失败: {ex.Message}";
                         }
                     }
                     else if (action == "list" || action == "apps" || action == "allapps" || action == "steam" || action == "steamlist")
                     {
                         RefreshApps();
                         var apps = GetAvailableApps();
-                        if (apps.Count == 0) return Task.FromResult("暂无可用应用。");
-                        return Task.FromResult("All applications: " + string.Join(", ", apps));
+                        if (apps.Count == 0) return "暂无可用应用。";
+                        return "All applications: " + string.Join(", ", apps);
                     }
-                    
-                    return Task.FromResult("无效的操作。");
+
+                    return "无效的操作。";
                 }
 
                 // 检查是否是直接的setting命令（向后兼容）
@@ -238,12 +238,12 @@ namespace AppLauncherPlugin
                             var settingWindow = new winAppLauncherSetting(this);
                             settingWindow.Show();
                         });
-                        return Task.FromResult("设置窗口已打开。");
+                        return "设置窗口已打开。";
                     }
                     catch (Exception ex)
                     {
                         _vpetLLM?.Log($"AppLauncher: Error opening settings: {ex.Message}");
-                        return Task.FromResult($"打开设置窗口失败: {ex.Message}");
+                        return $"打开设置窗口失败: {ex.Message}";
                     }
                 }
 
@@ -251,94 +251,155 @@ namespace AppLauncherPlugin
                 string appName = arguments.Trim().ToLower();
                 if (string.IsNullOrEmpty(appName))
                 {
-                    return Task.FromResult("请指定要启动的应用程序名称。");
+                    return "请指定要启动的应用程序名称。";
                 }
 
-                return Task.FromResult(LaunchApplication(appName));
+                return await LaunchApplicationAsync(appName);
             }
             catch (Exception ex)
             {
                 _vpetLLM?.Log($"AppLauncher: Error in Function: {ex.Message}");
-                return Task.FromResult($"启动应用时发生错误: {ex.Message}");
+                return $"启动应用时发生错误: {ex.Message}";
             }
         }
 
-        private string LaunchApplication(string appName)
+        private async Task<string> LaunchApplicationAsync(string appName)
         {
             try
             {
-                // 1. 首先检查自定义应用
-                var customApp = _setting.CustomApps.FirstOrDefault(app => 
-                    app.Name.Equals(appName, StringComparison.OrdinalIgnoreCase));
-                
-                if (customApp is not null)
+                // 解析要启动的目标（进程名 + 显示名）
+                var (processName, displayName, launchAction) = ResolveLaunchTarget(appName);
+
+                if (launchAction is null)
                 {
-                    return LaunchCustomApp(customApp);
-                }
-                
-                // 如果精确匹配失败，尝试模糊匹配自定义应用
-                var fuzzyCustomApp = _setting.CustomApps.FirstOrDefault(app => 
-                    app.Name.IndexOf(appName, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    appName.IndexOf(app.Name, StringComparison.OrdinalIgnoreCase) >= 0);
-                
-                if (fuzzyCustomApp is not null)
-                {
-                    return LaunchCustomApp(fuzzyCustomApp);
+                    return $"未找到应用程序 '{appName}' 或启动失败。";
                 }
 
-                // 2. 检查系统应用
-                if (_setting.EnableSystemApps && _systemApps.ContainsKey(appName))
+                // 检查进程是否已在运行
+                if (!string.IsNullOrEmpty(processName) && IsProcessRunning(processName))
                 {
-                    return LaunchSystemApp(appName, _systemApps[appName]);
+                    // 已在运行，直接启动（可能是打开新窗口等）
+                    return launchAction();
                 }
 
-                // 3. 检查Steam游戏
-                if (_setting.EnableSteamGames)
+                // 未运行，弹窗确认
+                bool confirmed = await ShowLaunchConfirmDialogAsync(displayName);
+                if (!confirmed)
                 {
-                    // 首先尝试精确匹配
-                    if (_steamGames.ContainsKey(appName))
-                    {
-                        return LaunchSteamGame(appName, _steamGames[appName]);
-                    }
-                    
-                    // 如果精确匹配失败，尝试模糊匹配（不区分大小写）
-                    var fuzzyMatch = _steamGames.FirstOrDefault(kvp => 
-                        kvp.Key.IndexOf(appName, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        appName.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0);
-                    
-                    if (!string.IsNullOrEmpty(fuzzyMatch.Key))
-                    {
-                        return LaunchSteamGame(fuzzyMatch.Key, fuzzyMatch.Value);
-                    }
+                    _vpetLLM?.Log($"AppLauncher: User rejected launch of '{displayName}'");
+                    return $"用户拒绝启动应用程序: {displayName}";
                 }
 
-                // 4. 检查开始菜单应用
-                if (_setting.EnableStartMenuScan)
-                {
-                    // 首先尝试精确匹配
-                    if (_startMenuApps.ContainsKey(appName))
-                    {
-                        return LaunchStartMenuApp(appName, _startMenuApps[appName]);
-                    }
-                    
-                    // 如果精确匹配失败，尝试模糊匹配
-                    var fuzzyMatch = _startMenuApps.FirstOrDefault(kvp => 
-                        kvp.Key.Contains(appName) || appName.Contains(kvp.Key));
-                    
-                    if (!string.IsNullOrEmpty(fuzzyMatch.Key))
-                    {
-                        return LaunchStartMenuApp(fuzzyMatch.Key, fuzzyMatch.Value);
-                    }
-                }
-
-                // 5. 尝试直接启动（可能是完整路径或系统PATH中的程序）
-                return LaunchDirectly(appName);
+                return launchAction();
             }
             catch (Exception ex)
             {
                 _vpetLLM?.Log($"AppLauncher: Error launching {appName}: {ex.Message}");
                 return $"无法启动应用程序 '{appName}': {ex.Message}";
             }
+        }
+
+        private (string processName, string displayName, Func<string>? launchAction) ResolveLaunchTarget(string appName)
+        {
+            // 1. 自定义应用（精确）
+            var customApp = _setting.CustomApps.FirstOrDefault(app =>
+                app.Name.Equals(appName, StringComparison.OrdinalIgnoreCase));
+            if (customApp is not null)
+                return (GetProcessNameFromPath(customApp.Path), customApp.Name, () => LaunchCustomApp(customApp));
+
+            // 自定义应用（模糊）
+            var fuzzyCustomApp = _setting.CustomApps.FirstOrDefault(app =>
+                app.Name.IndexOf(appName, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                appName.IndexOf(app.Name, StringComparison.OrdinalIgnoreCase) >= 0);
+            if (fuzzyCustomApp is not null)
+                return (GetProcessNameFromPath(fuzzyCustomApp.Path), fuzzyCustomApp.Name, () => LaunchCustomApp(fuzzyCustomApp));
+
+            // 2. 系统应用
+            if (_setting.EnableSystemApps && _systemApps.ContainsKey(appName))
+            {
+                var cmd = _systemApps[appName];
+                return (GetProcessNameFromPath(cmd), appName, () => LaunchSystemApp(appName, cmd));
+            }
+
+            // 3. Steam游戏（精确）
+            if (_setting.EnableSteamGames)
+            {
+                if (_steamGames.ContainsKey(appName))
+                    return ("", appName, () => LaunchSteamGame(appName, _steamGames[appName]));
+
+                var fuzzyMatch = _steamGames.FirstOrDefault(kvp =>
+                    kvp.Key.IndexOf(appName, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    appName.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0);
+                if (!string.IsNullOrEmpty(fuzzyMatch.Key))
+                    return ("", fuzzyMatch.Key, () => LaunchSteamGame(fuzzyMatch.Key, fuzzyMatch.Value));
+            }
+
+            // 4. 开始菜单应用
+            if (_setting.EnableStartMenuScan)
+            {
+                if (_startMenuApps.ContainsKey(appName))
+                    return (appName, appName, () => LaunchStartMenuApp(appName, _startMenuApps[appName]));
+
+                var fuzzyMatch = _startMenuApps.FirstOrDefault(kvp =>
+                    kvp.Key.Contains(appName) || appName.Contains(kvp.Key));
+                if (!string.IsNullOrEmpty(fuzzyMatch.Key))
+                    return (fuzzyMatch.Key, fuzzyMatch.Key, () => LaunchStartMenuApp(fuzzyMatch.Key, fuzzyMatch.Value));
+            }
+
+            // 5. 直接启动
+            return (GetProcessNameFromPath(appName), appName, () => LaunchDirectly(appName));
+        }
+
+        private static string GetProcessNameFromPath(string pathOrCommand)
+        {
+            try
+            {
+                // URI协议不是进程
+                if (pathOrCommand.Contains("://") || pathOrCommand.EndsWith(":"))
+                    return "";
+
+                return Path.GetFileNameWithoutExtension(pathOrCommand);
+            }
+            catch
+            {
+                return "";
+            }
+        }
+
+        private static bool IsProcessRunning(string processName)
+        {
+            if (string.IsNullOrEmpty(processName)) return false;
+            try
+            {
+                return Process.GetProcessesByName(processName).Length > 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private Task<bool> ShowLaunchConfirmDialogAsync(string appDisplayName)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+
+            try
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var language = _vpetLLM?.Settings.Language ?? "en";
+                    var confirmWindow = new winLaunchConfirm(appDisplayName, language, 15);
+                    confirmWindow.ShowDialog();
+                    tcs.SetResult(confirmWindow.IsConfirmed);
+                });
+            }
+            catch (Exception ex)
+            {
+                _vpetLLM?.Log($"AppLauncher: Error showing confirm dialog: {ex.Message}");
+                tcs.SetResult(false);
+            }
+
+            return tcs.Task;
         }
 
         private string LaunchCustomApp(CustomApp app)

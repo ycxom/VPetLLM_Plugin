@@ -5,7 +5,66 @@
         Height="400" Width="450"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
-        Background="#1E1E1E">
+        Background="#F5F5F5">
+    <Window.Resources>
+        <DropShadowEffect x:Key="CardShadow" Color="#000000" Opacity="0.1" BlurRadius="8" ShadowDepth="2" Direction="270"/>
+        <Style x:Key="BtnPrimary" TargetType="Button">
+            <Setter Property="Background" Value="#0078D4"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#0078D4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#106EBE"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#005A9E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="BtnSecondary" TargetType="Button">
+            <Setter Property="Background" Value="#F3F2F1"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#EDEBE9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E1DFDD"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -18,45 +77,49 @@
                    Grid.Row="0"
                    Text="Terminal Settings"
                    FontSize="20"
-                   Foreground="#E0E0E0"
-                   FontWeight="Bold"
+                   Foreground="#323130"
+                   FontWeight="SemiBold"
                    Margin="0,0,0,20"/>
 
         <!-- Settings Content -->
         <StackPanel Grid.Row="1">
             <!-- Shell Info -->
-            <Border Background="#2D2D2D" CornerRadius="5" Padding="15" Margin="0,0,0,15">
+            <Border Background="#FFFFFF" CornerRadius="8" Padding="15" Margin="0,0,0,15"
+                    BorderBrush="#E1DFDD" BorderThickness="1"
+                    Effect="{StaticResource CardShadow}">
                 <StackPanel>
                     <TextBlock x:Name="txtShellInfoTitle"
                                Text="Shell Information"
                                FontSize="14"
-                               Foreground="#E0E0E0"
+                               Foreground="#323130"
                                FontWeight="Bold"
                                Margin="0,0,0,10"/>
                     <TextBlock x:Name="txtCurrentShell"
                                Text="Current Shell: PowerShell"
-                               Foreground="#88C0D0"
+                               Foreground="#0078D4"
                                FontSize="13"/>
                     <TextBlock x:Name="txtPwshStatus"
                                Text="PowerShell 7 (pwsh): Available"
-                               Foreground="#A3BE8C"
+                               Foreground="#107C10"
                                FontSize="12"
                                Margin="0,5,0,0"/>
                     <TextBlock x:Name="txtPsStatus"
                                Text="Windows PowerShell: Available"
-                               Foreground="#A3BE8C"
+                               Foreground="#107C10"
                                FontSize="12"
                                Margin="0,3,0,0"/>
                     <TextBlock x:Name="txtCmdStatus"
                                Text="CMD: Available"
-                               Foreground="#A3BE8C"
+                               Foreground="#107C10"
                                FontSize="12"
                                Margin="0,3,0,0"/>
                 </StackPanel>
             </Border>
 
             <!-- Enable Toggle -->
-            <Border Background="#2D2D2D" CornerRadius="5" Padding="15" Margin="0,0,0,15">
+            <Border Background="#FFFFFF" CornerRadius="8" Padding="15" Margin="0,0,0,15"
+                    BorderBrush="#E1DFDD" BorderThickness="1"
+                    Effect="{StaticResource CardShadow}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -66,11 +129,11 @@
                         <TextBlock x:Name="txtEnableTitle"
                                    Text="Enable Terminal for AI"
                                    FontSize="14"
-                                   Foreground="#E0E0E0"
+                                   Foreground="#323130"
                                    FontWeight="Bold"/>
                         <TextBlock x:Name="txtEnableDesc"
                                    Text="Allow AI to execute terminal commands"
-                                   Foreground="#888888"
+                                   Foreground="#605E5C"
                                    FontSize="12"
                                    TextWrapping="Wrap"
                                    Margin="0,5,0,0"/>
@@ -85,21 +148,21 @@
 
             <!-- Warning -->
             <Border x:Name="borderWarning"
-                    Background="#3D2020"
-                    BorderBrush="#FF6B6B"
+                    Background="#FDE7E9"
+                    BorderBrush="#D13438"
                     BorderThickness="1"
-                    CornerRadius="5"
+                    CornerRadius="8"
                     Padding="15"
                     Visibility="Visible">
                 <StackPanel>
                     <TextBlock x:Name="txtWarningTitle"
                                Text="Warning"
                                FontSize="14"
-                               Foreground="#FF6B6B"
+                               Foreground="#D13438"
                                FontWeight="Bold"/>
                     <TextBlock x:Name="txtWarningDesc"
                                Text="When enabled, AI can execute commands that may modify your system. Only enable if you can verify command safety."
-                               Foreground="#E0E0E0"
+                               Foreground="#323130"
                                FontSize="12"
                                TextWrapping="Wrap"
                                Margin="0,5,0,0"/>
@@ -114,16 +177,12 @@
                     Width="100" Height="35"
                     Margin="0,0,10,0"
                     Click="BtnSave_Click"
-                    Background="#4CAF50"
-                    Foreground="White"
-                    BorderBrush="#45A049"/>
+                    Style="{StaticResource BtnPrimary}"/>
             <Button x:Name="btnClose"
                     Content="Close"
                     Width="100" Height="35"
                     Click="BtnClose_Click"
-                    Background="#3D3D3D"
-                    Foreground="#E0E0E0"
-                    BorderBrush="#555555"/>
+                    Style="{StaticResource BtnSecondary}"/>
         </StackPanel>
     </Grid>
 </Window>

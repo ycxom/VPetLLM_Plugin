@@ -12,24 +12,24 @@ public class ReminderPlugin : IActionPlugin
     {
         get
         {
-            if (_vpetLLM is null) return "设置一个定时提醒。";
+            if (_vpetLLM is null) return "设置一个定时提醒（延迟执行）。event参数只填简短事件描述。如果用户要求「到时间后再做某事」，不要在本次回复中调用其他插件执行该事，等提醒触发后系统会通知你，届时再执行。";
             switch (_vpetLLM.Settings.Language)
             {
                 case "ja":
-                    return "タイマーリマインダーを設定します。";
+                    return "タイマーリマインダーを設定します（遅延実行）。eventパラメータには短い説明のみ記入。「時間になったら何かをする」場合、今回の返信でそのアクションを実行せず、リマインダー通知後に実行してください。";
                 case "zh-hans":
-                    return "设置一个定时提醒。";
+                    return "设置一个定时提醒（延迟执行）。event参数只填简短事件描述。如果用户要求「到时间后再做某事」，不要在本次回复中调用其他插件执行该事，等提醒触发后系统会通知你，届时再执行。";
                 case "zh-hant":
-                    return "設置一個定時提醒。";
+                    return "設置一個定時提醒（延遲執行）。event參數只填簡短事件描述。如果用戶要求「到時間後再做某事」，不要在本次回覆中調用其他插件執行該事，等提醒觸發後系統會通知你，届時再執行。";
                 case "en":
                 default:
-                    return "Set a timed reminder.";
+                    return "Set a timed reminder (deferred). The event parameter should be a brief description only. If the user asks to do something AFTER the timer, do NOT execute that action in this response. Wait for the reminder notification, then act.";
             }
         }
     }
-    public string Examples => "Example: `<|plugin_reminder_begin|> time(10), unit(minutes), event(\"study\") <|plugin_reminder_end|>`";
+    public string Examples => "Example: `<|plugin_reminder_begin|> time(10), unit(minutes), event(\"study\") <|plugin_reminder_end|>` Note: event is a short label, NOT a full sentence. When reminder fires, system sends you \"reminder_finished, Task: ...\", then you should respond and execute any deferred actions.";
 
-    public string Parameters => "time(int), unit(string, optional: seconds/minutes), event(string)";
+    public string Parameters => "time(int), unit(string, optional: seconds/minutes), event(string, brief description like \"study\" or \"open browser\")";
     public bool Enabled { get; set; } = true;
     public string FilePath { get; set; } = "";
 
@@ -74,7 +74,9 @@ public class ReminderPlugin : IActionPlugin
 
             _ = ReminderTask(delay, message);
 
-            return Task.FromResult($"好的，我会在 {timeValue} {unit} 后提醒你 '{message}'");
+            // 返回空字符串，不触发回灌给AI，避免AI误以为提醒已完成
+            // 时间到时由 ReminderTask 通过 ChatCore.Chat() 主动通知AI
+            return Task.FromResult("");
         }
         catch (Exception e)
         {
@@ -91,10 +93,13 @@ public class ReminderPlugin : IActionPlugin
         var notificationTitle = $"{aiName} 提醒你";
         var notificationMessage = $"该 “{message}” 了";
 
-        // 使用Dispatcher在UI线程上执行UI操作
+        // 先发送提醒完成消息给AI（异步，不等待弹窗关闭）
+        var response = $"reminder_finished, Task: \"{message}\"";
+        await _vpetLLM.ChatCore.Chat(response, true);
+
+        // 在UI线程上显示通知弹窗（MessageBox会阻塞UI线程，但AI已收到消息）
         await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
         {
-            // 2. 先让VPet窗口置顶
             var mainWindow = System.Windows.Application.Current.MainWindow;
             if (mainWindow is not null)
             {
@@ -102,18 +107,13 @@ public class ReminderPlugin : IActionPlugin
                 mainWindow.Topmost = true;
                 _ = Task.Run(async () =>
                 {
-                    await Task.Delay(3000); // 置顶3秒
+                    await Task.Delay(3000);
                     await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => mainWindow.Topmost = false);
                 });
             }
-            
-            // 1. 再弹出通知 (MessageBox会阻塞UI线程，所以置顶操作要放在它前面)
+
             System.Windows.MessageBox.Show(notificationMessage, notificationTitle, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
         });
-
-        // 3. 让桌宠说话
-        var response = $"reminder_finished, Task: \"{message}\"";
-        await _vpetLLM.ChatCore.Chat(response, true);
     }
 
     public void Invoke()

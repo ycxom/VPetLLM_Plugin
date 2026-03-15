@@ -5,57 +5,96 @@
         Width="520" Height="680"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
-        Background="#1E1E2E">
+        Background="#F5F5F5">
     <Window.Resources>
         <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#CDD6F4"/>
+            <Setter Property="Foreground" Value="#323130"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Margin" Value="0,12,0,6"/>
         </Style>
         <Style x:Key="LabelStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#BAC2DE"/>
+            <Setter Property="Foreground" Value="#605E5C"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,4,8,4"/>
         </Style>
         <Style x:Key="InputStyle" TargetType="TextBox">
-            <Setter Property="Background" Value="#313244"/>
-            <Setter Property="Foreground" Value="#CDD6F4"/>
-            <Setter Property="BorderBrush" Value="#45475A"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="Padding" Value="8,6"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Margin" Value="0,2"/>
         </Style>
         <Style x:Key="CheckBoxStyle" TargetType="CheckBox">
-            <Setter Property="Foreground" Value="#BAC2DE"/>
+            <Setter Property="Foreground" Value="#323130"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Margin" Value="0,4"/>
         </Style>
         <Style x:Key="BtnPrimary" TargetType="Button">
-            <Setter Property="Background" Value="#89B4FA"/>
-            <Setter Property="Foreground" Value="#1E1E2E"/>
+            <Setter Property="Background" Value="#0078D4"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#0078D4"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Padding" Value="20,8"/>
-            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#106EBE"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#005A9E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style x:Key="BtnSecondary" TargetType="Button">
-            <Setter Property="Background" Value="#45475A"/>
-            <Setter Property="Foreground" Value="#CDD6F4"/>
+            <Setter Property="Background" Value="#F3F2F1"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Padding" Value="20,8"/>
-            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#EDEBE9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E1DFDD"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
     <Grid Margin="16">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <!-- Forward WebSocket (Client mode) -->
                 <TextBlock Style="{StaticResource SectionHeader}" x:Name="lblForwardWS" Text="Forward WebSocket (Client → NapCat/Lagrange)"/>
                 <CheckBox x:Name="chkForwardWS" Style="{StaticResource CheckBoxStyle}" Content="Enable"/>
                 <Grid>
@@ -67,7 +106,6 @@
                     <TextBox Grid.Column="1" x:Name="txtForwardWSUrl" Style="{StaticResource InputStyle}"/>
                 </Grid>
 
-                <!-- Reverse WebSocket (Server mode) -->
                 <TextBlock Style="{StaticResource SectionHeader}" x:Name="lblReverseWS" Text="Reverse WebSocket (Server ← AstrBot/NoneBot)"/>
                 <CheckBox x:Name="chkReverseWS" Style="{StaticResource CheckBoxStyle}" Content="Enable"/>
                 <Grid>
@@ -85,7 +123,6 @@
                     <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtReverseWSPort" Style="{StaticResource InputStyle}"/>
                 </Grid>
 
-                <!-- HTTP API -->
                 <TextBlock Style="{StaticResource SectionHeader}" x:Name="lblHttpApi" Text="HTTP API"/>
                 <CheckBox x:Name="chkHttpApi" Style="{StaticResource CheckBoxStyle}" Content="Enable"/>
                 <Grid>
@@ -97,7 +134,6 @@
                     <TextBox Grid.Column="1" x:Name="txtHttpApiUrl" Style="{StaticResource InputStyle}"/>
                 </Grid>
 
-                <!-- Auth -->
                 <TextBlock Style="{StaticResource SectionHeader}" x:Name="lblAuth" Text="Authentication"/>
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -117,7 +153,6 @@
                     <TextBox Grid.Row="2" Grid.Column="1" x:Name="txtMasterQQ" Style="{StaticResource InputStyle}"/>
                 </Grid>
 
-                <!-- Filter -->
                 <TextBlock Style="{StaticResource SectionHeader}" x:Name="lblFilter" Text="Message Filter"/>
                 <CheckBox x:Name="chkAllowAllPrivate" Style="{StaticResource CheckBoxStyle}" Content="Allow all private messages"/>
                 <CheckBox x:Name="chkAllowAllGroup" Style="{StaticResource CheckBoxStyle}" Content="Allow all group messages"/>
@@ -136,14 +171,12 @@
                     <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtAllowedGroups" Style="{StaticResource InputStyle}"/>
                 </Grid>
 
-                <!-- Behavior -->
                 <TextBlock Style="{StaticResource SectionHeader}" x:Name="lblBehavior" Text="Behavior"/>
                 <CheckBox x:Name="chkAtTriggerOnly" Style="{StaticResource CheckBoxStyle}" Content="Group: respond only when @bot"/>
                 <CheckBox x:Name="chkReplyWithAt" Style="{StaticResource CheckBoxStyle}" Content="Group: reply with @sender"/>
 
-                <!-- Buttons -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-                    <Button x:Name="btnCancel" Style="{StaticResource BtnSecondary}" Content="Cancel" Click="BtnCancel_Click" Margin="0,0,8,0"/>
+                    <Button x:Name="btnCancel" Style="{StaticResource BtnSecondary}" Content="Cancel" Click="BtnCancel_Click" Margin="0,0,10,0"/>
                     <Button x:Name="btnSave" Style="{StaticResource BtnPrimary}" Content="Save" Click="BtnSave_Click"/>
                 </StackPanel>
             </StackPanel>

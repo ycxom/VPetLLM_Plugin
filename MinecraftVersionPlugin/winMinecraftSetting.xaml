@@ -4,7 +4,176 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         Title="Minecraft Version Plugin Settings" Height="540" Width="800"
-        WindowStartupLocation="CenterOwner" MinWidth="700" MinHeight="450">
+        WindowStartupLocation="CenterOwner" MinWidth="700" MinHeight="450"
+        Background="#F5F5F5">
+    <Window.Resources>
+        <DropShadowEffect x:Key="CardShadow" Color="#000000" Opacity="0.1" BlurRadius="8" ShadowDepth="2" Direction="270"/>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="Margin" Value="0,4"/>
+        </Style>
+        <Style TargetType="Label">
+            <Setter Property="Foreground" Value="#605E5C"/>
+        </Style>
+        <Style TargetType="GroupBox">
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+        </Style>
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+        </Style>
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+            <Setter Property="RowBackground" Value="#FFFFFF"/>
+            <Setter Property="AlternatingRowBackground" Value="#FAFAFA"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#E1DFDD"/>
+            <Setter Property="RowHeight" Value="40"/>
+        </Style>
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#F3F2F1"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        </Style>
+        <Style TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style TargetType="DataGridRow">
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#E5F1FB"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#323130"/>
+        </Style>
+        <Style x:Key="BtnAction" TargetType="Button">
+            <Setter Property="Background" Value="#F3F2F1"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#EDEBE9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E1DFDD"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="BtnPrimary" TargetType="Button">
+            <Setter Property="Background" Value="#0078D4"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#0078D4"/>
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#106EBE"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#005A9E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="BtnSecondary" TargetType="Button">
+            <Setter Property="Background" Value="#F3F2F1"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#EDEBE9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E1DFDD"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="BtnDanger" TargetType="Button">
+            <Setter Property="Background" Value="#D13438"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#D13438"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#C42B2F"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#A52528"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -18,9 +187,8 @@
                 <ColumnDefinition Width="280" MinWidth="240"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Left Panel: Settings & Server List -->
+            <!-- Left Panel -->
             <DockPanel Grid.Column="0">
-                <!-- 常规设置 -->
                 <GroupBox Header="常规设置" DockPanel.Dock="Top" Padding="10">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
@@ -28,16 +196,17 @@
                             <TextBox x:Name="TxtDelay" Width="150"/>
                             <CheckBox x:Name="ChkLocalSLP" Content="启用本地状态查询" Margin="20,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
-                        
                     </StackPanel>
                 </GroupBox>
 
-                <!-- 服务器列表 -->
                 <GroupBox Header="服务器列表" DockPanel.Dock="Top" Padding="10" Margin="0,10,0,0">
                     <DockPanel>
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,8">
-                            <Button x:Name="BtnAddServer" Content="添加" Width="80" Margin="0,0,8,0" Click="BtnAddServer_Click"/>
-                            <Button x:Name="BtnRemoveServer" Content="删除所选" Width="90" Margin="0,0,8,0" Click="BtnRemoveServer_Click"/>
+                            <Button x:Name="BtnAddServer" Content="添加" Width="80" Margin="0,0,8,0"
+                                    Click="BtnAddServer_Click" Style="{StaticResource BtnAction}"/>
+                            <Button x:Name="BtnRemoveServer" Content="删除所选" Width="90" Margin="0,0,8,0"
+                                    Click="BtnRemoveServer_Click"
+                                    Style="{StaticResource BtnDanger}"/>
                         </StackPanel>
                         <DataGrid x:Name="GridServers" AutoGenerateColumns="False" CanUserAddRows="False"
                                   HeadersVisibility="Column" IsReadOnly="False" Margin="0"
@@ -66,14 +235,15 @@
                 </GroupBox>
             </DockPanel>
 
-            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" />
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="#E1DFDD"/>
 
-            <!-- Right Panel: Selected Server Details -->
+            <!-- Right Panel -->
             <DockPanel Grid.Column="2">
                 <GroupBox Header="所选服务器详情" Padding="10">
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Top" Orientation="Vertical">
-                            <Button x:Name="BtnTestSelected" Content="测试所选服务器" Click="BtnTestSelected_Click" Margin="0,0,0,10"/>
+                            <Button x:Name="BtnTestSelected" Content="测试所选服务器"
+                                    Click="BtnTestSelected_Click" Margin="0,0,0,10" Style="{StaticResource BtnAction}"/>
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -87,17 +257,20 @@
                                 </Grid.ColumnDefinitions>
 
                                 <Label Content="在线状态:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="TxtLocalOnline" Grid.Row="0" Grid.Column="1" Text="-" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtLocalOnline" Grid.Row="0" Grid.Column="1" Text="-" Margin="6,0,0,0" VerticalAlignment="Center" Foreground="#0078D4"/>
 
                                 <Label Content="游戏版本:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,6,0,0"/>
-                                <TextBlock x:Name="TxtLocalVersion" Grid.Row="1" Grid.Column="1" Text="-" Margin="6,6,0,0" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtLocalVersion" Grid.Row="1" Grid.Column="1" Text="-" Margin="6,6,0,0" VerticalAlignment="Center" Foreground="#0078D4"/>
 
                                 <Label Content="服务器描述:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Top" Margin="0,6,0,0"/>
                                 <TextBlock x:Name="TxtLocalDesc" Grid.Row="2" Grid.Column="1" Text="-" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Margin="6,6,0,0" MaxHeight="60" VerticalAlignment="Top"/>
 
                                 <DockPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="0,8,0,0">
-                                    <Button x:Name="BtnUseDetectedAsAlias" Content="设为别名" DockPanel.Dock="Right" Click="BtnUseDetectedAsAlias_Click" Padding="8,2"/>
-                                    <TextBlock x:Name="TxtDetectedName" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip="来自 MOTD，可设为别名"/>
+                                    <Button x:Name="BtnUseDetectedAsAlias" Content="设为别名" DockPanel.Dock="Right"
+                                            Click="BtnUseDetectedAsAlias_Click" Padding="8,2"
+                                            Style="{StaticResource BtnAction}"/>
+                                    <TextBlock x:Name="TxtDetectedName" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                               ToolTip="来自 MOTD，可设为别名" Foreground="#605E5C"/>
                                 </DockPanel>
                             </Grid>
                         </StackPanel>
@@ -108,7 +281,7 @@
                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding}" />
+                                        <TextBlock Text="{Binding}"/>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
@@ -118,11 +291,11 @@
             </DockPanel>
         </Grid>
 
-        <!-- Bottom Action Buttons -->
+        <!-- Bottom Buttons -->
         <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button Content="刷新预览" Click="BtnRefresh_Click" Width="100" Margin="0,0,10,0"/>
-            <Button Content="保存" Click="BtnSave_Click" Width="100" Margin="0,0,10,0"/>
-            <Button Content="关闭" Click="BtnClose_Click" Width="100"/>
+            <Button Content="刷新预览" Click="BtnRefresh_Click" Style="{StaticResource BtnAction}" Width="100" Margin="0,0,10,0"/>
+            <Button Content="保存" Click="BtnSave_Click" Style="{StaticResource BtnPrimary}" Margin="0,0,10,0"/>
+            <Button Content="关闭" Click="BtnClose_Click" Style="{StaticResource BtnSecondary}"/>
         </StackPanel>
     </Grid>
 </Window>

@@ -5,7 +5,69 @@
         Height="450" Width="500"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
-        Background="#1E1E1E">
+        Background="#F5F5F5">
+    <Window.Resources>
+        <Style x:Key="BtnPrimary" TargetType="Button">
+            <Setter Property="Background" Value="#0078D4"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#0078D4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#106EBE"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#005A9E"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#F3F2F1"/>
+                                <Setter Property="Foreground" Value="#A19F9D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="BtnSecondary" TargetType="Button">
+            <Setter Property="Background" Value="#F3F2F1"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#EDEBE9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E1DFDD"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -16,27 +78,27 @@
 
         <!-- Warning Icon and Title -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,15">
-            <TextBlock Text="!!!" FontSize="28" Foreground="#FF6B6B" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <TextBlock x:Name="txtTitle" Text="Security Warning" FontSize="24" Foreground="#FF6B6B" FontWeight="Bold" VerticalAlignment="Center"/>
-            <TextBlock Text="!!!" FontSize="28" Foreground="#FF6B6B" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <TextBlock Text="!!!" FontSize="28" Foreground="#D13438" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBlock x:Name="txtTitle" Text="Security Warning" FontSize="24" Foreground="#D13438" FontWeight="Bold" VerticalAlignment="Center"/>
+            <TextBlock Text="!!!" FontSize="28" Foreground="#D13438" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
         </StackPanel>
 
         <!-- Warning Content -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <TextBlock x:Name="txtWarningContent"
                        TextWrapping="Wrap"
-                       Foreground="#E0E0E0"
+                       Foreground="#323130"
                        FontSize="14"
                        LineHeight="24">
-                <Run FontWeight="Bold" Foreground="#FFD93D">This plugin allows AI to execute terminal commands on your computer.</Run>
+                <Run FontWeight="Bold" Foreground="#FF8C00">This plugin allows AI to execute terminal commands on your computer.</Run>
                 <LineBreak/><LineBreak/>
                 <Run>Before enabling this plugin, please understand:</Run>
                 <LineBreak/><LineBreak/>
-                <Run Foreground="#FF6B6B">1. AI may execute commands that could harm your system</Run>
+                <Run Foreground="#D13438">1. AI may execute commands that could harm your system</Run>
                 <LineBreak/>
-                <Run Foreground="#FF6B6B">2. You MUST be able to understand and verify commands before AI executes them</Run>
+                <Run Foreground="#D13438">2. You MUST be able to understand and verify commands before AI executes them</Run>
                 <LineBreak/>
-                <Run Foreground="#FF6B6B">3. If you cannot determine whether a command is safe, DO NOT enable this plugin</Run>
+                <Run Foreground="#D13438">3. If you cannot determine whether a command is safe, DO NOT enable this plugin</Run>
                 <LineBreak/><LineBreak/>
                 <Run FontWeight="Bold">To continue, please type the confirmation text below:</Run>
             </TextBlock>
@@ -46,15 +108,15 @@
         <StackPanel Grid.Row="2" Margin="0,15,0,15">
             <TextBlock x:Name="txtConfirmHint"
                        Text="Please enter: I understand the risks"
-                       Foreground="#888888"
+                       Foreground="#605E5C"
                        FontSize="12"
                        Margin="0,0,0,5"/>
             <TextBox x:Name="txtConfirmInput"
                      Height="35"
                      FontSize="14"
-                     Background="#2D2D2D"
-                     Foreground="#E0E0E0"
-                     BorderBrush="#444444"
+                     Background="#FFFFFF"
+                     Foreground="#323130"
+                     BorderBrush="#E1DFDD"
                      Padding="8,6"
                      TextChanged="TxtConfirmInput_TextChanged"/>
         </StackPanel>
@@ -67,16 +129,12 @@
                     Margin="0,0,15,0"
                     IsEnabled="False"
                     Click="BtnConfirm_Click"
-                    Background="#4A4A4A"
-                    Foreground="#888888"
-                    BorderBrush="#555555"/>
+                    Style="{StaticResource BtnPrimary}"/>
             <Button x:Name="btnCancel"
                     Content="Cancel"
                     Width="120" Height="35"
                     Click="BtnCancel_Click"
-                    Background="#3D3D3D"
-                    Foreground="#E0E0E0"
-                    BorderBrush="#555555"/>
+                    Style="{StaticResource BtnSecondary}"/>
         </StackPanel>
     </Grid>
 </Window>
