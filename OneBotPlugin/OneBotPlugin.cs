@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using Newtonsoft.Json;
 using VPetLLM.Core.Abstractions.Interfaces.Plugin;
@@ -32,9 +37,9 @@ namespace OneBotPlugin
 
         private VPetLLM.VPetLLM? _vpetLLM;
         private OneBotSettings _settings = new();
-        private OneBotClient? _wsClient;
-        private OneBotServer? _wsServer;
-        private OneBotHttpClient? _httpClient;
+        private List<OneBotClient> _wsClients = new();
+        private List<OneBotServer> _wsServers = new();
+        private List<OneBotHttpClient> _httpClients = new();
         private MessageProcessor? _messageProcessor;
         private CancellationTokenSource? _pluginCts;
         private string _connectionStatus = "Disconnected";
@@ -90,10 +95,19 @@ namespace OneBotPlugin
             }
 
             bool sent = false;
-            if (_wsClient?.IsConnected == true)
-                sent = await _wsClient.SendMessageAsync(userId, groupId, text ?? "", image);
-            if (!sent && _httpClient is not null)
-                sent = await _httpClient.SendMessageAsync(userId, groupId, text ?? "", image);
+            foreach (var client in _wsClients.Where(c => c.IsConnected))
+            {
+                sent = await client.SendMessageAsync(userId, groupId, text ?? "", image);
+                if (sent) break;
+            }
+            if (!sent)
+            {
+                foreach (var client in _httpClients)
+                {
+                    sent = await client.SendMessageAsync(userId, groupId, text ?? "", image);
+                    if (sent) break;
+                }
+            }
 
             if (!sent)
                 Log($"OneBot: Failed to send to {(groupId.HasValue ? $"group {groupId}" : $"user {userId}")}");
@@ -108,53 +122,69 @@ namespace OneBotPlugin
         {
             try
             {
-                if (_settings.EnableForwardWS && !string.IsNullOrWhiteSpace(_settings.ForwardWSUrl))
+                foreach (var node in _settings.GetEnabledNodes())
                 {
-                    _wsClient = new OneBotClient(_settings.ForwardWSUrl, _settings.AccessToken, Log);
-                    _wsClient.OnEvent += OnOneBotEvent;
-                    await _wsClient.ConnectAsync(_pluginCts!.Token);
-
-                    if (_wsClient.IsConnected && string.IsNullOrEmpty(_settings.BotQQ))
+                    switch (node.Type)
                     {
-                        var info = await _wsClient.GetLoginInfoAsync();
-                        if (info is not null)
-                        {
-                            _settings.BotQQ = info.UserId.ToString();
-                            SaveSettings();
-                            Log($"OneBot: Auto-detected BotQQ = {_settings.BotQQ}");
-                        }
-                    }
-                }
+                        case OneBotNodeType.ForwardWS:
+                            if (!string.IsNullOrWhiteSpace(node.Url))
+                            {
+                                var client = new OneBotClient(node.Url, node.AccessToken ?? "", Log);
+                                client.OnEvent += OnOneBotEvent;
+                                await client.ConnectAsync(_pluginCts!.Token);
+                                _wsClients.Add(client);
+                                Log($"OneBot: Forward WS client connected to {node.Url} ({node.Name})");
 
-                if (_settings.EnableHttpApi && !string.IsNullOrWhiteSpace(_settings.HttpApiUrl))
-                {
-                    _httpClient = new OneBotHttpClient(_settings.HttpApiUrl, _settings.AccessToken, Log);
-                    Log("OneBot: HTTP API client ready");
+                                if (client.IsConnected && string.IsNullOrEmpty(_settings.BotQQ))
+                                {
+                                    var info = await client.GetLoginInfoAsync();
+                                    if (info is not null)
+                                    {
+                                        _settings.BotQQ = info.UserId.ToString();
+                                        SaveSettings();
+                                        Log($"OneBot: Auto-detected BotQQ = {_settings.BotQQ}");
+                                    }
+                                }
+                            }
+                            break;
 
-                    if (string.IsNullOrEmpty(_settings.BotQQ))
-                    {
-                        var info = await _httpClient.GetLoginInfoAsync();
-                        if (info is not null)
-                        {
-                            _settings.BotQQ = info.UserId.ToString();
-                            SaveSettings();
-                            Log($"OneBot: Auto-detected BotQQ = {_settings.BotQQ}");
-                        }
-                    }
-                }
+                        case OneBotNodeType.ReverseWS:
+                            if (node.Host != null && node.Port.HasValue)
+                            {
+                                var server = new OneBotServer(node.Host, node.Port.Value, node.AccessToken ?? "", Log);
+                                server.OnEvent += OnOneBotEvent;
+                                try
+                                {
+                                    server.Start();
+                                    _wsServers.Add(server);
+                                    Log($"OneBot: Reverse WS server started on {node.Host}:{node.Port} ({node.Name})");
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log($"OneBot: Reverse WS server failed: {ex.Message} ({node.Name})");
+                                }
+                            }
+                            break;
 
-                if (_settings.EnableReverseWS)
-                {
-                    _wsServer = new OneBotServer(_settings.ReverseWSHost, _settings.ReverseWSPort, _settings.AccessToken, Log);
-                    _wsServer.OnEvent += OnOneBotEvent;
-                    try
-                    {
-                        _wsServer.Start();
-                        Log($"OneBot: Reverse WS server started on port {_settings.ReverseWSPort}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Log($"OneBot: Reverse WS server failed: {ex.Message}");
+                        case OneBotNodeType.HttpApi:
+                            if (!string.IsNullOrWhiteSpace(node.Url))
+                            {
+                                var client = new OneBotHttpClient(node.Url, node.AccessToken ?? "", Log);
+                                _httpClients.Add(client);
+                                Log($"OneBot: HTTP API client ready for {node.Url} ({node.Name})");
+
+                                if (string.IsNullOrEmpty(_settings.BotQQ))
+                                {
+                                    var info = await client.GetLoginInfoAsync();
+                                    if (info is not null)
+                                    {
+                                        _settings.BotQQ = info.UserId.ToString();
+                                        SaveSettings();
+                                        Log($"OneBot: Auto-detected BotQQ = {_settings.BotQQ}");
+                                    }
+                                }
+                            }
+                            break;
                     }
                 }
 
@@ -173,24 +203,27 @@ namespace OneBotPlugin
         {
             _pluginCts?.Cancel();
 
-            if (_wsClient is not null)
+            foreach (var client in _wsClients)
             {
-                _wsClient.OnEvent -= OnOneBotEvent;
-                await _wsClient.DisconnectAsync();
-                _wsClient.Dispose();
-                _wsClient = null;
+                client.OnEvent -= OnOneBotEvent;
+                await client.DisconnectAsync();
+                client.Dispose();
             }
+            _wsClients.Clear();
 
-            if (_wsServer is not null)
+            foreach (var server in _wsServers)
             {
-                _wsServer.OnEvent -= OnOneBotEvent;
-                await _wsServer.StopAsync();
-                _wsServer.Dispose();
-                _wsServer = null;
+                server.OnEvent -= OnOneBotEvent;
+                await server.StopAsync();
+                server.Dispose();
             }
+            _wsServers.Clear();
 
-            _httpClient?.Dispose();
-            _httpClient = null;
+            foreach (var client in _httpClients)
+            {
+                client.Dispose();
+            }
+            _httpClients.Clear();
 
             _messageProcessor?.Dispose();
             _messageProcessor = null;
@@ -208,18 +241,24 @@ namespace OneBotPlugin
         private void UpdateConnectionStatus()
         {
             var parts = new List<string>();
-            if (_wsClient?.IsConnected == true)
-                parts.Add("ForwardWS:OK");
-            else if (_settings.EnableForwardWS)
+
+            int connectedWs = _wsClients.Count(c => c.IsConnected);
+            if (connectedWs > 0)
+                parts.Add($"ForwardWS:OK({connectedWs})");
+            else if (_wsClients.Count > 0)
                 parts.Add("ForwardWS:Disconnected");
 
-            if (_wsServer?.IsRunning == true)
-                parts.Add($"ReverseWS:OK({_wsServer.ClientCount} clients)");
-            else if (_settings.EnableReverseWS)
+            int runningServers = _wsServers.Count(s => s.IsRunning);
+            if (runningServers > 0)
+            {
+                int totalClients = _wsServers.Sum(s => s.ClientCount);
+                parts.Add($"ReverseWS:OK({totalClients} clients)");
+            }
+            else if (_wsServers.Count > 0)
                 parts.Add("ReverseWS:Stopped");
 
-            if (_httpClient is not null)
-                parts.Add("HTTP:Ready");
+            if (_httpClients.Count > 0)
+                parts.Add($"HTTP:Ready({_httpClients.Count})");
 
             _connectionStatus = parts.Count > 0 ? string.Join(", ", parts) : "No connection configured";
         }
@@ -281,11 +320,20 @@ namespace OneBotPlugin
         {
             bool sent = false;
 
-            if (_wsClient?.IsConnected == true)
-                sent = await _wsClient.SendReplyAsync(context, text, _settings.ReplyWithAt);
+            foreach (var client in _wsClients.Where(c => c.IsConnected))
+            {
+                sent = await client.SendReplyAsync(context, text, _settings.ReplyWithAt);
+                if (sent) break;
+            }
 
-            if (!sent && _httpClient is not null)
-                sent = await _httpClient.SendReplyAsync(context, text, _settings.ReplyWithAt);
+            if (!sent)
+            {
+                foreach (var client in _httpClients)
+                {
+                    sent = await client.SendReplyAsync(context, text, _settings.ReplyWithAt);
+                    if (sent) break;
+                }
+            }
 
             if (!sent)
                 Log($"OneBot: Failed to send reply to {(context.IsGroup ? $"group {context.GroupId}" : $"user {context.UserId}")}");
@@ -398,7 +446,7 @@ namespace OneBotPlugin
             var lang = _vpetLLM?.Settings.Language ?? "en";
             var aiName = _vpetLLM?.Settings.AiName ?? "AI";
 
-            bool connected = _wsClient?.IsConnected == true || _wsServer?.IsRunning == true || _httpClient is not null;
+            bool connected = _wsClients.Any(c => c.IsConnected) || _wsServers.Any(s => s.IsRunning) || _httpClients.Count > 0;
             Log($"OneBot: GetDynamicInfo called — connected={connected}, lang={lang}");
 
             if (!connected)
@@ -456,11 +504,89 @@ Reply format: `<|plugin_onebot_begin|> {{""group_id"":id,""message"":""your repl
             try
             {
                 _settings = PluginConfigHelper.Load<OneBotSettings>("onebot");
+                MigrateLegacySettings();
             }
             catch (Exception ex)
             {
                 Log($"OneBot: Error loading settings: {ex.Message}");
                 _settings = new OneBotSettings();
+            }
+        }
+
+        private void MigrateLegacySettings()
+        {
+            if (_settings.Nodes.Count == 0)
+            {
+                var legacySettings = GetLegacySettings();
+                if (legacySettings != null)
+                {
+                    if (legacySettings.EnableForwardWS && !string.IsNullOrWhiteSpace(legacySettings.ForwardWSUrl))
+                    {
+                        _settings.Nodes.Add(new OneBotNodeSetting
+                        {
+                            Name = "默认正向WS",
+                            Type = OneBotNodeType.ForwardWS,
+                            Url = legacySettings.ForwardWSUrl,
+                            AccessToken = legacySettings.AccessToken,
+                            Enabled = true
+                        });
+                    }
+
+                    if (legacySettings.EnableReverseWS)
+                    {
+                        _settings.Nodes.Add(new OneBotNodeSetting
+                        {
+                            Name = "默认反向WS",
+                            Type = OneBotNodeType.ReverseWS,
+                            Host = legacySettings.ReverseWSHost,
+                            Port = legacySettings.ReverseWSPort,
+                            AccessToken = legacySettings.AccessToken,
+                            Enabled = true
+                        });
+                    }
+
+                    if (legacySettings.EnableHttpApi && !string.IsNullOrWhiteSpace(legacySettings.HttpApiUrl))
+                    {
+                        _settings.Nodes.Add(new OneBotNodeSetting
+                        {
+                            Name = "默认HTTP API",
+                            Type = OneBotNodeType.HttpApi,
+                            Url = legacySettings.HttpApiUrl,
+                            AccessToken = legacySettings.AccessToken,
+                            Enabled = true
+                        });
+                    }
+
+                    if (_settings.Nodes.Count > 0)
+                    {
+                        Log($"OneBot: Migrated {_settings.Nodes.Count} legacy configs to nodes");
+                        SaveSettings();
+                    }
+                }
+            }
+        }
+
+        private class LegacySettings
+        {
+            public bool EnableForwardWS { get; set; } = false;
+            public string ForwardWSUrl { get; set; } = "ws://127.0.0.1:3001";
+            public string AccessToken { get; set; } = "";
+            public bool EnableReverseWS { get; set; } = false;
+            public string ReverseWSHost { get; set; } = "127.0.0.1";
+            public int ReverseWSPort { get; set; } = 8080;
+            public bool EnableHttpApi { get; set; } = false;
+            public string HttpApiUrl { get; set; } = "http://127.0.0.1:3000";
+        }
+
+        private LegacySettings? GetLegacySettings()
+        {
+            try
+            {
+                return PluginConfigHelper.Load<LegacySettings>("onebot");
+            }
+            catch
+            {
+                return null;
             }
         }
 
