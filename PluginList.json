@@ -153,6 +153,6 @@
       "en": "OneBot protocol plugin. Send and receive QQ messages via NapCat/Lagrange etc."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/OneBotPlugin/plugin/OneBotPlugin.dll",
-    "SHA256": "143e4a9b40166ca30b6a7832698f43669c8c76b481b7e8696f3b1a1fb1086858"
+    "SHA256": "ae831756882ca703da5745f1ef806a5db93b12b10cf44d1e3313ceced9c38a0f"
   }
 }
