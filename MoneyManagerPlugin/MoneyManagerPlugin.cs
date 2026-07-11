@@ -99,6 +99,10 @@ public class MoneyManagerPlugin : IActionPlugin
                     break;
                 case "sub":
                 case "subtract":
+                    if (amount > _vpetLLM.MW.Core.Save.Money)
+                    {
+                        return Task.FromResult("金钱不足，无法扣除！");
+                    }
                     _vpetLLM.MW.Core.Save.Money -= amount;
                     resultMessage = $"成功减少 {amount:f2} 金钱，当前总额: {_vpetLLM.MW.Core.Save.Money:f2}。";
                     break;

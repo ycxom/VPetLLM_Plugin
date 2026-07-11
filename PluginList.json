@@ -11,6 +11,18 @@
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MoneyManagerPlugin/plugin/MoneyManagerPlugin.dll",
     "SHA256": "e99c8d13c3862538664ed6511ee04504111d5e958d9e08e60e26d64d66dcc052"
   },
+  "WaitPlugin": {
+    "Name": "wait",
+    "Author": "ycxom",
+    "Description": {
+      "ja": "ユーザーの返信を一定秒数待ちます（非ブロッキング）。",
+      "zh-hans": "让AI等待用户回复一段时间（秒），不阻塞当前回复。",
+      "zh-hant": "讓AI等待使用者回覆一段時間（秒），不阻塞當前回覆。",
+      "en": "Wait for the user to reply within N seconds without blocking."
+    },
+    "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WaitPlugin/plugin/WaitPlugin.dll",
+    "SHA256": "8e141b08000fefd585f275eb2be0954878d07afe224b0806f1faab58f9e13703"
+  },
   "ReminderPlugin": {
     "Name": "reminder",
     "Author": "ycxom",
