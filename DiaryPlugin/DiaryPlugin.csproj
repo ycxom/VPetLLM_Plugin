@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <OutputType>Library</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="VPet-Simulator.Windows.Interface" Version="1.1.0.50" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 引用宿主，Private=false：运行时用宿主已加载的程序集 -->
+    <Reference Include="VPetLLM">
+      <HintPath>..\..\VPetLLM\3000_VPetLLM\plugin\VPetLLM.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- 复用宿主已随插件目录发布的 SQLite，Private=false：不随本插件复制，满足单 DLL 限制 -->
+    <Reference Include="Microsoft.Data.Sqlite">
+      <HintPath>..\..\VPetLLM\3000_VPetLLM\plugin\Microsoft.Data.Sqlite.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="CopyPlugin" AfterTargets="Build">
+    <ItemGroup>
+      <!-- 仅复制主 DLL，满足"单 DLL"限制 -->
+      <PluginFiles Include="$(OutDir)$(TargetName).dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="plugin" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="UpdateSHA" AfterTargets="CopyPlugin">
+    <PropertyGroup>
+      <HelperProject>$(MSBuildProjectDirectory)\..\UpdateSHA_Helper\UpdateSHA_Helper.csproj</HelperProject>
+      <HelperExe>$(MSBuildProjectDirectory)\..\UpdateSHA_Helper\bin\$(Configuration)\net8.0\UpdateSHA_Helper.exe</HelperExe>
+      <PluginListPath>$(MSBuildProjectDirectory)\..\PluginList.json</PluginListPath>
+      <TargetDllPath>$(ProjectDir)plugin\$(TargetName).dll</TargetDllPath>
+      <BuildHelperCommand>dotnet build "$(HelperProject)" -c $(Configuration)</BuildHelperCommand>
+      <ExecHelperCommand>"$(HelperExe)" "$(ProjectName)" "$(TargetDllPath)" "$(PluginListPath)"</ExecHelperCommand>
+    </PropertyGroup>
+    <Message Text="Building SHA Helper..." Importance="high" />
+    <Exec Command="$(BuildHelperCommand)" />
+    <Message Text="Executing SHA Helper: $(ExecHelperCommand)" Importance="high" />
+    <Exec Command="$(ExecHelperCommand)" />
+  </Target>
+</Project>

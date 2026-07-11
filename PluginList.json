@@ -23,6 +23,18 @@
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WaitPlugin/plugin/WaitPlugin.dll",
     "SHA256": "8e141b08000fefd585f275eb2be0954878d07afe224b0806f1faab58f9e13703"
   },
+  "DiaryPlugin": {
+    "Name": "Diary",
+    "Author": "ycxom",
+    "Description": {
+      "ja": "AIが毎日ご主人との交流を振り返り、一人称の日記を自動で書きます。ベクトル検索とデスクトップ表示に対応。",
+      "zh-hans": "让AI每天回顾与主人的互动、自动撰写第一人称日记，支持向量检索与桌面查看。",
+      "zh-hant": "讓AI每天回顧與主人的互動、自動撰寫第一人稱日記，支援向量檢索與桌面查看。",
+      "en": "Lets the AI review each day's interactions and automatically write a first-person diary. Supports vector search and a desktop viewer."
+    },
+    "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/DiaryPlugin/plugin/DiaryPlugin.dll",
+    "SHA256": "fc66eaca2f773b1c85f5717a9998e40b629cad972ab885c914a37c307ae5b013"
+  },
   "ReminderPlugin": {
     "Name": "reminder",
     "Author": "ycxom",
