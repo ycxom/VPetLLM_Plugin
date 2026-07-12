@@ -10,7 +10,7 @@ using VPetLLM.Infrastructure.Configuration;
 
 namespace OneBotPlugin
 {
-    public class OneBotPlugin : IActionPlugin, IDynamicInfoPlugin, IPluginWithData
+    public partial class OneBotPlugin : IPluginTab, IActionPlugin, IDynamicInfoPlugin, IPluginWithData
     {
         public string Name => "onebot";
         public string Author => "ycxom";
@@ -417,9 +417,12 @@ namespace OneBotPlugin
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    var lang = _vpetLLM?.Settings.Language ?? "en";
-                    var window = new winOneBotSetting(this, _settings, lang, OnSettingsSaved);
-                    window.Show();
+                    new System.Windows.Window
+                    {
+                        Title = TabTitle, Width = 820, Height = 720,
+                        WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen,
+                        Content = CreatePanel()
+                    }.Show();
                 });
             }
             catch (Exception ex)

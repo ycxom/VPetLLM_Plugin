@@ -26,6 +26,8 @@
 
   <ItemGroup>
     <Compile Include="AppLauncherPlugin.cs" />
+    <Compile Include="AppLauncherPlugin.Tab.cs" />
+    <Compile Include="winAppLauncherSetting.CloseHelper.cs" />
     <Compile Include="TestWindow.cs" />
     <Compile Include="winAppLauncherSetting.xaml.cs">
       <DependentUpon>winAppLauncherSetting.xaml</DependentUpon>

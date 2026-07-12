@@ -15,7 +15,7 @@ using VPetLLM.Infrastructure.Configuration;
 
 namespace MinecraftVersionPlugin
 {
-    public class MinecraftVersionPlugin : IVPetLLMPlugin, IPluginWithData, IActionPlugin
+    public partial class MinecraftVersionPlugin : IPluginTab, IVPetLLMPlugin, IPluginWithData, IActionPlugin
     {
         public string Name => "MinecraftVersionWatcher";
         public string Author => "ycxom";
@@ -350,8 +350,12 @@ namespace MinecraftVersionPlugin
                 {
                     System.Windows.Application.Current.Dispatcher.Invoke(() =>
                     {
-                        var win = new winMinecraftSetting(this);
-                        win.Show();
+                        new System.Windows.Window
+                        {
+                            Title = TabTitle, Width = 820, Height = 560,
+                            WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen,
+                            Content = CreatePanel()
+                        }.Show();
                     });
                     return Task.FromResult("Setting window opened.");
                 }

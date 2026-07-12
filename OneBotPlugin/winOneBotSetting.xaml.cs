@@ -6,7 +6,7 @@ using System.Windows.Controls;
 
 namespace OneBotPlugin
 {
-    public partial class winOneBotSetting : Window
+    public partial class winOneBotSetting : UserControl
     {
         private readonly OneBotPlugin _plugin;
         private readonly OneBotSettings _settings;
@@ -33,7 +33,6 @@ namespace OneBotPlugin
             switch (_lang)
             {
                 case "zh-hans":
-                    Title = "OneBot 设置";
                     lblNodeManagement.Text = "节点管理";
                     btnAddNode.Content = "添加节点";
                     btnRemoveNode.Content = "删除选中节点";
@@ -52,7 +51,6 @@ namespace OneBotPlugin
                     btnSave.Content = "保存";
                     break;
                 case "zh-hant":
-                    Title = "OneBot 設定";
                     lblNodeManagement.Text = "節點管理";
                     btnAddNode.Content = "添加節點";
                     btnRemoveNode.Content = "刪除選中節點";
@@ -71,7 +69,6 @@ namespace OneBotPlugin
                     btnSave.Content = "儲存";
                     break;
                 case "ja":
-                    Title = "OneBot 設定";
                     lblNodeManagement.Text = "ノード管理";
                     btnAddNode.Content = "ノード追加";
                     btnRemoveNode.Content = "選択したノードを削除";
@@ -313,12 +310,12 @@ namespace OneBotPlugin
         {
             var newSettings = CollectSettingsFromUI();
             _onSave(newSettings);
-            Close();
+            CloseOwnerWindow();
         }
 
         private void BtnCancel_Click(object sender, RoutedEventArgs e)
         {
-            Close();
+            CloseOwnerWindow();
         }
     }
 }

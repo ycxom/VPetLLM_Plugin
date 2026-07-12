@@ -7,7 +7,7 @@ using Microsoft.Win32;
 
 namespace AppLauncherPlugin
 {
-    public partial class winAppLauncherSetting : Window
+    public partial class winAppLauncherSetting : UserControl
     {
         private AppLauncherPlugin _plugin;
         private ObservableCollection<AppLauncherPlugin.CustomApp> _customApps;
@@ -212,12 +212,12 @@ namespace AppLauncherPlugin
             _plugin.RefreshApps();
             
             MessageBox.Show("设置保存成功！", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
-            this.Close();
+            CloseOwnerWindow();
         }
 
         private void btnCancel_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            CloseOwnerWindow();
         }
 
         private bool ValidateInput()

@@ -29,7 +29,7 @@ namespace DiaryPlugin
     /// - 日记可 Embedding 向量检索、可在桌面 UI 查看。
     /// - 生成走 ChatCore.Summarize，不打扰宠物对话（不弹气泡/不播 TTS）。
     /// </summary>
-    public class DiaryPlugin : IActionPlugin, IDynamicInfoPlugin, IPluginWithData
+    public class DiaryPlugin : IActionPlugin, IDynamicInfoPlugin, IPluginWithData, IPluginTab
     {
         public string Name => "Diary";
         public string Author => "ycxom";
@@ -344,7 +344,23 @@ namespace DiaryPlugin
                 }
                 try
                 {
-                    var win = new winDiaryViewer(this);
+                    // 薄壳窗口包住同一个面板 UserControl；合入主题画笔，独立窗口下也有正确配色
+                    var win = new Window
+                    {
+                        Title = "日记本",
+                        Width = 820,
+                        Height = 560,
+                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                        Content = CreatePanel()
+                    };
+                    try
+                    {
+                        win.Resources.MergedDictionaries.Add(new ResourceDictionary
+                        {
+                            Source = new Uri("pack://application:,,,/VPetLLM;component/UI/Styles/Colors.xaml")
+                        });
+                    }
+                    catch { /* 主题字典缺失不影响功能 */ }
                     win.Show();
                     try { win.Activate(); win.Topmost = true; win.Topmost = false; } catch { }
                 }
@@ -370,12 +386,20 @@ namespace DiaryPlugin
             }
         }
 
+        // ---------------- IPluginTab（设置窗口内嵌面板）----------------
+
+        public string TabTitle => (_vpetLLM?.Settings.Language == "en") ? "Diary" : "日记";
+
+        /// <summary>宿主在 UI 线程调用，返回日记面板挂进「插件面板」子 Tab。</summary>
+        public FrameworkElement CreatePanel() => new winDiaryViewer(this);
+
         // ---------------- 供 UI 调用 ----------------
 
         public List<DiaryEntry> GetAllEntries() => _db?.GetAll() ?? new List<DiaryEntry>();
         public List<DiaryEntry> SearchEntries(float[]? vec, string query, int topN) => _db?.Search(vec, query, topN) ?? new List<DiaryEntry>();
         public Task<float[]?> EmbedAsync(string text) => _vpetLLM?.EmbedTextAsync(text) ?? Task.FromResult<float[]?>(null);
         public void ClearAllEntries() => _db?.ClearAll();
+        public void DeleteEntry(string date) => _db?.Delete(date);
         public string AiName => _vpetLLM?.Settings.AiName ?? "宠物";
         public string Language => _vpetLLM?.Settings.Language ?? "zh-hans";
 

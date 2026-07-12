@@ -1,8 +1,9 @@
+using System.Windows.Controls;
 using System.Windows;
 
 namespace ForegroundAppPlugin
 {
-    public partial class winForegroundAppSetting : Window
+    public partial class winForegroundAppSetting : UserControl
     {
         private readonly ForegroundAppPlugin _plugin;
 
@@ -18,7 +19,7 @@ namespace ForegroundAppPlugin
             if (int.TryParse(TextBox_JitterDelay.Text, out int delay))
             {
                 _plugin.SetJitterDelay(delay);
-                Close();
+                CloseOwnerWindow();
             }
             else
             {

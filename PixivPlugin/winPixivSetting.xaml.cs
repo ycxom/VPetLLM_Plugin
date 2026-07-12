@@ -1,9 +1,10 @@
+using System.Windows.Controls;
 using System.Windows;
 using PixivPlugin.Models;
 
 namespace PixivPlugin
 {
-    public partial class winPixivSetting : Window
+    public partial class winPixivSetting : UserControl
     {
         private readonly PixivPlugin _plugin;
         private readonly PluginSettings _settings;
@@ -96,12 +97,12 @@ namespace PixivPlugin
             _plugin.UpdateSettings(_settings);
             
             MessageBox.Show("设置已保存", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-            Close();
+            CloseOwnerWindow();
         }
 
         private void btnCancel_Click(object sender, RoutedEventArgs e)
         {
-            Close();
+            CloseOwnerWindow();
         }
     }
 }

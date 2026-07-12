@@ -18,8 +18,7 @@ namespace AppLauncherPlugin
                 var plugin = new AppLauncherPlugin();
                 plugin.PluginDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 
-                var settingWindow = new winAppLauncherSetting(plugin);
-                settingWindow.ShowDialog();
+                new Window { Content = new winAppLauncherSetting(plugin), Width = 820, Height = 620 }.ShowDialog();
             }
             catch (Exception ex)
             {

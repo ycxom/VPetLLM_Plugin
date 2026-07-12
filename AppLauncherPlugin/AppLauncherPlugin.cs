@@ -12,7 +12,7 @@ using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 
 namespace AppLauncherPlugin
 {
-    public class AppLauncherPlugin : IVPetLLMPlugin, IActionPlugin, IPluginWithData, IDynamicInfoPlugin
+    public partial class AppLauncherPlugin : IPluginTab, IVPetLLMPlugin, IActionPlugin, IPluginWithData, IDynamicInfoPlugin
     {
         public string Name => "AppLauncher";
         public string Author => "ycxom";
@@ -206,8 +206,12 @@ namespace AppLauncherPlugin
                         {
                             Application.Current.Dispatcher.Invoke(() =>
                             {
-                                var settingWindow = new winAppLauncherSetting(this);
-                                settingWindow.Show();
+                                new System.Windows.Window
+                                {
+                                    Title = TabTitle, Width = 820, Height = 620,
+                                    WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen,
+                                    Content = CreatePanel()
+                                }.Show();
                             });
                             return "设置窗口已打开。";
                         }
@@ -235,8 +239,12 @@ namespace AppLauncherPlugin
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            var settingWindow = new winAppLauncherSetting(this);
-                            settingWindow.Show();
+                            new System.Windows.Window
+                            {
+                                Title = TabTitle, Width = 820, Height = 620,
+                                WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen,
+                                Content = CreatePanel()
+                            }.Show();
                         });
                         return "设置窗口已打开。";
                     }

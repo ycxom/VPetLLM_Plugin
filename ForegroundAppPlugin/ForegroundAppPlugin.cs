@@ -12,7 +12,7 @@ using VPetLLM.Infrastructure.Configuration;
 
 namespace ForegroundAppPlugin
 {
-    public class ForegroundAppPlugin : IVPetLLMPlugin, IDynamicInfoPlugin, IActionPlugin, IPluginWithData
+    public partial class ForegroundAppPlugin : IPluginTab, IVPetLLMPlugin, IDynamicInfoPlugin, IActionPlugin, IPluginWithData
     {
         public string Name => "ForegroundAppWatcher";
         public string Author => "ycxom";
@@ -190,8 +190,12 @@ namespace ForegroundAppPlugin
                 {
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        var settingWindow = new winForegroundAppSetting(this);
-                        settingWindow.Show();
+                        new System.Windows.Window
+                        {
+                            Title = TabTitle, Width = 380, Height = 280,
+                            WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen,
+                            Content = CreatePanel()
+                        }.Show();
                     });
                     return Task.FromResult("Setting window opened.");
                 }

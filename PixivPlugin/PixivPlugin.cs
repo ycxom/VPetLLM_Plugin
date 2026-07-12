@@ -9,7 +9,7 @@ using PixivPlugin.Services;
 
 namespace PixivPlugin
 {
-    public class PixivPlugin : IVPetLLMPlugin, IActionPlugin, IPluginWithData
+    public partial class PixivPlugin : IPluginTab, IVPetLLMPlugin, IActionPlugin, IPluginWithData
     {
         public string Name => "Pixiv";
         public string Author => "ycxom";
@@ -175,8 +175,12 @@ namespace PixivPlugin
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                var window = new winPixivSetting(this);
-                window.Show();
+                new System.Windows.Window
+                {
+                    Title = TabTitle, Width = 470, Height = 540,
+                    WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen,
+                    Content = CreatePanel()
+                }.Show();
             });
         }
 

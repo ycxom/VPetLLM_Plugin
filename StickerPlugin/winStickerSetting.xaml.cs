@@ -1,3 +1,4 @@
+using System.Windows.Controls;
 using System.Windows;
 using Microsoft.Win32;
 using StickerPlugin.Models;
@@ -7,7 +8,7 @@ namespace StickerPlugin
     /// <summary>
     /// winStickerSetting.xaml 的交互逻辑
     /// </summary>
-    public partial class winStickerSetting : Window
+    public partial class winStickerSetting : UserControl
     {
         private readonly StickerPlugin _plugin;
         private readonly PluginSettings _settings;
@@ -156,12 +157,12 @@ namespace StickerPlugin
 
             _plugin.UpdateSettings(_settings);
             MessageBox.Show("设置已保存。", "保存成功", MessageBoxButton.OK, MessageBoxImage.Information);
-            Close();
+            CloseOwnerWindow();
         }
 
         private void btnCancel_Click(object sender, RoutedEventArgs e)
         {
-            Close();
+            CloseOwnerWindow();
         }
 
         private async void btnTestSticker_Click(object sender, RoutedEventArgs e)

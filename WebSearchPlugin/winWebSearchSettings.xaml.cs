@@ -1,9 +1,10 @@
+using System.Windows.Controls;
 using System;
 using System.Windows;
 
 namespace WebSearchPlugin
 {
-    public partial class winWebSearchSettings : Window
+    public partial class winWebSearchSettings : UserControl
     {
         private WebSearchSettings _settings;
         private Action<WebSearchSettings>? _onSaved;
@@ -188,7 +189,7 @@ namespace WebSearchPlugin
                 MessageBox.Show($"设置已保存！\n\n当前模式：{modeInfo}", 
                     "保存成功", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                Close();
+                CloseOwnerWindow();
             }
             catch (Exception ex)
             {
@@ -199,7 +200,7 @@ namespace WebSearchPlugin
 
         private void OnCancel(object sender, RoutedEventArgs e)
         {
-            Close();
+            CloseOwnerWindow();
         }
     }
 }

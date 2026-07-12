@@ -1,11 +1,8 @@
-<Window x:Class="ForegroundAppPlugin.winForegroundAppSetting"
+<UserControl x:Class="ForegroundAppPlugin.winForegroundAppSetting"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="ForegroundApp Plugin Settings" Height="200" Width="350"
-        WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize"
         Background="#F5F5F5">
-    <Window.Resources>
+    <UserControl.Resources>
         <Style x:Key="BtnPrimary" TargetType="Button">
             <Setter Property="Background" Value="#0078D4"/>
             <Setter Property="Foreground" Value="White"/>
@@ -34,7 +31,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-    </Window.Resources>
+    </UserControl.Resources>
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -57,4 +54,4 @@
                     Style="{StaticResource BtnPrimary}"/>
         </StackPanel>
     </Grid>
-</Window>
+</UserControl>

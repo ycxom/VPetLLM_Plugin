@@ -11,7 +11,7 @@ using System.Windows.Controls;
 
 namespace MinecraftVersionPlugin
 {
-    public partial class winMinecraftSetting : Window
+    public partial class winMinecraftSetting : UserControl
     {
         private readonly MinecraftVersionPlugin _plugin;
         private readonly ObservableCollection<MinecraftVersionPlugin.ServerConfig> _servers = new();
@@ -165,7 +165,7 @@ namespace MinecraftVersionPlugin
             MessageBox.Show("已将检测名设为所选服务器的别名。别忘了点击保存。", "完成", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void BtnClose_Click(object sender, RoutedEventArgs e) => Close();
+        private void BtnClose_Click(object sender, RoutedEventArgs e) => CloseOwnerWindow();
 
         private void GridServers_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {

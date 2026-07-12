@@ -25,6 +25,8 @@
 
   <ItemGroup>
     <Compile Include="StickerPlugin.cs" />
+    <Compile Include="StickerPlugin.Tab.cs" />
+    <Compile Include="winStickerSetting.CloseHelper.cs" />
     <Compile Include="ApiCredentials.cs" />
     <Compile Include="Models\ApiModels.cs" />
     <Compile Include="Models\PluginSettings.cs" />

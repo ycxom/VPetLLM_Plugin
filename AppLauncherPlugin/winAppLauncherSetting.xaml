@@ -1,10 +1,8 @@
-<Window x:Class="AppLauncherPlugin.winAppLauncherSetting"
+<UserControl x:Class="AppLauncherPlugin.winAppLauncherSetting"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="应用启动器设置" Height="600" Width="800"
-        WindowStartupLocation="CenterScreen"
         Background="#F5F5F5">
-    <Window.Resources>
+    <UserControl.Resources>
         <DropShadowEffect x:Key="CardShadow" Color="#000000" Opacity="0.1" BlurRadius="8" ShadowDepth="2" Direction="270"/>
         <Style TargetType="TextBox">
             <Setter Property="Background" Value="#FFFFFF"/>
@@ -162,7 +160,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-    </Window.Resources>
+    </UserControl.Resources>
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -271,4 +269,4 @@
                     Style="{StaticResource BtnSecondary}"/>
         </StackPanel>
     </Grid>
-</Window>
+</UserControl>

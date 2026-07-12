@@ -1,12 +1,8 @@
-<Window x:Class="StickerPlugin.winStickerSetting"
+<UserControl x:Class="StickerPlugin.winStickerSetting"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="表情包插件设置" Height="600" Width="500"
-        MinHeight="450" MinWidth="400"
-        WindowStartupLocation="CenterScreen"
-        Background="#F5F5F5"
-        ResizeMode="CanResizeWithGrip">
-    <Window.Resources>
+        Background="#F5F5F5">
+    <UserControl.Resources>
         <Style x:Key="BtnPrimary" TargetType="Button">
             <Setter Property="Background" Value="#0078D4"/>
             <Setter Property="Foreground" Value="White"/>
@@ -92,7 +88,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-    </Window.Resources>
+    </UserControl.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <Grid Margin="20">
             <Grid.RowDefinitions>
@@ -220,4 +216,4 @@
             </StackPanel>
         </Grid>
     </ScrollViewer>
-</Window>
+</UserControl>

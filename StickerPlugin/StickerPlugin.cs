@@ -15,7 +15,7 @@ namespace StickerPlugin
     /// 支持 AI 搜索并发送表情包
     /// 依赖 VPet.Plugin.Image 插件显示表情包
     /// </summary>
-    public class StickerPlugin : IActionPlugin, IPluginWithData, IDynamicInfoPlugin, IProcessingLifecyclePlugin
+    public partial class StickerPlugin : IPluginTab, IActionPlugin, IPluginWithData, IDynamicInfoPlugin, IProcessingLifecyclePlugin
     {
         private const string ImagePluginName = "LLM表情包";
         private const string ImagePluginWorkshopUrl = "https://steamcommunity.com/sharedfiles/filedetails/?id=3657291049";
@@ -343,8 +343,12 @@ namespace StickerPlugin
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                var window = new winStickerSetting(this);
-                window.Show();
+                new System.Windows.Window
+                {
+                    Title = TabTitle, Width = 520, Height = 620,
+                    WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen,
+                    Content = CreatePanel()
+                }.Show();
             });
         }
 

@@ -24,6 +24,8 @@
 
   <ItemGroup>
     <Compile Include="ForegroundAppPlugin.cs" />
+    <Compile Include="ForegroundAppPlugin.Tab.cs" />
+    <Compile Include="winForegroundAppSetting.CloseHelper.cs" />
     <Compile Include="winForegroundAppSetting.xaml.cs">
       <DependentUpon>winForegroundAppSetting.xaml</DependentUpon>
     </Compile>

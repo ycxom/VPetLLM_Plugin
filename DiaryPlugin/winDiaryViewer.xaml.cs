@@ -7,7 +7,7 @@ using System.Windows.Input;
 
 namespace DiaryPlugin
 {
-    public partial class winDiaryViewer : Window
+    public partial class winDiaryViewer : UserControl
     {
         private readonly DiaryPlugin _plugin;
 
@@ -115,6 +115,23 @@ namespace DiaryPlugin
             catch (Exception ex)
             {
                 StatusText.Text = $"生成失败: {ex.Message}";
+            }
+        }
+
+        private void DeleteOne_Click(object sender, RoutedEventArgs e)
+        {
+            if (DateList.SelectedItem is not DiaryItem item)
+            {
+                StatusText.Text = "请先在左侧选中一篇日记";
+                return;
+            }
+            var r = MessageBox.Show($"确定删除 {item.Date} 这篇日记吗？此操作不可撤销。", "删除本篇",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (r == MessageBoxResult.Yes)
+            {
+                _plugin.DeleteEntry(item.Date);
+                LoadAll();
+                StatusText.Text = $"已删除 {item.Date}";
             }
         }
 

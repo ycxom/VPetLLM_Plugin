@@ -1,12 +1,8 @@
-<Window x:Class="OneBotPlugin.winOneBotSetting"
+<UserControl x:Class="OneBotPlugin.winOneBotSetting"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="OneBot Settings"
-        Width="800" Height="700"
-        WindowStartupLocation="CenterScreen"
-        ResizeMode="CanResize"
         Background="#F5F5F5">
-    <Window.Resources>
+    <UserControl.Resources>
         <Style x:Key="SectionHeader" TargetType="TextBlock">
             <Setter Property="Foreground" Value="#323130"/>
             <Setter Property="FontSize" Value="14"/>
@@ -112,7 +108,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-    </Window.Resources>
+    </UserControl.Resources>
 
     <Grid Margin="16">
         <Grid.RowDefinitions>
@@ -237,4 +233,4 @@
             <Button x:Name="btnSave" Style="{StaticResource BtnPrimary}" Content="保存" Click="BtnSave_Click"/>
         </StackPanel>
     </Grid>
-</Window>
+</UserControl>

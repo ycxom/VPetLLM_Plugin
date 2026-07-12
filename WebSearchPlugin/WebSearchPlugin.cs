@@ -9,7 +9,7 @@ using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 
 namespace WebSearchPlugin
 {
-    public class WebSearchPlugin : IActionPlugin, IPluginWithData
+    public partial class WebSearchPlugin : IPluginTab, IActionPlugin, IPluginWithData
     {
         public string Name => "WebSearch";
         public string Author => "ycxom";
@@ -111,8 +111,12 @@ namespace WebSearchPlugin
             try
             {
                 _settings.SetPluginDataDir(PluginDataDir);
-                var settingsWindow = new winWebSearchSettings(_settings, OnSettingsSaved);
-                settingsWindow.ShowDialog();
+                new System.Windows.Window
+                {
+                    Title = TabTitle, Width = 520, Height = 520,
+                    WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen,
+                    Content = CreatePanel()
+                }.ShowDialog();
             }
             catch { }
         }
@@ -221,8 +225,12 @@ namespace WebSearchPlugin
                             System.Windows.Application.Current.Dispatcher.Invoke(() =>
                             {
                                 _settings.SetPluginDataDir(PluginDataDir);
-                                var settingWindow = new winWebSearchSettings(_settings, OnSettingsSaved);
-                                settingWindow.Show();
+                                new System.Windows.Window
+                                {
+                                    Title = TabTitle, Width = 520, Height = 520,
+                                    WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen,
+                                    Content = CreatePanel()
+                                }.Show();
                             });
                             return "设置窗口已打开。";
                         }

@@ -24,6 +24,8 @@
 
   <ItemGroup>
     <Compile Include="MinecraftVersionPlugin.cs" />
+    <Compile Include="MinecraftVersionPlugin.Tab.cs" />
+    <Compile Include="winMinecraftSetting.CloseHelper.cs" />
     <Compile Include="winMinecraftSetting.xaml.cs">
       <DependentUpon>winMinecraftSetting.xaml</DependentUpon>
     </Compile>

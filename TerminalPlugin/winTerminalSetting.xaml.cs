@@ -1,9 +1,10 @@
 using System;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace TerminalPlugin
 {
-    public partial class winTerminalSetting : Window
+    public partial class winTerminalSetting : UserControl
     {
         private readonly TerminalPlugin _plugin;
         private readonly string _language;
@@ -26,7 +27,6 @@ namespace TerminalPlugin
             switch (_language)
             {
                 case "zh-hans":
-                    Title = "终端插件 - 设置";
                     txtTitle.Text = "终端设置";
                     txtShellInfoTitle.Text = "Shell 信息";
                     txtEnableTitle.Text = "授权 AI 使用终端";
@@ -38,7 +38,6 @@ namespace TerminalPlugin
                     break;
 
                 case "zh-hant":
-                    Title = "終端插件 - 設置";
                     txtTitle.Text = "終端設置";
                     txtShellInfoTitle.Text = "Shell 資訊";
                     txtEnableTitle.Text = "授權 AI 使用終端";
@@ -50,7 +49,6 @@ namespace TerminalPlugin
                     break;
 
                 case "ja":
-                    Title = "ターミナルプラグイン - 設定";
                     txtTitle.Text = "ターミナル設定";
                     txtShellInfoTitle.Text = "シェル情報";
                     txtEnableTitle.Text = "AIにターミナルを許可";
@@ -138,12 +136,23 @@ namespace TerminalPlugin
             };
 
             MessageBox.Show(message, "Terminal Plugin", MessageBoxButton.OK, MessageBoxImage.Information);
-            Close();
+            CloseOwnerWindow();
         }
 
         private void BtnClose_Click(object sender, RoutedEventArgs e)
         {
-            Close();
+            CloseOwnerWindow();
+        }
+
+        /// <summary>
+        /// 仅当本面板是某个薄壳窗口的直接内容时关闭该窗口（action(setting) 弹窗）；
+        /// 内嵌在设置窗「插件面板」Tab 里时不动作，避免误关整个设置窗。
+        /// </summary>
+        private void CloseOwnerWindow()
+        {
+            var w = Window.GetWindow(this);
+            if (w != null && ReferenceEquals(w.Content, this))
+                w.Close();
         }
     }
 }

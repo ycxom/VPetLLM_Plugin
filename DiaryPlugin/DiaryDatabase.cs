@@ -217,6 +217,27 @@ namespace DiaryPlugin
             }
         }
 
+        /// <summary>删除某一天的日记。</summary>
+        public void Delete(string date)
+        {
+            lock (_lock)
+            {
+                try
+                {
+                    using var connection = new SqliteConnection(_connectionString);
+                    connection.Open();
+                    var cmd = connection.CreateCommand();
+                    cmd.CommandText = "DELETE FROM diary WHERE date = @date";
+                    cmd.Parameters.AddWithValue("@date", date);
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    VPetLLM.Utils.System.Logger.Log($"DiaryDatabase.Delete 失败 ({date}): {ex.Message}");
+                }
+            }
+        }
+
         /// <summary>
         /// 检索日记。queryVector 非空且库中有向量时走余弦（点积）排序，
         /// 否则回退到对内容/日期的关键词包含匹配。返回前 topN 篇。

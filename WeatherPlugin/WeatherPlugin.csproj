@@ -24,6 +24,8 @@
 
   <ItemGroup>
     <Compile Include="WeatherPlugin.cs" />
+    <Compile Include="WeatherPlugin.Tab.cs" />
+    <Compile Include="winWeatherSetting.CloseHelper.cs" />
     <Compile Include="Models\WeatherResponse.cs" />
     <Compile Include="Models\WeatherSettings.cs" />
     <Compile Include="Utils\HttpHelper.cs" />

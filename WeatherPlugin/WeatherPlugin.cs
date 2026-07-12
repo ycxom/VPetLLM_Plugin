@@ -18,7 +18,7 @@ namespace WeatherPlugin
     /// VPetLLM 天气插件
     /// 支持查询中国地区天气信息
     /// </summary>
-    public class WeatherPlugin : IActionPlugin, IPluginWithData, IDynamicInfoPlugin
+    public partial class WeatherPlugin : IPluginTab, IActionPlugin, IPluginWithData, IDynamicInfoPlugin
     {
         public string Name => "Weather";
         public string Author => "ycxom";
@@ -166,8 +166,12 @@ namespace WeatherPlugin
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                var settingWindow = new winWeatherSetting(this);
-                settingWindow.Show();
+                new System.Windows.Window
+                {
+                    Title = TabTitle, Width = 460, Height = 420,
+                    WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen,
+                    Content = CreatePanel()
+                }.Show();
             });
         }
 

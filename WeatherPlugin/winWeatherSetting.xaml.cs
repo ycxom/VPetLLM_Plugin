@@ -11,7 +11,7 @@ namespace WeatherPlugin
     /// <summary>
     /// winWeatherSetting.xaml 的交互逻辑
     /// </summary>
-    public partial class winWeatherSetting : Window
+    public partial class winWeatherSetting : UserControl
     {
         private readonly WeatherPlugin _plugin;
         private CityVectorSearch? _citySearch;
@@ -121,12 +121,12 @@ namespace WeatherPlugin
             _plugin.UpdateSettings(_settings);
 
             MessageBox.Show("设置已保存", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
-            Close();
+            CloseOwnerWindow();
         }
 
         private void Button_Cancel_Click(object sender, RoutedEventArgs e)
         {
-            Close();
+            CloseOwnerWindow();
         }
 
         private class SearchResultItem

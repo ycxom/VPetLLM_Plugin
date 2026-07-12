@@ -1,85 +1,73 @@
-<Window x:Class="DiaryPlugin.winDiaryViewer"
+<UserControl x:Class="DiaryPlugin.winDiaryViewer"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="日记本"
-        Height="560" Width="820"
-        WindowStartupLocation="CenterScreen"
-        Background="#FAF7F2">
-    <Window.Resources>
-        <Style x:Key="ToolBtn" TargetType="Button">
-            <Setter Property="Background" Value="#8B6F47"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="14,7"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="b" Background="{TemplateBinding Background}"
-                                CornerRadius="5" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="b" Property="Background" Value="#A0825A"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
+        Background="{DynamicResource BackgroundBrush}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/VPetLLM;component/UI/Styles/PluginPanel.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
 
-    <Grid Margin="14">
+    <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 顶部：搜索 -->
-        <Grid Grid.Row="0" Margin="0,0,0,10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <TextBox x:Name="SearchBox" Grid.Column="0" FontSize="14" Padding="8,6"
-                     VerticalContentAlignment="Center" KeyDown="SearchBox_KeyDown"/>
-            <Button Grid.Column="1" Content="搜索" Style="{StaticResource ToolBtn}" Margin="8,0,0,0" Click="Search_Click"/>
-            <Button Grid.Column="2" Content="全部" Style="{StaticResource ToolBtn}" Click="ShowAll_Click"/>
-        </Grid>
+        <!-- 顶部：标题 + 搜索 -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+            <TextBlock Text="日记本" Style="{StaticResource PluginSectionHeader}"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="SearchBox" Grid.Column="0" Style="{StaticResource PluginTextBox}"
+                         FontSize="14" KeyDown="SearchBox_KeyDown"/>
+                <Button Grid.Column="1" Content="搜索" Style="{StaticResource PluginPrimaryButton}"
+                        Margin="8,0,0,0" Click="Search_Click"/>
+                <Button Grid.Column="2" Content="全部" Style="{StaticResource PluginSecondaryButton}"
+                        Margin="8,0,0,0" Click="ShowAll_Click"/>
+            </Grid>
+        </StackPanel>
 
         <!-- 主体：左列表 + 右内容 -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="240"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Background="White" BorderBrush="#E0D8CC" BorderThickness="1" CornerRadius="6">
+            <Border Grid.Column="0" Style="{StaticResource PluginCard}" Padding="4" Margin="0,0,12,0">
                 <ListBox x:Name="DateList" BorderThickness="0" Background="Transparent"
                          SelectionChanged="DateList_SelectionChanged"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Margin="4,6">
-                                <TextBlock Text="{Binding Date}" FontWeight="Bold" FontSize="14" Foreground="#5A4632"/>
-                                <TextBlock Text="{Binding Preview}" FontSize="11" Foreground="#998872"
-                                           TextTrimming="CharacterEllipsis" MaxWidth="180"/>
+                            <StackPanel Margin="6,6">
+                                <TextBlock Text="{Binding Date}" FontWeight="Bold" FontSize="14"
+                                           Foreground="{DynamicResource PrimaryTextBrush}"/>
+                                <TextBlock Text="{Binding Preview}" FontSize="11"
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           TextTrimming="CharacterEllipsis" MaxWidth="200"/>
                             </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
             </Border>
 
-            <Border Grid.Column="1" Background="White" BorderBrush="#E0D8CC" BorderThickness="1"
-                    CornerRadius="6" Margin="10,0,0,0">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
+            <Border Grid.Column="1" Style="{StaticResource PluginCard}" Margin="0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
-                        <TextBlock x:Name="ContentDate" FontSize="18" FontWeight="Bold" Foreground="#5A4632" Margin="0,0,0,10"/>
-                        <TextBlock x:Name="ContentBody" FontSize="14" Foreground="#3A3226" TextWrapping="Wrap" LineHeight="24"/>
+                        <TextBlock x:Name="ContentDate" FontSize="18" FontWeight="Bold"
+                                   Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,10"/>
+                        <TextBlock x:Name="ContentBody" FontSize="14"
+                                   Foreground="{DynamicResource PrimaryTextBrush}"
+                                   TextWrapping="Wrap" LineHeight="24"/>
                     </StackPanel>
                 </ScrollViewer>
             </Border>
@@ -87,9 +75,14 @@
 
         <!-- 底部：操作 -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
-            <Button Content="立即补写今天" Style="{StaticResource ToolBtn}" Click="WriteToday_Click"/>
-            <Button Content="清除全部日记" Style="{StaticResource ToolBtn}" Background="#B4544A" Click="ClearAll_Click"/>
-            <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="#998872" FontSize="12"/>
+            <Button Content="立即补写今天" Style="{StaticResource PluginPrimaryButton}"
+                    Margin="0,0,8,0" Click="WriteToday_Click"/>
+            <Button Content="删除本篇" Style="{StaticResource PluginSecondaryButton}"
+                    Margin="0,0,8,0" Click="DeleteOne_Click"/>
+            <Button Content="清除全部日记" Style="{StaticResource PluginDangerButton}"
+                    Margin="0,0,8,0" Click="ClearAll_Click"/>
+            <TextBlock x:Name="StatusText" VerticalAlignment="Center"
+                       Foreground="{DynamicResource SecondaryTextBrush}" FontSize="12"/>
         </StackPanel>
     </Grid>
-</Window>
+</UserControl>
