@@ -153,6 +153,10 @@ namespace WebSearchPlugin
         private HttpClient CreateHttpClient(VPetLLM.Setting.ProxySetting proxySetting)
         {
             HttpClientHandler handler = new HttpClientHandler();
+            // 自动解压 gzip/deflate/br，减少传输量并兼容只返回压缩内容的站点
+            handler.AutomaticDecompression = System.Net.DecompressionMethods.GZip
+                | System.Net.DecompressionMethods.Deflate
+                | System.Net.DecompressionMethods.Brotli;
             bool useProxy = proxySetting.IsEnabled && (proxySetting.ForAllAPI || proxySetting.ForPlugin);
             if (useProxy)
             {
@@ -173,7 +177,10 @@ namespace WebSearchPlugin
             }
             else { handler.UseProxy = false; }
             var client = new HttpClient(handler);
-            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+            // 完整的浏览器 UA 和 Accept 头，降低被站点当作爬虫拦截的概率
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
+            client.DefaultRequestHeaders.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            client.DefaultRequestHeaders.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,ja;q=0.7");
             client.Timeout = TimeSpan.FromSeconds(30);
             return client;
         }

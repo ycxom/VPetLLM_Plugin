@@ -117,7 +117,7 @@
       "en": "Search internet content or fetch webpage content (Markdown format)"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WebSearchPlugin/plugin/WebSearchPlugin.dll",
-    "SHA256": "45a944748666a37d4e51fb3c8b1e5a64e7df7827ab117ba2570bf0465f729c33"
+    "SHA256": "2b31545f189c1eb45b2e559b18c86777b0c0ef123640b3709699003905af2a1e"
   },
   "WeatherPlugin": {
     "Name": "Weather",

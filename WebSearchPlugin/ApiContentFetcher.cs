@@ -34,14 +34,28 @@ namespace WebSearchPlugin
 
         public async Task<FetchResult> FetchAsync(string url)
         {
-            string apiError = "";
-            try
+            string apiError;
+
+            // 内置凭证走服务端的签名鉴权，而签名鉴权要求 steam_id 为正整数。
+            // 非 Steam 用户 SteamID 恒为 0，请求必定 403，跳过以免每次白等一轮网络往返。
+            if (_useBuiltInCredentials && _steamId == 0)
             {
-                var result = await FetchViaApiAsync(url);
-                if (result.Success) return result;
-                apiError = result.ErrorMessage;
+                apiError = "内置凭证需要 Steam 版 VPet（当前 SteamID 为 0），API 模式不可用";
             }
-            catch (Exception ex) { apiError = ex.Message; }
+            else
+            {
+                apiError = "";
+                try
+                {
+                    var result = await FetchViaApiAsync(url);
+                    if (result.Success) return result;
+                    apiError = result.ErrorMessage;
+                }
+                catch (Exception ex) { apiError = ex.Message; }
+            }
+
+            // 失败原因此前被直接丢弃，导致日志里只看得到「已降级」而无从排查
+            VPetLLM.Utils.System.Logger.Log($"ApiContentFetcher: API 模式失败: {apiError}");
 
             if (_enableFallback && _fallbackFetcher is not null)
             {
@@ -55,14 +69,16 @@ namespace WebSearchPlugin
 
         private async Task<FetchResult> FetchViaApiAsync(string url)
         {
-            var requestUrl = $"{_apiUrl}?url={Uri.EscapeDataString(url)}&output_format=markdown";
-            using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            // 后端 /extract 为 POST，参数从 JSON body 读取（不接受 query string）
+            using var request = new HttpRequestMessage(HttpMethod.Post, _apiUrl);
+            var payload = JsonConvert.SerializeObject(new { url = url, output_format = "markdown" });
+            request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
             if (!string.IsNullOrEmpty(_bearerToken))
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _bearerToken);
             if (_useBuiltInCredentials) await AddAuthHeadersAsync(request);
             var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)
-                return new FetchResult { Success = false, Mode = "API", ErrorMessage = $"HTTP {(int)response.StatusCode}" };
+                return new FetchResult { Success = false, Mode = "API", ErrorMessage = await DescribeErrorAsync(response) };
             var json = await response.Content.ReadAsStringAsync();
             ApiResponse? apiResponse;
             try { apiResponse = JsonConvert.DeserializeObject<ApiResponse>(json); }
@@ -70,6 +86,23 @@ namespace WebSearchPlugin
             if (apiResponse is null || !apiResponse.Success)
                 return new FetchResult { Success = false, Mode = "API", ErrorMessage = "API returned false" };
             return new FetchResult { Success = true, Content = apiResponse.Content, Mode = "API", UsedFallback = false };
+        }
+
+        /// <summary>
+        /// 提取错误详情：后端返回 {"error":"..."}，鉴权代理返回 {"success":false,"message":"..."}
+        /// </summary>
+        private static async Task<string> DescribeErrorAsync(HttpResponseMessage response)
+        {
+            var status = $"HTTP {(int)response.StatusCode}";
+            try
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(body)) return status;
+                var detail = JsonConvert.DeserializeObject<ApiErrorResponse>(body);
+                var message = detail?.Error ?? detail?.Message;
+                return string.IsNullOrWhiteSpace(message) ? status : $"{status}: {message}";
+            }
+            catch { return status; }
         }
 
 
