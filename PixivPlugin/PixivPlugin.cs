@@ -225,7 +225,9 @@ namespace PixivPlugin
 
             if (!_settings.UseProxy)
             {
-                _imageLoader.SetProxy(null);
+                // 用户明确关闭代理 → 直连（不再静默落到系统代理）
+                _imageLoader.SetProxy(null, useSystemProxy: false);
+                Log("Pixiv Plugin: Proxy disabled, using direct connection");
                 return;
             }
 
@@ -235,28 +237,27 @@ namespace PixivPlugin
                 var vpetProxy = _vpetLLM?.Settings?.Proxy;
                 if (vpetProxy is not null && vpetProxy.IsEnabled)
                 {
-                    // 如果跟随系统代理，则不设置自定义代理（让系统处理）
                     if (vpetProxy.FollowSystemProxy)
                     {
-                        _imageLoader.SetProxy(null);
+                        _imageLoader.SetProxy(null, useSystemProxy: true);
                         Log("Pixiv Plugin: Following system proxy");
                     }
                     else if (!string.IsNullOrEmpty(vpetProxy.Address))
                     {
                         var proxyUrl = $"{vpetProxy.Protocol}://{vpetProxy.Address}";
-                        _imageLoader.SetProxy(proxyUrl);
+                        _imageLoader.SetProxy(proxyUrl, useSystemProxy: false);
                         Log($"Pixiv Plugin: Using VPetLLM proxy: {proxyUrl}");
                     }
                     else
                     {
-                        _imageLoader.SetProxy(null);
-                        Log("Pixiv Plugin: VPetLLM proxy address is empty");
+                        _imageLoader.SetProxy(null, useSystemProxy: false);
+                        Log("Pixiv Plugin: VPetLLM proxy address is empty, using direct connection");
                     }
                 }
                 else
                 {
-                    _imageLoader.SetProxy(null);
-                    Log("Pixiv Plugin: VPetLLM proxy not enabled");
+                    _imageLoader.SetProxy(null, useSystemProxy: false);
+                    Log("Pixiv Plugin: VPetLLM proxy not enabled, using direct connection");
                 }
                 return;
             }
@@ -264,7 +265,13 @@ namespace PixivPlugin
             // 使用自定义代理设置
             if (!string.IsNullOrEmpty(_settings.ProxyUrl))
             {
-                _imageLoader.SetProxy(_settings.ProxyUrl);
+                _imageLoader.SetProxy(_settings.ProxyUrl, useSystemProxy: false);
+            }
+            else
+            {
+                // 选择了自定义代理但未填地址 → 直连
+                _imageLoader.SetProxy(null, useSystemProxy: false);
+                Log("Pixiv Plugin: Custom proxy URL empty, using direct connection");
             }
         }
 

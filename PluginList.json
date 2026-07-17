@@ -129,7 +129,7 @@
       "en": "Query weather information for China regions. Note: This API only supports China region data."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WeatherPlugin/plugin/WeatherPlugin.dll",
-    "SHA256": "402608ea7afb121b50ca4b186b188c18d04582a2a4cda913336a41e693bae4c3"
+    "SHA256": "58493fb68e1c51f6e63319e6ab2c1f79642c951e605c6fd5cfdfa83d7f0842f9"
   },
   "PixivPlugin": {
     "Name": "Pixiv",
@@ -141,7 +141,7 @@
       "en": "Search Pixiv images or get random recommended images."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/PixivPlugin/plugin/PixivPlugin.dll",
-    "SHA256": "c56bde6fba34557cf60df250f4904fde0f353a72f2390fb36484b74a4cff5d8a"
+    "SHA256": "17dbb5174b29801426b6f705107f87a348fd4ba7997e016f863fc5c79a66e8b9"
   },
   "StickerPlugin": {
     "Name": "Sticker",

@@ -138,6 +138,19 @@
         <StackPanel Grid.Row="1" Margin="0,0,0,15">
             <TextBlock Text="请求超时 (Timeout in seconds):" Foreground="#323130" FontWeight="Bold" FontSize="13" Margin="0,0,0,5"/>
             <TextBox x:Name="TextBox_Timeout" Height="28" VerticalContentAlignment="Center"/>
+
+            <TextBlock Text="网络代理 (Proxy):" Foreground="#323130" FontWeight="Bold" FontSize="13" Margin="0,10,0,5"/>
+            <ComboBox x:Name="ComboBox_ProxyMode" Height="28"
+                      Background="#FFFFFF" Foreground="#323130" BorderBrush="#E1DFDD"
+                      VerticalContentAlignment="Center"
+                      SelectionChanged="ComboBox_ProxyMode_SelectionChanged">
+                <ComboBoxItem Content="跟随系统代理" Tag="System"/>
+                <ComboBoxItem Content="直连（不使用代理）" Tag="Direct"/>
+                <ComboBoxItem Content="自定义代理" Tag="Custom"/>
+            </ComboBox>
+            <TextBox x:Name="TextBox_ProxyAddress" Height="28" Margin="0,5,0,0"
+                     VerticalContentAlignment="Center" Visibility="Collapsed"
+                     ToolTip="如 http://127.0.0.1:7890 或 socks5://127.0.0.1:7891"/>
         </StackPanel>
 
         <Border Grid.Row="2" Background="#FFF4CE" BorderBrush="#FF8C00" BorderThickness="1"

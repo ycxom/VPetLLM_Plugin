@@ -17,6 +17,7 @@ namespace PixivPlugin.Services
         private HttpClient _httpClient;
         private HttpClient _proxyHttpClient; // 用于反向代理请求（不带 Referer）
         private string? _proxyUrl;
+        private bool _useSystemProxy;
         private ImageProxyService? _imageProxyService;
         
         // 图片缓存（URL -> BitmapImage）
@@ -26,8 +27,9 @@ namespace PixivPlugin.Services
 
         public ImageLoader()
         {
-            _httpClient = CreateHttpClient(null, addReferer: true);
-            _proxyHttpClient = CreateHttpClient(null, addReferer: false);
+            // 初始默认跟随系统代理（与历史行为一致），随后由 ApplyProxySettings 按设置覆盖
+            _httpClient = CreateHttpClient(null, useSystemProxy: true, addReferer: true);
+            _proxyHttpClient = CreateHttpClient(null, useSystemProxy: true, addReferer: false);
         }
 
         /// <summary>
@@ -39,21 +41,25 @@ namespace PixivPlugin.Services
         }
 
         /// <summary>
-        /// 设置代理
+        /// 设置代理。
+        /// proxyUrl 非空 = 自定义代理；useSystemProxy = 跟随系统代理；两者都否 = 直连。
+        /// 区分"直连"与"系统代理"：HttpClientHandler 默认 UseProxy=true 会静默走系统代理，
+        /// 因此直连必须显式 UseProxy=false。
         /// </summary>
-        public void SetProxy(string? proxyUrl)
+        public void SetProxy(string? proxyUrl, bool useSystemProxy = false)
         {
             _proxyUrl = proxyUrl;
+            _useSystemProxy = useSystemProxy;
             _httpClient.Dispose();
             _proxyHttpClient.Dispose();
-            _httpClient = CreateHttpClient(proxyUrl, addReferer: true);
-            _proxyHttpClient = CreateHttpClient(proxyUrl, addReferer: false);
+            _httpClient = CreateHttpClient(proxyUrl, useSystemProxy, addReferer: true);
+            _proxyHttpClient = CreateHttpClient(proxyUrl, useSystemProxy, addReferer: false);
         }
 
-        private HttpClient CreateHttpClient(string? proxyUrl, bool addReferer = true)
+        private HttpClient CreateHttpClient(string? proxyUrl, bool useSystemProxy, bool addReferer = true)
         {
             HttpClientHandler handler;
-            
+
             if (!string.IsNullOrEmpty(proxyUrl))
             {
                 try
@@ -66,13 +72,19 @@ namespace PixivPlugin.Services
                 }
                 catch (Exception)
                 {
-                    // 代理URL格式错误，使用默认handler
-                    handler = new HttpClientHandler();
+                    // 代理URL格式错误，回退为直连
+                    handler = new HttpClientHandler { UseProxy = false, Proxy = null };
                 }
+            }
+            else if (useSystemProxy)
+            {
+                // 跟随系统代理（UseProxy=true 且 Proxy=null 即使用系统代理）
+                handler = new HttpClientHandler();
             }
             else
             {
-                handler = new HttpClientHandler();
+                // 直连
+                handler = new HttpClientHandler { UseProxy = false, Proxy = null };
             }
 
             var client = new HttpClient(handler);

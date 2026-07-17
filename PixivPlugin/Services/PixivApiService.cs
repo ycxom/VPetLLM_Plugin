@@ -21,7 +21,8 @@ namespace PixivPlugin.Services
         {
             _steamId = steamId;
             _getAuthKey = getAuthKey;
-            _httpClient = new HttpClient();
+            // 中转服务器可直连，显式禁用代理（避免 HttpClientHandler 默认静默走系统代理）
+            _httpClient = new HttpClient(new HttpClientHandler { UseProxy = false, Proxy = null });
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {ApiKey}");
             _httpClient.Timeout = TimeSpan.FromSeconds(30);
         }

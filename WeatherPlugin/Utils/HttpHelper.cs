@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +11,62 @@ namespace WeatherPlugin.Utils
     /// </summary>
     public static class HttpHelper
     {
-        private static readonly HttpClient _client = new HttpClient();
+        private static readonly object _clientLock = new object();
+        private static HttpClient _client = CreateClient("System", "");
+
+        /// <summary>
+        /// 按代理设置重建 HttpClient。
+        /// mode: System = 跟随系统代理；Direct = 直连；Custom = 自定义代理地址。
+        /// 说明：HttpClientHandler 默认 UseProxy=true 会静默使用系统代理，直连必须显式关闭。
+        /// </summary>
+        public static void Configure(string proxyMode, string? proxyAddress)
+        {
+            lock (_clientLock)
+            {
+                // 不 Dispose 旧实例，避免打断进行中的请求（交由 GC 回收）
+                _client = CreateClient(proxyMode, proxyAddress ?? "");
+            }
+        }
+
+        private static HttpClient CreateClient(string proxyMode, string proxyAddress)
+        {
+            HttpClientHandler handler;
+            switch (proxyMode)
+            {
+                case "Direct":
+                    handler = new HttpClientHandler { UseProxy = false, Proxy = null };
+                    break;
+
+                case "Custom":
+                    if (!string.IsNullOrWhiteSpace(proxyAddress))
+                    {
+                        try
+                        {
+                            var address = proxyAddress.Contains("://") ? proxyAddress : $"http://{proxyAddress}";
+                            handler = new HttpClientHandler
+                            {
+                                Proxy = new WebProxy(new Uri(address)),
+                                UseProxy = true
+                            };
+                        }
+                        catch
+                        {
+                            handler = new HttpClientHandler { UseProxy = false, Proxy = null };
+                        }
+                    }
+                    else
+                    {
+                        handler = new HttpClientHandler { UseProxy = false, Proxy = null };
+                    }
+                    break;
+
+                case "System":
+                default:
+                    handler = new HttpClientHandler();
+                    break;
+            }
+            return new HttpClient(handler);
+        }
 
         /// <summary>
         /// 发送带参数的 GET 请求

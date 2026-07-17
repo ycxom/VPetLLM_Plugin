@@ -49,6 +49,31 @@ namespace WeatherPlugin
         {
             ComboBox_City.Text = _settings.DefaultCity;
             TextBox_Timeout.Text = _settings.TimeoutSeconds.ToString();
+
+            // 加载代理设置
+            var proxyMode = _settings.ProxyMode ?? "System";
+            foreach (ComboBoxItem item in ComboBox_ProxyMode.Items)
+            {
+                if ((string)item.Tag == proxyMode)
+                {
+                    ComboBox_ProxyMode.SelectedItem = item;
+                    break;
+                }
+            }
+            if (ComboBox_ProxyMode.SelectedItem is null)
+            {
+                ComboBox_ProxyMode.SelectedIndex = 0;
+            }
+            TextBox_ProxyAddress.Text = _settings.ProxyAddress ?? "";
+            TextBox_ProxyAddress.Visibility = proxyMode == "Custom" ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void ComboBox_ProxyMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ComboBox_ProxyMode.SelectedItem is ComboBoxItem item && TextBox_ProxyAddress is not null)
+            {
+                TextBox_ProxyAddress.Visibility = (string)item.Tag == "Custom" ? Visibility.Visible : Visibility.Collapsed;
+            }
         }
 
         private void Button_Search_Click(object sender, RoutedEventArgs e)
@@ -117,6 +142,13 @@ namespace WeatherPlugin
             }
 
             _settings.TimeoutSeconds = timeout;
+
+            // 保存代理设置
+            if (ComboBox_ProxyMode.SelectedItem is ComboBoxItem proxyItem)
+            {
+                _settings.ProxyMode = (string)proxyItem.Tag;
+            }
+            _settings.ProxyAddress = TextBox_ProxyAddress.Text.Trim();
 
             _plugin.UpdateSettings(_settings);
 

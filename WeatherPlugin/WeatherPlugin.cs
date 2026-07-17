@@ -180,6 +180,7 @@ namespace WeatherPlugin
         public void LoadSettings()
         {
             _settings = PluginConfigHelper.Load<WeatherSettings>("Weather");
+            Utils.HttpHelper.Configure(_settings.ProxyMode, _settings.ProxyAddress);
         }
 
         public void SaveSettings()
@@ -193,6 +194,7 @@ namespace WeatherPlugin
         {
             _settings = settings;
             _weatherProvider?.SetTimeout(_settings.TimeoutSeconds);
+            Utils.HttpHelper.Configure(_settings.ProxyMode, _settings.ProxyAddress);
             SaveSettings();
         }
 
