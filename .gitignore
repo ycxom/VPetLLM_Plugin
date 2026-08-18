@@ -1,5 +1,8 @@
 */bin
 */obj
+RemoteChatPlugin/plugin/
+RemoteChatPlugin/**/bin/
+RemoteChatPlugin/**/obj/
 *.log
 DevelopData
 

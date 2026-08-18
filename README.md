@@ -551,6 +551,57 @@ public Task<string> Function(string arguments)
 - **启用/禁用**: 通过勾选插件列表中的复选框来启用或禁用插件
 - **卸载**: 选择一个插件，然后点击"卸载插件"按钮来删除它
 
+### 上架到插件商店（PluginList.json）
+
+商店列表就是仓库根目录的 `PluginList.json`，一个插件一条：
+
+```jsonc
+{
+  "ExamplePlugin": {
+    "Name": "example",
+    "Author": "ycxom",
+    "Description": {
+      "zh-hans": "中文描述",
+      "zh-hant": "繁體描述",
+      "en": "English description",
+      "ja": "日本語の説明"
+    },
+    "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ExamplePlugin/plugin/ExamplePlugin.dll",
+    "SHA256": "……",
+    "Published": true      // 可选，见下
+  }
+}
+```
+
+`SHA256` 用 `Update-PluginSHA.ps1 -PluginId <ID> -DllPath <DLL>` 更新，别手填。
+
+#### `Published`：给没做完的插件占位
+
+可选字段，**不写就等于已上线**（所以现有条目都不用动）。
+
+写 `"Published": false` 时，这一条在 VPetLLM 的插件商店里**完全不出现**：
+
+- 不会作为可安装的在线插件展示
+- 也不会给本地已装的同名插件推更新——半成品不该被推给已经装了的人
+
+用途是**先占住条目和 ID**：插件还在做，但想让 `PluginList.json` 里先有它的位置
+（比如已经确定了 ID、名字、下载路径），做完后把 `false` 改成 `true`（或直接删掉这个字段）即可上线。
+
+```jsonc
+"MyUnfinishedPlugin": {
+  "Name": "my_unfinished",
+  "Author": "ycxom",
+  "Description": { "zh-hans": "还在做", "en": "Work in progress" },
+  "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MyUnfinishedPlugin/plugin/MyUnfinishedPlugin.dll",
+  "SHA256": "",
+  "Published": false
+}
+```
+
+> 值要写成不带引号的 `true` / `false`。写成字符串 `"false"` 也认（并在日志里提醒改正）；
+> 写成别的（`0`、`"yes"` 之类）识别不了，会按**已上线**处理并记一条日志——
+> 所以改完记得在客户端刷新一次插件列表确认。
+
 ---
 
 ## AI 如何调用插件

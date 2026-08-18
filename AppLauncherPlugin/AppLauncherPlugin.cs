@@ -79,6 +79,9 @@ namespace AppLauncherPlugin
             public bool EnableSteamGames { get; set; } = true;
             public bool LogLaunches { get; set; } = true;
             public string SteamPath { get; set; } = "";
+
+            /// <summary>是否允许远端浏览器批准启动应用。默认关闭：启动确认强制在桌面本机进行。</summary>
+            public bool AllowRemoteApproval { get; set; } = false;
         }
 
         public void Initialize(VPetLLM.VPetLLM plugin)
@@ -387,15 +390,48 @@ namespace AppLauncherPlugin
             }
         }
 
-        private Task<bool> ShowLaunchConfirmDialogAsync(string appDisplayName)
+        private async Task<bool> ShowLaunchConfirmDialogAsync(string appDisplayName)
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var language = _vpetLLM?.Settings.Language ?? "en";
 
+            // 统一交互入口：本地弹桌面窗口，远端推送到 WebUI 等待回执。
+            if (_vpetLLM?.Interaction is { } interaction)
+            {
+                var (title, message, confirmText, cancelText) = language switch
+                {
+                    "zh-hans" => ("应用启动器 - 启动确认", $"AI 请求启动以下应用程序：{appDisplayName}", "启动", "取消"),
+                    "zh-hant" => ("應用啟動器 - 啟動確認", $"AI 請求啟動以下應用程序：{appDisplayName}", "啟動", "取消"),
+                    "ja" => ("アプリランチャー - 起動確認", $"AIが以下のアプリの起動を要求しています：{appDisplayName}", "起動", "キャンセル"),
+                    _ => ("AppLauncher - Launch Confirmation", $"AI requests to launch the following application: {appDisplayName}", "Launch", "Cancel")
+                };
+                try
+                {
+                    var result = await interaction.RequestAsync(new VPetLLM.Core.Interaction.InteractionRequest
+                    {
+                        Kind = VPetLLM.Core.Interaction.InteractionKind.Confirm,
+                        Source = Name,
+                        Title = title,
+                        Message = message,
+                        ConfirmText = confirmText,
+                        CancelText = cancelText,
+                        Timeout = TimeSpan.FromSeconds(30),
+                        AllowRemote = _setting.AllowRemoteApproval
+                    });
+                    return result.Confirmed;
+                }
+                catch (Exception ex)
+                {
+                    _vpetLLM?.Log($"AppLauncher: Error requesting confirmation: {ex.Message}");
+                    return false;
+                }
+            }
+
+            // 兜底：退回原有本地弹窗。
+            var tcs = new TaskCompletionSource<bool>();
             try
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    var language = _vpetLLM?.Settings.Language ?? "en";
                     var confirmWindow = new winLaunchConfirm(appDisplayName, language, 15);
                     confirmWindow.ShowDialog();
                     tcs.SetResult(confirmWindow.IsConfirmed);
@@ -406,8 +442,7 @@ namespace AppLauncherPlugin
                 _vpetLLM?.Log($"AppLauncher: Error showing confirm dialog: {ex.Message}");
                 tcs.SetResult(false);
             }
-
-            return tcs.Task;
+            return await tcs.Task;
         }
 
         private string LaunchCustomApp(CustomApp app)

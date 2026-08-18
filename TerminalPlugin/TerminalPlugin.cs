@@ -18,6 +18,9 @@ namespace TerminalPlugin
     {
         public bool HasConfirmedWarning { get; set; } = false;
         public bool IsAuthorized { get; set; } = false;
+
+        /// <summary>是否允许远端浏览器批准终端命令。高危，默认关闭：命令确认强制在桌面本机进行。</summary>
+        public bool AllowRemoteApproval { get; set; } = false;
     }
 
     /// <summary>
@@ -561,28 +564,54 @@ CMDコマンドを実行してユーザーを支援できます。CMD構文を�
         /// <summary>
         /// 显示命令确认弹窗
         /// </summary>
-        private Task<(bool Confirmed, string Command)> ShowCommandConfirmDialogAsync(string command)
+        private async Task<(bool Confirmed, string Command)> ShowCommandConfirmDialogAsync(string command)
         {
-            var tcs = new TaskCompletionSource<(bool, string)>();
+            var language = GetLanguage();
+            var shellName = _currentShell.ToString();
 
+            // 通过 VPetLLM 的统一交互入口发起确认：本地聊天会弹出桌面窗口，
+            // 远端聊天会把请求推送到 WebUI 并等待回执。
+            if (_vpetLLM?.Interaction is { } interaction)
+            {
+                var (title, message, confirmText, cancelText) = language switch
+                {
+                    "zh-hans" => ($"终端 - 命令确认（{shellName}）", "AI 请求执行以下命令，请在执行前核对，可修改：", "执行", "取消"),
+                    "zh-hant" => ($"終端 - 命令確認（{shellName}）", "AI 請求執行以下命令，請在執行前核對，可修改：", "執行", "取消"),
+                    "ja" => ($"ターミナル - コマンド確認（{shellName}）", "AIが以下のコマンドの実行を要求しています。実行前に確認し、必要なら変更してください：", "実行", "キャンセル"),
+                    _ => ($"Terminal - Command Confirmation ({shellName})", "AI requests to execute the following command. Verify before running; you may edit it:", "Execute", "Cancel")
+                };
+                try
+                {
+                    var result = await interaction.RequestAsync(new VPetLLM.Core.Interaction.InteractionRequest
+                    {
+                        Kind = VPetLLM.Core.Interaction.InteractionKind.Confirm,
+                        Source = Name,
+                        Title = title,
+                        Message = message,
+                        DefaultValue = command,
+                        ConfirmText = confirmText,
+                        CancelText = cancelText,
+                        Timeout = TimeSpan.FromMinutes(2),
+                        AllowRemote = _settings.AllowRemoteApproval
+                    });
+                    return (result.Confirmed, string.IsNullOrWhiteSpace(result.Value) ? command : result.Value.Trim());
+                }
+                catch (Exception ex)
+                {
+                    _vpetLLM?.Log($"Terminal: Error requesting confirmation: {ex.Message}");
+                    return (false, command);
+                }
+            }
+
+            // 兜底：无法访问交互服务时退回原有本地弹窗。
+            var tcs = new TaskCompletionSource<(bool, string)>();
             try
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    var language = GetLanguage();
-                    var shellName = _currentShell.ToString();
-
                     var confirmWindow = new winCommandConfirm(command, shellName, language);
-                    var result = confirmWindow.ShowDialog();
-
-                    if (result == true && confirmWindow.IsConfirmed)
-                    {
-                        tcs.SetResult((true, confirmWindow.Command));
-                    }
-                    else
-                    {
-                        tcs.SetResult((false, command));
-                    }
+                    var dialog = confirmWindow.ShowDialog();
+                    tcs.SetResult(dialog == true && confirmWindow.IsConfirmed ? (true, confirmWindow.Command) : (false, command));
                 });
             }
             catch (Exception ex)
@@ -590,8 +619,7 @@ CMDコマンドを実行してユーザーを支援できます。CMD構文を�
                 _vpetLLM?.Log($"Terminal: Error showing confirm dialog: {ex.Message}");
                 tcs.SetResult((false, command));
             }
-
-            return tcs.Task;
+            return await tcs.Task;
         }
 
         private string HandleAction(string action)

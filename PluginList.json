@@ -81,7 +81,7 @@
       "en": "Allows AI to launch applications with support for custom app paths and automatic system app recognition."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/AppLauncherPlugin/plugin/AppLauncherPlugin.dll",
-    "SHA256": "bcfd1f79e0dacb92236be64149737435feebc7ab784248730d661d8aaa48ba51"
+    "SHA256": "1e8b581979309007844dc921b51fe45ff1cdb8fc3a99e4bb7acf8b2774f2ca83"
   },
   "MinecraftVersionPlugin": {
     "Name": "MinecraftVersionWatcher",
@@ -165,7 +165,7 @@
       "en": "Allows AI to execute terminal commands, supporting PowerShell and CMD."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/TerminalPlugin/plugin/TerminalPlugin.dll",
-    "SHA256": "c1977c9cac2afa2b25a69622a171c7d06cc1fdec77537f8bdcbeac27ad3cc1fb"
+    "SHA256": "ab576ada1c63c89769470908a4f02b87b4820b3bdc855f571b396476276a5a7c"
   },
   "OneBotPlugin": {
     "Name": "onebot",
