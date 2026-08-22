@@ -8,6 +8,8 @@
     <UseWPF>true</UseWPF>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <!-- SMTC 走裸 COM vtable 调用，需要函数指针 -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,14 +26,24 @@
 
   <ItemGroup>
     <Compile Include="ForegroundAppPlugin.cs" />
+    <Compile Include="Localization.cs" />
+    <Compile Include="AppFilter.cs" />
+    <Compile Include="SmtcInterop.cs" />
     <Compile Include="ForegroundAppPlugin.Tab.cs" />
     <Compile Include="winForegroundAppSetting.CloseHelper.cs" />
     <Compile Include="winForegroundAppSetting.xaml.cs">
       <DependentUpon>winForegroundAppSetting.xaml</DependentUpon>
     </Compile>
+    <Compile Include="winAppPicker.xaml.cs">
+      <DependentUpon>winAppPicker.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Page Include="winForegroundAppSetting.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="winAppPicker.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

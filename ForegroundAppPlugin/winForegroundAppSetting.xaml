@@ -31,7 +31,60 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="BtnSubtle" TargetType="Button" BasedOn="{StaticResource BtnPrimary}">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+            <Setter Property="Padding" Value="12,6"/>
+        </Style>
+
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#605E5C"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <Style x:Key="Hint" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#8A8886"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="14"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
+        </Style>
     </UserControl.Resources>
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -39,19 +92,113 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="ForegroundApp Settings"
+        <TextBlock x:Name="TextBlock_Title" Grid.Row="0" Text="Foreground App Settings"
                    Foreground="#323130" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,15"/>
 
-        <StackPanel Grid.Row="1">
-            <TextBlock Text="Jitter Delay (s):" Foreground="#605E5C" FontSize="12" Margin="0,0,0,5"/>
-            <TextBox x:Name="TextBox_JitterDelay" Height="28"
-                     Background="#FFFFFF" Foreground="#323130"
-                     BorderBrush="#E1DFDD" BorderThickness="1" Padding="8,6"/>
-        </StackPanel>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Save" Width="100" Height="35" Click="Button_Save_Click"
-                    Style="{StaticResource BtnPrimary}"/>
+                <!-- 前台应用 -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock x:Name="TextBlock_SectionApp" Text="Foreground Application"
+                                   Style="{StaticResource SectionHeader}"/>
+                        <TextBlock x:Name="TextBlock_LabelJitter" Text="Poll interval (s)"
+                                   Style="{StaticResource FieldLabel}"/>
+                        <TextBox x:Name="TextBox_JitterDelay"/>
+                        <TextBlock x:Name="TextBlock_HintJitter" Style="{StaticResource Hint}"
+                                   Text="How often the foreground window is checked."/>
+                    </StackPanel>
+                </Border>
+
+                <!-- SMTC 媒体 -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock x:Name="TextBlock_SectionMedia" Text="Media Playback (SMTC)"
+                                   Style="{StaticResource SectionHeader}"/>
+
+                        <CheckBox x:Name="CheckBox_EnableMedia" Content="Detect currently playing media"
+                                  Checked="CheckBox_EnableMedia_Toggled" Unchecked="CheckBox_EnableMedia_Toggled"/>
+                        <TextBlock x:Name="TextBlock_HintMedia" Style="{StaticResource Hint}"
+                                   Text="Reads the track from Windows System Media Transport Controls."/>
+
+                        <StackPanel x:Name="Panel_MediaOptions" Margin="0,12,0,0">
+                            <TextBlock x:Name="TextBlock_LabelMediaInterval" Text="Media poll interval (s)"
+                                       Style="{StaticResource FieldLabel}"/>
+                            <TextBox x:Name="TextBox_MediaPollInterval" Margin="0,0,0,12"/>
+
+                            <CheckBox x:Name="CheckBox_MediaInDynamicInfo"
+                                      Content="Include now playing in the AI's context"/>
+                            <CheckBox x:Name="CheckBox_NotifyOnTrackChange" Margin="0,8,0,0"
+                                      Content="Notify the AI when the track changes"/>
+                            <TextBlock x:Name="TextBlock_HintNotify" Style="{StaticResource Hint}"
+                                       Text="Off by default: on a short playlist this can interrupt often."/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 隐私过滤 -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock x:Name="TextBlock_SectionPrivacy" Text="Privacy Filter"
+                                   Style="{StaticResource SectionHeader}"/>
+
+                        <TextBlock x:Name="TextBlock_LabelKeywords" Text="Blocked keywords"
+                                   Style="{StaticResource FieldLabel}"/>
+                        <TextBox x:Name="TextBox_Keywords" Height="70" AcceptsReturn="True"
+                                 TextWrapping="NoWrap" VerticalContentAlignment="Top"
+                                 VerticalScrollBarVisibility="Auto"/>
+                        <TextBlock x:Name="TextBlock_HintKeywords" Style="{StaticResource Hint}"/>
+                        <CheckBox x:Name="CheckBox_KeywordsMedia" Margin="0,8,0,0"
+                                  Content="Also apply keywords to media titles"/>
+
+                        <TextBlock x:Name="TextBlock_LabelFilterMode" Text="App list mode"
+                                   Style="{StaticResource FieldLabel}" Margin="0,16,0,4"/>
+                        <ComboBox x:Name="ComboBox_FilterMode" Height="28"
+                                  VerticalContentAlignment="Center"
+                                  SelectionChanged="ComboBox_FilterMode_SelectionChanged"/>
+
+                        <StackPanel x:Name="Panel_FilterList" Margin="0,12,0,0">
+                            <Grid Margin="0,0,0,4">
+                                <TextBlock x:Name="TextBlock_LabelFilterList" Text="App list (process names)"
+                                           Style="{StaticResource FieldLabel}" Margin="0" VerticalAlignment="Center"/>
+                                <Button x:Name="Button_BrowseApps" Content="Browse apps..."
+                                        HorizontalAlignment="Right" Style="{StaticResource BtnSubtle}"
+                                        Click="Button_BrowseApps_Click"/>
+                            </Grid>
+                            <TextBox x:Name="TextBox_FilterList" Height="80" AcceptsReturn="True"
+                                     TextWrapping="NoWrap" VerticalContentAlignment="Top"
+                                     VerticalScrollBarVisibility="Auto"
+                                     TextChanged="TextBox_FilterList_TextChanged"/>
+                            <TextBlock x:Name="TextBlock_HintFilterList" Style="{StaticResource Hint}"/>
+                            <TextBlock x:Name="TextBlock_WhitelistWarning" Style="{StaticResource Hint}"
+                                       Foreground="#A4262C" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 当前识别结果 -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock x:Name="TextBlock_SectionPreview" Text="Currently Detected"
+                                       Style="{StaticResource SectionHeader}" Margin="0"/>
+                            <Button x:Name="Button_Refresh" Content="Refresh" HorizontalAlignment="Right"
+                                    Style="{StaticResource BtnSubtle}" Click="Button_Refresh_Click"/>
+                        </Grid>
+                        <TextBlock x:Name="TextBlock_PreviewApp" Foreground="#605E5C" FontSize="12"
+                                   TextWrapping="Wrap" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="TextBlock_PreviewMedia" Foreground="#605E5C" FontSize="12"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button x:Name="Button_Save" Content="Save" Width="100" Height="35"
+                    Click="Button_Save_Click" Style="{StaticResource BtnPrimary}"/>
         </StackPanel>
     </Grid>
 </UserControl>

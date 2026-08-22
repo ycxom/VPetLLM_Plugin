@@ -63,13 +63,14 @@
     "Name": "ForegroundAppWatcher",
     "Author": "ycxom",
     "Description": {
-      "ja": "フォアグラウンドアプリケーションを監視し、その名前をAIに提供します。",
-      "zh-hans": "监视前台应用程序并将其名称提供给 AI。",
-      "zh-hant": "監視前臺應用程序並將其名稱提供給 AI。",
-      "en": "Monitors the foreground application and provides the name to the AI."
+      "en": "Monitors the foreground application (including window title) and the currently playing media reported by Windows SMTC, and provides them to the AI. Keyword and allow/deny list filters keep private apps out of the AI's context.",
+      "zh-hans": "监视前台应用程序（包括窗口标题）以及 Windows SMTC 报告的当前播放媒体，并将其提供给 AI。可用关键词和黑白名单过滤，让隐私应用不进入 AI 上下文。",
+      "zh-hant": "監視前臺應用程式（包括視窗標題）以及 Windows SMTC 回報的當前播放媒體，並將其提供給 AI。可用關鍵詞和黑白名單過濾，讓隱私應用不進入 AI 上下文。",
+      "jp": "フォアグラウンドアプリケーション（ウィンドウタイトルを含む）と Windows SMTC が報告する再生中のメディアを監視し、AI に提供します。キーワードと許可/拒否リストでプライベートなアプリを AI のコンテキストから除外できます。",
+      "ja": "フォアグラウンドアプリケーション（ウィンドウタイトルを含む）と Windows SMTC が報告する再生中のメディアを監視し、AI に提供します。キーワードと許可/拒否リストでプライベートなアプリを AI のコンテキストから除外できます。"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ForegroundAppPlugin/plugin/ForegroundAppPlugin.dll",
-    "SHA256": "0040c579154220f74152113b0d39e2cdccddc68ba9d31e00441edf5f2f35eb50"
+    "SHA256": "002318e6dcb02112dadc15475ac2a42cce6ccfd0f39877ae35ac8b51e92707e4"
   },
   "AppLauncherPlugin": {
     "Name": "AppLauncher",
@@ -81,7 +82,7 @@
       "en": "Allows AI to launch applications with support for custom app paths and automatic system app recognition."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/AppLauncherPlugin/plugin/AppLauncherPlugin.dll",
-    "SHA256": "1e8b581979309007844dc921b51fe45ff1cdb8fc3a99e4bb7acf8b2774f2ca83"
+    "SHA256": "2913215b9d41a8c379ed61eab047d2534ce129d18bf53c1f3d876d3cdd897123"
   },
   "MinecraftVersionPlugin": {
     "Name": "MinecraftVersionWatcher",

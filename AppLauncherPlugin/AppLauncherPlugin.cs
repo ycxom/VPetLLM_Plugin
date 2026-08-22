@@ -36,7 +36,25 @@ namespace AppLauncherPlugin
             }
         }
         public string Parameters => "app_name|action(setting|list)";
-        public string Examples => "Examples: `<|plugin_AppLauncher_begin|> notepad <|plugin_AppLauncher_end|>`, `<|plugin_AppLauncher_begin|> action(setting) <|plugin_AppLauncher_end|>`, `<|plugin_AppLauncher_begin|> action(list) <|plugin_AppLauncher_end|>`";
+        /// <summary>
+        /// 只有这个属性是「纯提示词」用途——宿主把插件列表拼成 `{Name}: {Description} {Examples}`，
+        /// 而 Description 同时要显示在设置界面里。所以给 AI 的调用指引全部写在这儿。
+        /// 之前 AI 基本不调用本插件，原因有二：没告诉它什么时候该用；也没说清参数要去掉 `[分类]` 前缀。
+        /// </summary>
+        public string Examples =>
+            "\nWHEN TO USE: call this plugin whenever the user asks to open, launch, start or run any "
+            + "application, program or game (e.g. \"open chrome\", \"打开记事本\", \"帮我启动这个游戏\", "
+            + "\"メモ帳を開いて\"). Do not just reply that you cannot open programs - you can, with this plugin.\n"
+            + "HOW TO CALL: pass the application name ONLY, spelled exactly as it appears in the "
+            + "\"AppLauncher can launch\" list, and STRIP the bracketed category prefix - "
+            + "write `notepad`, never `[System] notepad` or `[Steam] Game Name`.\n"
+            + "Format: `<|plugin_AppLauncher_begin|> APP_NAME <|plugin_AppLauncher_end|>`\n"
+            + "Examples: `<|plugin_AppLauncher_begin|> notepad <|plugin_AppLauncher_end|>` opens Notepad. "
+            + "`<|plugin_AppLauncher_begin|> chrome <|plugin_AppLauncher_end|>` opens Chrome. "
+            + "`<|plugin_AppLauncher_begin|> action(list) <|plugin_AppLauncher_end|>` lists every launchable app. "
+            + "`<|plugin_AppLauncher_begin|> action(setting) <|plugin_AppLauncher_end|>` opens the settings window.\n"
+            + "NOTE: the user always gets a confirmation dialog before anything starts, so call it once and "
+            + "report whatever the plugin returns - if the user declines, accept it and do not retry.";
         public bool Enabled { get; set; } = true;
         public string FilePath { get; set; } = "";
         public string PluginDataDir { get; set; } = "";
@@ -312,6 +330,10 @@ namespace AppLauncherPlugin
 
         private (string processName, string displayName, Func<string>? launchAction) ResolveLaunchTarget(string appName)
         {
+            // AI 经常把可用列表里的整行原样传回来（"[Steam] Half-Life"）。提示词里已经交代过要去掉
+            // 分类前缀，但这里再兜一层：否则前面所有匹配都落空，最后会拿这串去"直接启动"然后失败。
+            appName = StripCategoryPrefix(appName);
+
             // 1. 自定义应用（精确）
             var customApp = _setting.CustomApps.FirstOrDefault(app =>
                 app.Name.Equals(appName, StringComparison.OrdinalIgnoreCase));
@@ -359,6 +381,21 @@ namespace AppLauncherPlugin
 
             // 5. 直接启动
             return (GetProcessNameFromPath(appName), appName, () => LaunchDirectly(appName));
+        }
+
+        /// <summary>去掉 GetAvailableApps 加的 "[系统] " / "[Steam] " 之类前缀。</summary>
+        private static string StripCategoryPrefix(string appName)
+        {
+            if (string.IsNullOrWhiteSpace(appName)) return appName ?? "";
+
+            var trimmed = appName.Trim();
+            if (!trimmed.StartsWith("[")) return trimmed;
+
+            var close = trimmed.IndexOf(']');
+            if (close < 0 || close == trimmed.Length - 1) return trimmed;
+
+            var stripped = trimmed.Substring(close + 1).Trim();
+            return stripped.Length > 0 ? stripped : trimmed;
         }
 
         private static string GetProcessNameFromPath(string pathOrCommand)
@@ -945,7 +982,10 @@ namespace AppLauncherPlugin
                 var moreCount = availableApps.Count - displayApps.Count;
 
                 var appList = string.Join(", ", displayApps);
-                var result = $"Available applications for AppLauncher plugin: {appList}";
+                // 明确写出「去掉方括号前缀」：列表项自带 [系统]/[Steam] 这类分类，
+                // 但 Function() 收的是裸应用名，不说清楚 AI 就会把整行原样传回来。
+                var result = "AppLauncher can launch these applications right now "
+                           + $"(when calling, pass only the name, without the [..] category prefix): {appList}";
 
                 if (moreCount > 0)
                 {
