@@ -45,6 +45,16 @@ namespace ForegroundAppPlugin
         private volatile MediaSnapshot? _currentMedia;
         private string _lastNotifiedTrackKey = string.Empty;
         private volatile FilterDecision _lastFilterDecision = FilterDecision.Allow;
+        private string _lastLoggedZombie = string.Empty;
+
+        // 「声称在播、进度却不动」的连续观测计数
+        private string _staleTrackKey = string.Empty;
+        private long _stalePositionTicks = -1;
+        private int _staleHits;
+        private bool _staleLogged;
+
+        /// <summary>连续多少轮进度纹丝不动才判定为残影。默认 5 秒一轮，3 次即约 15 秒。</summary>
+        private const int StaleHitThreshold = 3;
 
         public class Setting
         {
@@ -269,12 +279,17 @@ namespace ForegroundAppPlugin
                         if (_setting.EnableMedia)
                         {
                             var snapshot = SmtcInterop.TryGetSnapshot();
-                            if (snapshot != null && snapshot.HasMedia && IsMediaSuppressed(snapshot))
+                            if (snapshot == null)
+                            {
+                                ResetStaleTracking();
+                            }
+                            else if (IsStalePlayback(snapshot) || (snapshot.IsActive && IsMediaSuppressed(snapshot)))
                             {
                                 snapshot = null;
                             }
-                            _currentMedia = snapshot != null && snapshot.HasMedia ? snapshot : null;
+                            _currentMedia = snapshot != null && snapshot.IsActive ? snapshot : null;
                             NotifyTrackChangeIfNeeded(_currentMedia);
+                            LogZombieOnce();
                         }
                         else
                         {
@@ -295,6 +310,81 @@ namespace ForegroundAppPlugin
             {
                 SmtcInterop.Shutdown();
             }
+        }
+
+        /// <summary>
+        /// 会话声称在播，进度却纹丝不动——这是播放器没正确注销 SMTC 留下的残影。
+        ///
+        /// 网易云音乐属于这一类：关掉播放后进程常驻托盘，SMTC 会话仍挂在 Playing 上，
+        /// 曲目停在最后一首。因为进程确实还活着，靠"源进程还在吗"是抓不到的，
+        /// 只能看进度有没有往前走。实测正常播放时进度稳定推进，所以停滞是个可靠信号。
+        /// </summary>
+        private bool IsStalePlayback(MediaSnapshot snapshot)
+        {
+            if (snapshot.Status != SmtcPlaybackStatus.Playing)
+            {
+                ResetStaleTracking();
+                return false;
+            }
+
+            // 直播流没有总时长，进度可能恒为 0，不参与判定，免得误杀。
+            if (snapshot.Duration <= TimeSpan.Zero)
+            {
+                ResetStaleTracking();
+                return false;
+            }
+
+            // 进度恒为 0 的多半是压根不上报 timeline 的播放器（实测 mpv 就是这样，
+            // 明明在放，Position 一直是 0）。残影则会停在用户上次听到的那个非 0 位置，
+            // 所以把 0 排除掉，既保住这类播放器，又几乎不影响残影识别。
+            if (snapshot.Position <= TimeSpan.Zero)
+            {
+                ResetStaleTracking();
+                return false;
+            }
+
+            var ticks = snapshot.Position.Ticks;
+            if (snapshot.TrackKey == _staleTrackKey && ticks == _stalePositionTicks)
+            {
+                _staleHits++;
+            }
+            else
+            {
+                _staleTrackKey = snapshot.TrackKey;
+                _stalePositionTicks = ticks;
+                _staleHits = 0;
+                _staleLogged = false;
+            }
+
+            if (_staleHits < StaleHitThreshold) return false;
+
+            if (!_staleLogged)
+            {
+                _staleLogged = true;
+                _vpetLLM?.Log($"ForegroundAppPlugin: Ignoring stale SMTC session from '{snapshot.AppId}' "
+                              + $"- reports Playing but position has not advanced for {_staleHits} polls.");
+            }
+            return true;
+        }
+
+        private void ResetStaleTracking()
+        {
+            _staleTrackKey = string.Empty;
+            _stalePositionTicks = -1;
+            _staleHits = 0;
+            _staleLogged = false;
+        }
+
+        /// <summary>
+        /// 被判定为僵尸而丢弃的会话记一行日志，方便排查"明明关了还在报歌"。
+        /// 同一个来源只记一次——轮询每几秒一轮，不加这层去重会把日志刷满。
+        /// </summary>
+        private void LogZombieOnce()
+        {
+            var zombie = SmtcInterop.LastSuppressedZombie;
+            if (string.IsNullOrEmpty(zombie) || zombie == _lastLoggedZombie) return;
+            _lastLoggedZombie = zombie;
+            _vpetLLM?.Log($"ForegroundAppPlugin: Ignored stale SMTC session from '{zombie}' (its process is gone).");
         }
 
         private void NotifyTrackChangeIfNeeded(MediaSnapshot? snapshot)
@@ -344,7 +434,7 @@ namespace ForegroundAppPlugin
             }
 
             var media = _currentMedia;
-            if (_setting.MediaInDynamicInfo && media != null && media.HasMedia)
+            if (_setting.MediaInDynamicInfo && media != null && media.IsActive)
             {
                 if (parts.Length > 0) parts.Append('\n');
                 var verb = media.Status == SmtcPlaybackStatus.Playing ? "is listening to" : "has paused";
@@ -382,7 +472,7 @@ namespace ForegroundAppPlugin
             if (!_setting.EnableMedia) return Lang.T(CurrentLanguage, "preview_media_off");
 
             var media = _currentMedia;
-            if (media == null || !media.HasMedia) return Lang.T(CurrentLanguage, "preview_no_media");
+            if (media == null || !media.IsActive) return Lang.T(CurrentLanguage, "preview_no_media");
 
             var statusKey = media.Status switch
             {

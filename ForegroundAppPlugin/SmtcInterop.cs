@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -28,6 +29,13 @@ namespace ForegroundAppPlugin
         public TimeSpan Duration;
 
         public bool HasMedia => !string.IsNullOrWhiteSpace(Title);
+
+        /// <summary>
+        /// 真的值得报给 AI 吗。Closed/Stopped 说明播放器收摊了（不肯注销会话的播放器
+        /// 常年停在这两个状态上），Opened/Changing 是切歌途中的过渡态，都不算。
+        /// </summary>
+        public bool IsActive => HasMedia
+                                && (Status == SmtcPlaybackStatus.Playing || Status == SmtcPlaybackStatus.Paused);
 
         /// <summary>曲目标识：只含「是哪首歌」，不含播放状态，避免暂停/继续被当成切歌。</summary>
         public string TrackKey => AppId + "\u0001" + Title + "\u0001" + Artist + "\u0001" + Album;
@@ -59,6 +67,11 @@ namespace ForegroundAppPlugin
 
         // IGlobalSystemMediaTransportControlsSessionManager
         private const int Slot_Manager_GetCurrentSession = 6;
+        private const int Slot_Manager_GetSessions = 7;
+
+        // Windows.Foundation.Collections.IVectorView<T>
+        private const int Slot_VectorView_GetAt = 6;
+        private const int Slot_VectorView_Size = 7;
 
         // IGlobalSystemMediaTransportControlsSession
         private const int Slot_Session_SourceAppUserModelId = 6;
@@ -128,38 +141,150 @@ namespace ForegroundAppPlugin
             }
         }
 
-        /// <summary>读取当前 SMTC 会话。没有会话、SMTC 不可用或调用失败时返回 null。</summary>
+        /// <summary>
+        /// 读取当前该展示的 SMTC 会话。没有会话、SMTC 不可用或调用失败时返回 null。
+        ///
+        /// 不能只信 GetCurrentSession：有些播放器退出时不注销自己的 SMTC 会话（网易云音乐是
+        /// 已知的一个），进程都没了，系统还在把它当当前会话往外报，于是桌宠一直以为你在听歌，
+        /// 真正在播的播放器还会被这个僵尸会话挡在后面。所以这里枚举全部会话，先按
+        /// "源进程还活着吗" 筛一遍，再从活着的里面挑。
+        /// </summary>
         public static MediaSnapshot? TryGetSnapshot()
         {
             var manager = GetManager();
             if (manager == IntPtr.Zero) return null;
 
-            if (GetPointer(manager, Slot_Manager_GetCurrentSession, out IntPtr session) < 0)
+            // 当前会话的 AUMID：它仍然是首选，只是不再无条件采信。
+            string currentAppId = string.Empty;
+            if (GetPointer(manager, Slot_Manager_GetCurrentSession, out IntPtr currentSession) < 0)
             {
                 // 管理器指针失效（例如 RPC 断开），丢掉重建，下一轮再试。
                 Shutdown();
                 return null;
             }
-            if (session == IntPtr.Zero) return null;
+            if (currentSession != IntPtr.Zero)
+            {
+                try { currentAppId = ReadAppId(currentSession); }
+                finally { Release(currentSession); }
+            }
+
+            if (GetPointer(manager, Slot_Manager_GetSessions, out IntPtr sessions) < 0 || sessions == IntPtr.Zero)
+                return null;
 
             try
             {
-                var snapshot = new MediaSnapshot();
+                if (GetUInt32(sessions, Slot_VectorView_Size, out uint count) < 0 || count == 0) return null;
 
-                if (GetPointer(session, Slot_Session_SourceAppUserModelId, out IntPtr appId) >= 0)
-                    snapshot.AppId = ConsumeHString(appId);
-                snapshot.AppName = FriendlyAppName(snapshot.AppId);
+                // 进程名快照每轮只取一次：枚举全部进程要 ~11ms，按会话逐个查会白白翻倍。
+                var liveProcesses = new Lazy<HashSet<string>>(SnapshotProcessNames);
 
-                ReadPlaybackInfo(session, snapshot);
-                ReadTimeline(session, snapshot);
-                ReadMediaProperties(session, snapshot);
+                MediaSnapshot? best = null;
+                int bestScore = int.MinValue;
 
-                return snapshot;
+                for (uint i = 0; i < count; i++)
+                {
+                    if (GetAt(sessions, Slot_VectorView_GetAt, i, out IntPtr session) < 0 || session == IntPtr.Zero)
+                        continue;
+                    try
+                    {
+                        var appId = ReadAppId(session);
+                        if (!IsSourceAlive(appId, liveProcesses))
+                        {
+                            LastSuppressedZombie = appId;
+                            continue;
+                        }
+
+                        var snapshot = new MediaSnapshot { AppId = appId, AppName = FriendlyAppName(appId) };
+                        ReadPlaybackInfo(session, snapshot);
+                        ReadTimeline(session, snapshot);
+                        ReadMediaProperties(session, snapshot);
+
+                        int score = ScoreSession(snapshot, appId, currentAppId);
+                        if (score > bestScore)
+                        {
+                            bestScore = score;
+                            best = snapshot;
+                        }
+                    }
+                    finally
+                    {
+                        Release(session);
+                    }
+                }
+
+                return best;
             }
             finally
             {
-                Release(session);
+                Release(sessions);
             }
+        }
+
+        /// <summary>
+        /// 多个会话时挑一个。正在播的永远压过暂停的——这正是网易云留下僵尸会话时想要的结果：
+        /// 就算僵尸没被进程检查拦住，真正在响的那个也会赢。同分再看是不是系统认定的当前会话。
+        /// </summary>
+        private static int ScoreSession(MediaSnapshot snapshot, string appId, string currentAppId)
+        {
+            int score = snapshot.Status switch
+            {
+                SmtcPlaybackStatus.Playing => 400,
+                SmtcPlaybackStatus.Paused => 200,
+                _ => 0,     // Closed / Stopped / Opened / Changing：过渡或收尾状态，基本没价值
+            };
+
+            if (!string.IsNullOrEmpty(appId) &&
+                string.Equals(appId, currentAppId, StringComparison.OrdinalIgnoreCase))
+                score += 50;
+
+            if (snapshot.HasMedia) score += 10;
+            return score;
+        }
+
+        /// <summary>最近一次被判定为僵尸而丢弃的会话 AUMID，仅用于日志排查。</summary>
+        public static string LastSuppressedZombie { get; private set; } = string.Empty;
+
+        private static string ReadAppId(IntPtr session)
+            => GetPointer(session, Slot_Session_SourceAppUserModelId, out IntPtr appId) >= 0
+                ? ConsumeHString(appId)
+                : string.Empty;
+
+        /// <summary>
+        /// 会话背后的进程是否还在。
+        ///
+        /// 只对能确定映射的桌面程序下结论：AUMID 形如 "cloudmusic.exe" / "QQMusic.exe" 时进程名就是
+        /// 去掉扩展名的部分。UWP 的 AUMID 是 "包族名!AppId"，跟真实进程名（Music.UI.exe 之类）对不上，
+        /// 猜不准就一律放行——错杀一个正在放歌的会话，比留着一个僵尸会话更糟。
+        /// </summary>
+        private static bool IsSourceAlive(string appId, Lazy<HashSet<string>> liveProcesses)
+        {
+            if (!TryGetProcessName(appId, out var processName)) return true;
+
+            try { return liveProcesses.Value.Contains(processName); }
+            catch { return true; }   // 枚举进程失败就别拦，宁可多报也不要漏报
+        }
+
+        private static bool TryGetProcessName(string appId, out string processName)
+        {
+            processName = string.Empty;
+            if (string.IsNullOrWhiteSpace(appId)) return false;
+            if (appId.IndexOf('!') >= 0) return false;                                  // UWP，推不出来
+            if (!appId.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) return false;
+
+            processName = appId.Substring(0, appId.Length - 4);
+            return processName.Length > 0;
+        }
+
+        private static HashSet<string> SnapshotProcessNames()
+        {
+            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var process in Process.GetProcesses())
+            {
+                try { names.Add(process.ProcessName); }
+                catch { /* 进程可能刚好退出，跳过 */ }
+                finally { process.Dispose(); }
+            }
+            return names;
         }
 
         private static void ReadPlaybackInfo(IntPtr session, MediaSnapshot snapshot)
@@ -357,6 +482,21 @@ namespace ForegroundAppPlugin
             IntPtr* vtable = *(IntPtr**)instance;
             var fn = (delegate* unmanaged[Stdcall]<IntPtr, out int, int>)vtable[slot];
             return fn(instance, out value);
+        }
+
+        private static int GetUInt32(IntPtr instance, int slot, out uint value)
+        {
+            IntPtr* vtable = *(IntPtr**)instance;
+            var fn = (delegate* unmanaged[Stdcall]<IntPtr, out uint, int>)vtable[slot];
+            return fn(instance, out value);
+        }
+
+        /// <summary>IVectorView&lt;T&gt;::GetAt —— 比其他取值多一个索引入参。</summary>
+        private static int GetAt(IntPtr instance, int slot, uint index, out IntPtr value)
+        {
+            IntPtr* vtable = *(IntPtr**)instance;
+            var fn = (delegate* unmanaged[Stdcall]<IntPtr, uint, out IntPtr, int>)vtable[slot];
+            return fn(instance, index, out value);
         }
 
         private static int GetInt64(IntPtr instance, int slot, out long value)

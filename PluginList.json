@@ -70,7 +70,7 @@
       "ja": "フォアグラウンドアプリケーション（ウィンドウタイトルを含む）と Windows SMTC が報告する再生中のメディアを監視し、AI に提供します。キーワードと許可/拒否リストでプライベートなアプリを AI のコンテキストから除外できます。"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ForegroundAppPlugin/plugin/ForegroundAppPlugin.dll",
-    "SHA256": "002318e6dcb02112dadc15475ac2a42cce6ccfd0f39877ae35ac8b51e92707e4"
+    "SHA256": "da2bd2af320a1a2bc3df06515b651d7cd74dfc005ec9d9897dc4f74218973666"
   },
   "AppLauncherPlugin": {
     "Name": "AppLauncher",
