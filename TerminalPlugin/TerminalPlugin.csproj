@@ -26,10 +26,25 @@
     <None Update="TerminalPlugin.rules.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- 命令执行拆在独立进程里，跟着插件一起分发。
+       目的是让 VPet 进程不再出现"隐藏窗口拉起 cmd.exe 并回收三条流"这条行为特征——
+       所有 shell 相关的代码和字面量都只存在于这个 exe 中。 -->
+  <PropertyGroup>
+    <TerminalHostProject>$(MSBuildProjectDirectory)\..\TerminalHost\TerminalHost.csproj</TerminalHostProject>
+    <TerminalHostPublishDir>$(MSBuildProjectDirectory)\..\TerminalHost\publish\</TerminalHostPublishDir>
+    <TerminalHostExe>$(TerminalHostPublishDir)VPetLLM.TerminalHost.exe</TerminalHostExe>
+  </PropertyGroup>
+
+  <Target Name="PublishTerminalHost" AfterTargets="Build" BeforeTargets="CopyPlugin">
+    <Message Text="Publishing TerminalHost..." Importance="high" />
+    <Exec Command="dotnet publish &quot;$(TerminalHostProject)&quot; -c $(Configuration) -o &quot;$(TerminalHostPublishDir)&quot;" />
+  </Target>
+
   <Target Name="CopyPlugin" AfterTargets="Build">
     <ItemGroup>
       <PluginFiles Include="$(OutDir)$(TargetName).dll" />
       <PluginFiles Include="$(ProjectDir)TerminalPlugin.rules.json" />
+      <PluginFiles Include="$(TerminalHostExe)" />
     </ItemGroup>
     <Copy SourceFiles="@(PluginFiles)" DestinationFolder="plugin" />
   </Target>
@@ -42,7 +57,8 @@
       <TargetDllPath>$(ProjectDir)plugin\$(TargetName).dll</TargetDllPath>
       <BuildHelperCommand>dotnet build "$(HelperProject)" -c $(Configuration)</BuildHelperCommand>
       <RulesFilePath>$(ProjectDir)plugin\TerminalPlugin.rules.json</RulesFilePath>
-      <ExecHelperCommand>"$(HelperExe)" "$(ProjectName)" "$(TargetDllPath)" "$(PluginListPath)" "$(RulesFilePath)"</ExecHelperCommand>
+      <HostExePath>$(ProjectDir)plugin\VPetLLM.TerminalHost.exe</HostExePath>
+      <ExecHelperCommand>"$(HelperExe)" "$(ProjectName)" "$(TargetDllPath)" "$(PluginListPath)" "$(RulesFilePath)" "$(HostExePath)"</ExecHelperCommand>
     </PropertyGroup>
     <Message Text="Building SHA Helper..." Importance="high" />
     <Exec Command="$(BuildHelperCommand)" />

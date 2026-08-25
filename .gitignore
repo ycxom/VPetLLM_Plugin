@@ -10,3 +10,7 @@ DevelopData
 .vscode
 .kiro
 .ide
+
+# TerminalHost 的发布产物：exe 已经通过 TerminalPlugin/plugin/ 分发，
+# 这里再存一份只会让仓库凭空多出一个二进制副本
+TerminalHost/publish/

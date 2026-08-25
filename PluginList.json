@@ -166,15 +166,20 @@
       "en": "Allows AI to execute terminal commands, supporting PowerShell and CMD."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/TerminalPlugin/plugin/TerminalPlugin.dll",
-    "SHA256": "214ebc5d25145263c0aeb21f3a1fe6c17201bdd4d2e0d3f21ca65421331d5980",
+    "SHA256": "8528393fbae7ee9d1395b6c8cc8f09471e03b4452dee3345a8f5da5f1594ea50",
     "Extra": [
       {
         "Name": "TerminalPlugin.rules.json",
         "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/TerminalPlugin/plugin/TerminalPlugin.rules.json",
         "SHA256": "2c5b9973cc6f09c04b07747d085f891a1129cee82385132c6e8052d68db6e39f"
+      },
+      {
+        "Name": "VPetLLM.TerminalHost.exe",
+        "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/TerminalPlugin/plugin/VPetLLM.TerminalHost.exe",
+        "SHA256": "70fdfa6d61c3456b36ca2571878aa5d9ac58b4f55ed965de22266fd7501f67b1"
       }
     ],
-  "Published": false
+    "Published": false
   },
   "OneBotPlugin": {
     "Name": "onebot",
