@@ -19,9 +19,17 @@
     </Reference>
   </ItemGroup>
 
+  <!-- 安全规则表随 DLL 一起分发。放数据文件而不是编进 IL，是因为 vssadmin /
+       bcdedit / certutil 这类字面量成片出现在程序集里时，杀软会把这张黑名单
+       当成勒索软件的载荷清单来打分。 -->
+  <ItemGroup>
+    <None Update="TerminalPlugin.rules.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <Target Name="CopyPlugin" AfterTargets="Build">
     <ItemGroup>
       <PluginFiles Include="$(OutDir)$(TargetName).dll" />
+      <PluginFiles Include="$(ProjectDir)TerminalPlugin.rules.json" />
     </ItemGroup>
     <Copy SourceFiles="@(PluginFiles)" DestinationFolder="plugin" />
   </Target>
@@ -33,7 +41,8 @@
       <PluginListPath>$(MSBuildProjectDirectory)\..\PluginList.json</PluginListPath>
       <TargetDllPath>$(ProjectDir)plugin\$(TargetName).dll</TargetDllPath>
       <BuildHelperCommand>dotnet build "$(HelperProject)" -c $(Configuration)</BuildHelperCommand>
-      <ExecHelperCommand>"$(HelperExe)" "$(ProjectName)" "$(TargetDllPath)" "$(PluginListPath)"</ExecHelperCommand>
+      <RulesFilePath>$(ProjectDir)plugin\TerminalPlugin.rules.json</RulesFilePath>
+      <ExecHelperCommand>"$(HelperExe)" "$(ProjectName)" "$(TargetDllPath)" "$(PluginListPath)" "$(RulesFilePath)"</ExecHelperCommand>
     </PropertyGroup>
     <Message Text="Building SHA Helper..." Importance="high" />
     <Exec Command="$(BuildHelperCommand)" />

@@ -9,7 +9,12 @@ namespace TerminalPlugin
         public bool IsConfirmed { get; private set; } = false;
         public string Command { get; private set; } = "";
 
-        public winCommandConfirm(string command, string shellName, string language = "en")
+        /// <param name="dangerReason">
+        /// 安全评估给出的高危理由；非空时弹窗顶部会展示红色告警条。
+        /// 命令仍然可以放行 —— 判定为"高危"只是要求用户显式确认，
+        /// 真正不可挽回的操作在到达这里之前就已经被拒绝了。
+        /// </param>
+        public winCommandConfirm(string command, string shellName, string language = "en", string dangerReason = "")
         {
             InitializeComponent();
             _language = language;
@@ -17,6 +22,25 @@ namespace TerminalPlugin
             txtCommand.Text = command;
 
             ApplyLocalization(shellName);
+            ApplyDangerState(dangerReason);
+        }
+
+        private void ApplyDangerState(string dangerReason)
+        {
+            if (string.IsNullOrWhiteSpace(dangerReason)) return;
+
+            borderDanger.Visibility = Visibility.Visible;
+            txtDangerReason.Text = dangerReason;
+            txtDangerTitle.Text = _language switch
+            {
+                "zh-hans" => "高危命令 — 请确认你清楚它会做什么",
+                "zh-hant" => "高危命令 — 請確認你清楚它會做什麼",
+                "ja" => "危険なコマンド — 内容を理解した上で実行してください",
+                _ => "High-risk command — make sure you understand what it does"
+            };
+
+            // 高危时把默认焦点放到取消按钮，避免顺手回车执行
+            btnCancel.Focus();
         }
 
         private void ApplyLocalization(string shellName)

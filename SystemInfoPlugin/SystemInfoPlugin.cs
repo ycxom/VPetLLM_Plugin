@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using VPetLLM;
 using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 
-public class SystemInfoPlugin : IActionPlugin
+public partial class SystemInfoPlugin : IActionPlugin
 {
     public string Name => "system_info";
     public string Author => "ycxom";

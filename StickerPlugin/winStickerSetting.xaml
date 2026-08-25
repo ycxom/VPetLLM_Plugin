@@ -26,6 +26,10 @@
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="#005A9E"/>
                             </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#C8C6C4"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#C8C6C4"/>
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -54,34 +58,9 @@
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="#E1DFDD"/>
                             </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="BtnAction" TargetType="Button">
-            <Setter Property="Background" Value="#F3F2F1"/>
-            <Setter Property="Foreground" Value="#323130"/>
-            <Setter Property="BorderBrush" Value="#E1DFDD"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="12,4"/>
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="1" CornerRadius="4"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#EDEBE9"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#E1DFDD"/>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#FAF9F8"/>
+                                <Setter Property="Foreground" Value="#A19F9D"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -89,131 +68,61 @@
             </Setter>
         </Style>
     </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <Grid Margin="20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <StackPanel Margin="20">
 
-            <TextBlock Grid.Row="0" Text="服务配置"
-                       Foreground="#323130" FontSize="14" FontWeight="Bold" Margin="0,0,0,15"/>
+            <!-- 前置 MOD 状态 -->
+            <TextBlock Text="前置 MOD" Foreground="#323130" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
 
-            <StackPanel Grid.Row="1" Margin="0,0,0,10">
-                <CheckBox x:Name="chkUseBuiltInCredentials" Content="使用内置 API 凭证（推荐）"
-                          Foreground="#323130" FontSize="12" Margin="0,0,0,5"
-                          Checked="chkUseBuiltInCredentials_Changed" Unchecked="chkUseBuiltInCredentials_Changed"/>
-                <TextBlock Text="使用预配置的 API 服务，无需额外设置"
-                           Foreground="#605E5C" FontSize="11" Margin="20,0,0,10"/>
-
-                <StackPanel x:Name="pnlCustomCredentials" Margin="0,5,0,0">
-                    <TextBlock Text="服务地址:" Foreground="#605E5C" FontSize="12" Margin="0,0,0,5"/>
-                    <Grid Margin="0,0,0,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox x:Name="txtServiceUrl" Grid.Column="0" Height="28"
-                                 Background="#FFFFFF" Foreground="#323130" BorderThickness="1"
-                                 BorderBrush="#E1DFDD" Padding="8,6"/>
-                        <Button x:Name="btnTestConnection" Grid.Column="1" Content="测试连接"
-                                Width="80" Margin="10,0,0,0"
-                                Click="btnTestConnection_Click"
-                                Style="{StaticResource BtnAction}"/>
-                    </Grid>
-
-                    <TextBlock Text="API Key:" Foreground="#605E5C" FontSize="12" Margin="0,0,0,5"/>
-                    <PasswordBox x:Name="txtApiKey" Height="28"
-                                 Background="#FFFFFF" Foreground="#323130" BorderThickness="1"
-                                 BorderBrush="#E1DFDD" Padding="8,6"/>
+            <Border x:Name="brdStatus" CornerRadius="4" BorderThickness="1"
+                    BorderBrush="#E1DFDD" Background="#FFFFFF" Padding="14" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock x:Name="txtStatusTitle" Text="正在检测…"
+                               FontSize="13" FontWeight="Bold" Foreground="#323130" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="txtStatusDetail" Text=""
+                               FontSize="12" Foreground="#605E5C" Margin="0,6,0,0" TextWrapping="Wrap"/>
                 </StackPanel>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                <Button x:Name="btnOpenModSettings" Content="打开「LLM表情包」设置"
+                        Click="btnOpenModSettings_Click" Style="{StaticResource BtnPrimary}" Margin="0,0,8,0"/>
+                <Button x:Name="btnCopyWorkshop" Content="复制创意工坊链接"
+                        Click="btnCopyWorkshop_Click" Style="{StaticResource BtnSecondary}" Margin="0,0,8,0"/>
+                <Button x:Name="btnRefresh" Content="重新检测"
+                        Click="btnRefresh_Click" Style="{StaticResource BtnSecondary}"/>
             </StackPanel>
 
-            <TextBlock Grid.Row="3" Text="标签配置"
-                       Foreground="#323130" FontSize="14" FontWeight="Bold" Margin="0,10,0,15"/>
+            <TextBlock Text="服务地址、API Key、显示时长、标签数量等全部配置都在「LLM表情包」MOD 的设置窗口里，本插件不再重复一份。"
+                       FontSize="11" Foreground="#605E5C" TextWrapping="Wrap" Margin="0,0,0,20"/>
 
-            <Grid Grid.Row="4" Margin="0,0,0,15">
+            <!-- 当前生效参数（读自 MOD） -->
+            <TextBlock Text="当前生效参数" Foreground="#323130" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+            <TextBlock x:Name="txtModParams" Text="—" FontSize="12" Foreground="#605E5C"
+                       TextWrapping="Wrap" Margin="0,0,0,20"/>
+
+            <!-- 测试 -->
+            <TextBlock Text="测试" Foreground="#323130" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+            <Grid Margin="0,0,0,6">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                    <TextBlock Text="释放标签数量:" Foreground="#605E5C" FontSize="12" Margin="0,0,0,5"/>
-                    <TextBox x:Name="txtTagCount" Height="28"
-                             Background="#FFFFFF" Foreground="#323130" BorderThickness="1"
-                             BorderBrush="#E1DFDD" Padding="8,6"/>
-                    <TextBlock Text="范围: 1-100" Foreground="#605E5C" FontSize="11" Margin="0,3,0,0"/>
-                </StackPanel>
-
-                <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                    <TextBlock Text="缓存时长 (分钟):" Foreground="#605E5C" FontSize="12" Margin="0,0,0,5"/>
-                    <TextBox x:Name="txtCacheDuration" Height="28"
-                             Background="#FFFFFF" Foreground="#323130" BorderThickness="1"
-                             BorderBrush="#E1DFDD" Padding="8,6"/>
-                </StackPanel>
-            </Grid>
-
-            <TextBlock Grid.Row="5" Text="显示配置"
-                       Foreground="#323130" FontSize="14" FontWeight="Bold" Margin="0,10,0,15"/>
-
-            <StackPanel Grid.Row="6" Margin="0,0,0,10">
-                <TextBlock Text="显示时长 (秒):" Foreground="#605E5C" FontSize="12" Margin="0,0,0,5"/>
-                <TextBox x:Name="txtDisplayDuration" Height="28" Width="150" HorizontalAlignment="Left"
+                <TextBox x:Name="txtTestTags" Grid.Column="0" Height="32" VerticalContentAlignment="Center"
                          Background="#FFFFFF" Foreground="#323130" BorderThickness="1"
-                         BorderBrush="#E1DFDD" Padding="8,6"/>
-                <TextBlock Text="范围: 1-60" Foreground="#605E5C" FontSize="11" Margin="0,3,0,0"/>
-            </StackPanel>
+                         BorderBrush="#E1DFDD" Padding="8,0" Text="可爱, 开心"/>
+                <Button x:Name="btnTestSticker" Grid.Column="1" Content="测试发送" Width="90" Margin="8,0,0,0"
+                        Click="btnTestSticker_Click" Style="{StaticResource BtnPrimary}"/>
+                <Button x:Name="btnTestConnection" Grid.Column="2" Content="测试连接" Width="90" Margin="8,0,0,0"
+                        Click="btnTestConnection_Click" Style="{StaticResource BtnSecondary}"/>
+            </Grid>
+            <TextBlock x:Name="txtTestResult" Text="" FontSize="11" Foreground="#605E5C"
+                       TextWrapping="Wrap" Margin="0,4,0,0"/>
 
-            <StackPanel Grid.Row="7" Margin="0,0,0,10">
-                <TextBlock Text="表情包插件 DLL 路径:" Foreground="#605E5C" FontSize="12" Margin="0,0,0,5"/>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="txtDllPath" Grid.Column="0" Height="28"
-                             Background="#FFFFFF" Foreground="#323130" BorderThickness="1"
-                             BorderBrush="#E1DFDD" Padding="8,6"/>
-                    <Button x:Name="btnBrowse" Grid.Column="1" Content="浏览..."
-                            Width="60" Margin="10,0,0,0"
-                            Click="btnBrowse_Click"
-                            Style="{StaticResource BtnAction}"/>
-                </Grid>
-                <TextBlock Text="VPet.Plugin.Imgae.dll 的完整路径（留空自动查找）" Foreground="#605E5C" FontSize="11" Margin="0,3,0,0"/>
-
-                <TextBlock Text="测试功能" Foreground="#323130" FontSize="14" FontWeight="Bold" Margin="0,20,0,15"/>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="txtTestTags" Grid.Column="0" Height="28"
-                             Background="#FFFFFF" Foreground="#323130" BorderThickness="1"
-                             BorderBrush="#E1DFDD" Padding="8,6" Text="可爱, 开心"/>
-                    <Button x:Name="btnTestSticker" Grid.Column="1" Content="测试发送"
-                            Width="80" Margin="10,0,0,0"
-                            Click="btnTestSticker_Click"
-                            Style="{StaticResource BtnPrimary}"/>
-                </Grid>
-                <TextBlock Text="输入标签测试搜索并显示表情包" Foreground="#605E5C" FontSize="11" Margin="0,3,0,0"/>
-                <TextBlock x:Name="txtTestResult" Text="" Foreground="#605E5C" FontSize="11" Margin="0,5,0,0" TextWrapping="Wrap"/>
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,25,0,10">
-                    <Button x:Name="btnSave" Content="保存" Width="100" Height="35"
-                            Margin="0,0,10,0" Click="btnSave_Click"
-                            Style="{StaticResource BtnPrimary}"/>
-                    <Button x:Name="btnCancel" Content="取消" Width="100" Height="35"
-                            Click="btnCancel_Click"
-                            Style="{StaticResource BtnSecondary}"/>
-                </StackPanel>
-            </StackPanel>
-        </Grid>
+            <Button x:Name="btnClose" Content="关闭" Width="100" HorizontalAlignment="Right"
+                    Margin="0,25,0,0" Click="btnClose_Click" Style="{StaticResource BtnSecondary}"/>
+        </StackPanel>
     </ScrollViewer>
 </UserControl>

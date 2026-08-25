@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- 控制台子系统。宿主启动它时带 CreateNoWindow + 重定向，不会有窗口闪出来；
+         而"控制台工具调用 shell"本身是最正常不过的形态——如果编成 GUI 子系统的
+         无窗口程序再去拉 shell，反而更像恶意软件。 -->
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>VPetLLM.TerminalHost</AssemblyName>
+    <RootNamespace>VPetLLM.TerminalHost</RootNamespace>
+
+    <!-- 单文件、依赖框架：VPet 本身就跑在 .NET 8 上，运行时已经在机器上，
+         不需要自包含那 70MB。发布产物就是一个 exe。 -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+
+    <AssemblyTitle>VPetLLM Terminal Host</AssemblyTitle>
+    <Product>VPetLLM Terminal Host</Product>
+    <Description>Executes shell commands on behalf of the VPetLLM terminal plugin.</Description>
+    <Company>ycxom</Company>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>

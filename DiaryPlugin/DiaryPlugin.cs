@@ -29,7 +29,7 @@ namespace DiaryPlugin
     /// - 日记可 Embedding 向量检索、可在桌面 UI 查看。
     /// - 生成走 ChatCore.Summarize，不打扰宠物对话（不弹气泡/不播 TTS）。
     /// </summary>
-    public class DiaryPlugin : IActionPlugin, IDynamicInfoPlugin, IPluginWithData, IPluginTab
+    public partial class DiaryPlugin : IActionPlugin, IDynamicInfoPlugin, IPluginWithData, IPluginTab
     {
         public string Name => "Diary";
         public string Author => "ycxom";

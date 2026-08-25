@@ -1,132 +1,168 @@
-using System.Windows.Controls;
+using System;
 using System.Windows;
-using Microsoft.Win32;
-using StickerPlugin.Models;
+using System.Windows.Controls;
+using System.Windows.Media;
+using StickerPlugin.Services;
 
 namespace StickerPlugin
 {
     /// <summary>
-    /// winStickerSetting.xaml 的交互逻辑
+    /// winStickerSetting.xaml 的交互逻辑。
+    ///
+    /// 本插件自身没有可配置项 —— 所有参数都归前置 MOD「LLM表情包」管。
+    /// 这个面板只负责三件事：报告 MOD 的可用状态、把用户引导到该装/该开的那一步、
+    /// 以及提供一个不用发消息就能验证链路的测试入口。
     /// </summary>
     public partial class winStickerSetting : UserControl
     {
+        private static readonly Brush Ok = new SolidColorBrush(Color.FromRgb(16, 124, 16));
+        private static readonly Brush Warn = new SolidColorBrush(Color.FromRgb(202, 80, 16));
+        private static readonly Brush Error = new SolidColorBrush(Color.FromRgb(196, 43, 28));
+        private static readonly Brush Muted = new SolidColorBrush(Color.FromRgb(96, 94, 92));
+
         private readonly StickerPlugin _plugin;
-        private readonly PluginSettings _settings;
 
         public winStickerSetting(StickerPlugin plugin)
         {
             InitializeComponent();
             _plugin = plugin;
-            _settings = plugin.GetSettings().Clone();
-            LoadSettingsToUI();
+            RefreshStatus();
         }
 
-        private void LoadSettingsToUI()
+        private void RefreshStatus()
         {
-            // 内置凭证设置
-            chkUseBuiltInCredentials.IsChecked = _settings.UseBuiltInCredentials;
-            // 只加载自定义凭证（不显示内置凭证）
-            txtServiceUrl.Text = _settings.ServiceUrl;
-            txtApiKey.Password = _settings.ApiKey;
-            UpdateCredentialsUI();
+            var bridge = _plugin.GetBridge();
+            if (bridge is null)
+            {
+                Render(Error, "VPet 主窗口尚未就绪",
+                    "插件还没拿到宿主窗口，稍后再打开本面板即可。", canOpenSettings: false, canTest: false);
+                txtModParams.Text = "—";
+                return;
+            }
 
-            txtTagCount.Text = _settings.TagCount.ToString();
-            txtCacheDuration.Text = _settings.CacheDurationMinutes.ToString();
-            txtDisplayDuration.Text = _settings.DisplayDurationSeconds.ToString();
+            switch (bridge.GetStatus())
+            {
+                case ImagePluginStatus.NotInstalled:
+                    Render(Error, $"未安装前置 MOD「{ImagePluginBridge.ImagePluginName}」",
+                        "表情包的显示与图库全部由该 MOD 提供。请到 Steam 创意工坊订阅后重启 VPet。\n" +
+                        ImagePluginBridge.WorkshopUrl,
+                        canOpenSettings: false, canTest: false);
+                    break;
+
+                case ImagePluginStatus.Incompatible:
+                    Render(Error, $"「{ImagePluginBridge.ImagePluginName}」版本过旧",
+                        "已找到该 MOD，但它缺少本插件需要的调用入口。请在创意工坊更新到最新版后重启 VPet。",
+                        canOpenSettings: true, canTest: false);
+                    break;
+
+                case ImagePluginStatus.OnlineLibraryDisabled:
+                    Render(Warn, "在线网络表情包库未启用",
+                        $"「{ImagePluginBridge.ImagePluginName}」已安装，但它的「在线网络表情包库」开关是关的，" +
+                        "表情包发不出来。点下面的按钮打开 MOD 设置并勾选该项。",
+                        canOpenSettings: true, canTest: false);
+                    break;
+
+                case ImagePluginStatus.Ready:
+                    Render(Ok, "就绪",
+                        $"已连接「{ImagePluginBridge.ImagePluginName}」，在线表情包库已启用。",
+                        canOpenSettings: true, canTest: true);
+                    break;
+            }
+
+            txtModParams.Text = bridge.IsPluginFound
+                ? $"显示时长 {bridge.DisplayDurationSeconds} 秒 · 释放给模型的标签数 {bridge.TagCount} 个\n" +
+                  "（以上取自「LLM表情包」MOD 的设置，改动请在那边进行）"
+                : "—";
         }
 
-        private void UpdateCredentialsUI()
+        private void Render(Brush color, string title, string detail, bool canOpenSettings, bool canTest)
         {
-            var useBuiltIn = chkUseBuiltInCredentials.IsChecked == true;
-            // 使用内置凭证时完全隐藏自定义凭证面板
-            pnlCustomCredentials.Visibility = useBuiltIn ? Visibility.Collapsed : Visibility.Visible;
+            txtStatusTitle.Text = title;
+            txtStatusTitle.Foreground = color;
+            txtStatusDetail.Text = detail;
+            brdStatus.BorderBrush = color;
+
+            btnOpenModSettings.IsEnabled = canOpenSettings;
+            btnTestSticker.IsEnabled = canTest;
+            btnTestConnection.IsEnabled = canTest;
         }
 
-        private void chkUseBuiltInCredentials_Changed(object sender, RoutedEventArgs e)
+        private void btnRefresh_Click(object sender, RoutedEventArgs e) => RefreshStatus();
+
+        private void btnOpenModSettings_Click(object sender, RoutedEventArgs e)
         {
-            UpdateCredentialsUI();
+            if (_plugin.GetBridge()?.OpenModSettings() != true)
+            {
+                MessageBox.Show($"未能唤起「{ImagePluginBridge.ImagePluginName}」的设置窗口，请确认该 MOD 已安装并启用。",
+                    "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
-        private bool SaveUIToSettings()
+        private void btnCopyWorkshop_Click(object sender, RoutedEventArgs e)
         {
-            _settings.UseBuiltInCredentials = chkUseBuiltInCredentials.IsChecked == true;
-            _settings.ServiceUrl = txtServiceUrl.Text.Trim();
-            _settings.ApiKey = txtApiKey.Password;
-
-            // 验证自定义凭证
-            if (!_settings.UseBuiltInCredentials)
+            try
             {
-                if (string.IsNullOrWhiteSpace(_settings.ServiceUrl))
-                {
-                    MessageBox.Show("使用自定义凭证时，服务地址不能为空。", "输入错误", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return false;
-                }
+                Clipboard.SetText(ImagePluginBridge.WorkshopUrl);
+                SetResult("创意工坊链接已复制到剪贴板。", Ok);
+            }
+            catch (Exception ex)
+            {
+                SetResult($"复制失败: {ex.Message}", Error);
+            }
+        }
+
+        private async void btnTestSticker_Click(object sender, RoutedEventArgs e)
+        {
+            var tags = txtTestTags.Text.Trim();
+            if (string.IsNullOrWhiteSpace(tags))
+            {
+                SetResult("请输入测试标签。", Warn);
+                return;
             }
 
-            // 解析数值
-            if (!int.TryParse(txtTagCount.Text, out var tagCount))
+            var bridge = _plugin.GetBridge();
+            if (bridge is null)
+                return;
+
+            btnTestSticker.IsEnabled = false;
+            btnTestSticker.Content = "搜索中…";
+            SetResult("正在让 MOD 搜索并显示表情包…", Muted);
+
+            try
             {
-                MessageBox.Show("标签数量必须是有效的整数。", "输入错误", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
+                var shown = await bridge.ShowStickerAsync(tags);
+                SetResult(shown ? "表情包已显示。" : "没有显示出来：可能无匹配结果，或在线库未启用。", shown ? Ok : Warn);
             }
-            _settings.TagCount = tagCount;
-
-            if (!int.TryParse(txtCacheDuration.Text, out var cacheDuration))
+            catch (Exception ex)
             {
-                MessageBox.Show("缓存时长必须是有效的整数。", "输入错误", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
+                SetResult($"测试失败: {ex.Message}", Error);
             }
-            _settings.CacheDurationMinutes = cacheDuration;
-
-            if (!int.TryParse(txtDisplayDuration.Text, out var displayDuration))
+            finally
             {
-                MessageBox.Show("显示时长必须是有效的整数。", "输入错误", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
+                btnTestSticker.IsEnabled = true;
+                btnTestSticker.Content = "测试发送";
+                RefreshStatus();
             }
-            _settings.DisplayDurationSeconds = displayDuration;
-
-            // 验证设置
-            _settings.Validate();
-
-            return true;
         }
 
         private async void btnTestConnection_Click(object sender, RoutedEventArgs e)
         {
+            var bridge = _plugin.GetBridge();
+            if (bridge is null)
+                return;
+
             btnTestConnection.IsEnabled = false;
-            btnTestConnection.Content = "测试中...";
+            btnTestConnection.Content = "测试中…";
+            SetResult("正在测试图库服务连接…", Muted);
 
             try
             {
-                // 获取实际使用的凭证
-                string serviceUrl, apiKey;
-                if (chkUseBuiltInCredentials.IsChecked == true)
-                {
-                    serviceUrl = ApiCredentials.GetBuiltInServiceUrl();
-                    apiKey = ApiCredentials.GetBuiltInApiKey();
-                }
-                else
-                {
-                    serviceUrl = txtServiceUrl.Text.Trim();
-                    apiKey = txtApiKey.Password;
-                }
-
-                using var service = new Services.ImageVectorService(serviceUrl, apiKey, null, 0, null, chkUseBuiltInCredentials.IsChecked == true);
-
-                var result = await service.HealthCheckAsync();
-
-                if (result)
-                {
-                    MessageBox.Show("连接成功！", "测试结果", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                else
-                {
-                    MessageBox.Show("连接失败，请检查服务地址和 API Key。", "测试结果", MessageBoxButton.OK, MessageBoxImage.Warning);
-                }
+                var ok = await bridge.TestConnectionAsync();
+                SetResult(ok ? "连接成功。" : "连接失败，请在 MOD 设置里检查服务地址与 API Key。", ok ? Ok : Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"连接失败: {ex.Message}", "测试结果", MessageBoxButton.OK, MessageBoxImage.Error);
+                SetResult($"测试失败: {ex.Message}", Error);
             }
             finally
             {
@@ -135,77 +171,12 @@ namespace StickerPlugin
             }
         }
 
-        private void btnBrowse_Click(object sender, RoutedEventArgs e)
+        private void btnClose_Click(object sender, RoutedEventArgs e) => CloseOwnerWindow();
+
+        private void SetResult(string text, Brush color)
         {
-            // DLL 路径配置已弃用，不再需要
-            MessageBox.Show(
-                "StickerPlugin 现在完全依赖 VPet.Plugin.Image 插件。\n\n" +
-                "请从 Steam 创意工坊订阅「LLM表情包」插件：\n" +
-                "https://steamcommunity.com/sharedfiles/filedetails/?id=3657291049",
-                "提示",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information
-            );
-        }
-
-        private void btnSave_Click(object sender, RoutedEventArgs e)
-        {
-            if (!SaveUIToSettings())
-            {
-                return;
-            }
-
-            _plugin.UpdateSettings(_settings);
-            MessageBox.Show("设置已保存。", "保存成功", MessageBoxButton.OK, MessageBoxImage.Information);
-            CloseOwnerWindow();
-        }
-
-        private void btnCancel_Click(object sender, RoutedEventArgs e)
-        {
-            CloseOwnerWindow();
-        }
-
-        private async void btnTestSticker_Click(object sender, RoutedEventArgs e)
-        {
-            var tags = txtTestTags.Text.Trim();
-            if (string.IsNullOrWhiteSpace(tags))
-            {
-                txtTestResult.Text = "请输入测试标签";
-                txtTestResult.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 100, 100));
-                return;
-            }
-
-            btnTestSticker.IsEnabled = false;
-            btnTestSticker.Content = "搜索中...";
-            txtTestResult.Text = "正在搜索表情包...";
-            txtTestResult.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(170, 170, 170));
-
-            try
-            {
-                // 调用插件的 Function 方法测试
-                var result = await _plugin.Function($"action(send), tags({tags})");
-                
-                if (string.IsNullOrEmpty(result))
-                {
-                    txtTestResult.Text = "表情包已发送（需要安装 VPet.Plugin.Image 插件）";
-                    txtTestResult.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(100, 200, 100));
-                }
-                else
-                {
-                    txtTestResult.Text = result;
-                    txtTestResult.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 180, 100));
-                }
-            }
-            catch (Exception ex)
-            {
-                txtTestResult.Text = $"测试失败: {ex.Message}";
-                txtTestResult.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 100, 100));
-            }
-            finally
-            {
-                btnTestSticker.IsEnabled = true;
-                btnTestSticker.Content = "测试发送";
-            }
+            txtTestResult.Text = text;
+            txtTestResult.Foreground = color;
         }
     }
 }

@@ -60,6 +60,33 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect" Value="{StaticResource CardShadow}"/>
+        </Style>
+        <Style x:Key="CardTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#323130"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        <Style x:Key="Hint" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#605E5C"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+        <Style x:Key="Field" TargetType="TextBox">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="BorderBrush" Value="#E1DFDD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
     </UserControl.Resources>
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -75,96 +102,134 @@
                    FontSize="20"
                    Foreground="#323130"
                    FontWeight="SemiBold"
-                   Margin="0,0,0,20"/>
+                   Margin="0,0,0,15"/>
 
         <!-- Settings Content -->
-        <StackPanel Grid.Row="1">
-            <!-- Shell Info -->
-            <Border Background="#FFFFFF" CornerRadius="8" Padding="15" Margin="0,0,0,15"
-                    BorderBrush="#E1DFDD" BorderThickness="1"
-                    Effect="{StaticResource CardShadow}">
-                <StackPanel>
-                    <TextBlock x:Name="txtShellInfoTitle"
-                               Text="Shell Information"
-                               FontSize="14"
-                               Foreground="#323130"
-                               FontWeight="Bold"
-                               Margin="0,0,0,10"/>
-                    <TextBlock x:Name="txtCurrentShell"
-                               Text="Current Shell: PowerShell"
-                               Foreground="#0078D4"
-                               FontSize="13"/>
-                    <TextBlock x:Name="txtPwshStatus"
-                               Text="PowerShell 7 (pwsh): Available"
-                               Foreground="#107C10"
-                               FontSize="12"
-                               Margin="0,5,0,0"/>
-                    <TextBlock x:Name="txtPsStatus"
-                               Text="Windows PowerShell: Available"
-                               Foreground="#107C10"
-                               FontSize="12"
-                               Margin="0,3,0,0"/>
-                    <TextBlock x:Name="txtCmdStatus"
-                               Text="CMD: Available"
-                               Foreground="#107C10"
-                               FontSize="12"
-                               Margin="0,3,0,0"/>
-                </StackPanel>
-            </Border>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="0,0,8,0">
 
-            <!-- Enable Toggle -->
-            <Border Background="#FFFFFF" CornerRadius="8" Padding="15" Margin="0,0,0,15"
-                    BorderBrush="#E1DFDD" BorderThickness="1"
-                    Effect="{StaticResource CardShadow}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0">
-                        <TextBlock x:Name="txtEnableTitle"
-                                   Text="Enable Terminal for AI"
+                <!-- Shell Info -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock x:Name="txtShellInfoTitle" Text="Shell Information" Style="{StaticResource CardTitle}"/>
+                        <TextBlock x:Name="txtCurrentShell" Text="Current Shell: PowerShell" Foreground="#0078D4" FontSize="13"/>
+                        <TextBlock x:Name="txtPwshStatus" Text="PowerShell 7 (pwsh): Available" Foreground="#107C10" FontSize="12" Margin="0,5,0,0"/>
+                        <TextBlock x:Name="txtPsStatus" Text="Windows PowerShell: Available" Foreground="#107C10" FontSize="12" Margin="0,3,0,0"/>
+                        <TextBlock x:Name="txtCmdStatus" Text="CMD: Available" Foreground="#107C10" FontSize="12" Margin="0,3,0,0"/>
+
+                        <TextBlock x:Name="txtPreferredShellLabel" Text="Preferred shell" Style="{StaticResource Hint}" Margin="0,12,0,4"/>
+                        <ComboBox x:Name="cboPreferredShell" FontSize="12" Padding="6,4">
+                            <ComboBoxItem Content="Auto (pwsh &gt; powershell &gt; cmd)" Tag="auto"/>
+                            <ComboBoxItem Content="PowerShell 7 (pwsh)" Tag="pwsh"/>
+                            <ComboBoxItem Content="Windows PowerShell" Tag="powershell"/>
+                            <ComboBoxItem Content="CMD" Tag="cmd"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <!-- Enable Toggle -->
+                <Border Style="{StaticResource Card}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock x:Name="txtEnableTitle" Text="Enable Terminal for AI" Style="{StaticResource CardTitle}" Margin="0"/>
+                            <TextBlock x:Name="txtEnableDesc" Text="Allow AI to execute terminal commands" Style="{StaticResource Hint}"/>
+                        </StackPanel>
+                        <CheckBox x:Name="chkEnableTerminal"
+                                  Grid.Column="1"
+                                  VerticalAlignment="Center"
+                                  Checked="ChkEnableTerminal_Changed"
+                                  Unchecked="ChkEnableTerminal_Changed"/>
+                    </Grid>
+                </Border>
+
+                <!-- Approval -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock x:Name="txtApprovalTitle" Text="Approval" Style="{StaticResource CardTitle}"/>
+
+                        <CheckBox x:Name="chkAutoApproveReadOnly" FontSize="12" Content="Auto-approve read-only commands"/>
+                        <TextBlock x:Name="txtAutoApproveHint" Style="{StaticResource Hint}"
+                                   Text="Get-*, dir, ipconfig, git status ... run without a confirmation dialog. Anything with a redirect, ;, &amp;&amp; or a subexpression is always confirmed."/>
+
+                        <CheckBox x:Name="chkAllowRemoteApproval" FontSize="12" Margin="0,12,0,0" Content="Allow remote (browser) approval"/>
+                        <TextBlock x:Name="txtRemoteApprovalHint" Style="{StaticResource Hint}"
+                                   Text="High risk. When off, command confirmation always happens on this desktop."/>
+
+                        <TextBlock x:Name="txtPrefixLabel" Style="{StaticResource Hint}" Margin="0,12,0,4"
+                                   Text="Always-allowed command prefixes (one per line)"/>
+                        <TextBox x:Name="txtAllowedPrefixes"
+                                 Style="{StaticResource Field}"
+                                 AcceptsReturn="True"
+                                 Height="70"
+                                 VerticalScrollBarVisibility="Auto"
+                                 FontFamily="Consolas, Courier New, monospace"/>
+                        <TextBlock x:Name="txtPrefixHint" Style="{StaticResource Hint}"
+                                   Text="Token-level prefix match: `git status` also covers `git status --short`."/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Execution -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock x:Name="txtExecutionTitle" Text="Execution" Style="{StaticResource CardTitle}"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock x:Name="txtTimeoutLabel" Text="Timeout (seconds)" Style="{StaticResource Hint}" Margin="0,0,0,4"/>
+                                <TextBox x:Name="txtTimeout" Style="{StaticResource Field}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock x:Name="txtMaxOutputLabel" Text="Max output (chars)" Style="{StaticResource Hint}" Margin="0,0,0,4"/>
+                                <TextBox x:Name="txtMaxOutput" Style="{StaticResource Field}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock x:Name="txtCwdLabel" Text="Working directory" Style="{StaticResource Hint}" Margin="0,12,0,4"/>
+                        <TextBox x:Name="txtWorkingDirectory" Style="{StaticResource Field}"/>
+                        <TextBlock x:Name="txtCwdHint" Style="{StaticResource Hint}"
+                                   Text="Leave empty to use your user profile folder."/>
+
+                        <CheckBox x:Name="chkPersistCwd" FontSize="12" Margin="0,12,0,0" Content="Keep cd across commands (PowerShell only)"/>
+                        <CheckBox x:Name="chkFilterEnv" FontSize="12" Margin="0,8,0,0" Content="Hide KEY / SECRET / TOKEN environment variables"/>
+                        <TextBlock x:Name="txtFilterEnvHint" Style="{StaticResource Hint}"
+                                   Text="Stops a command from reading your API keys out of the environment."/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Warning -->
+                <Border x:Name="borderWarning"
+                        Background="#FDE7E9"
+                        BorderBrush="#D13438"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="15"
+                        Margin="0,0,0,12"
+                        Visibility="Visible">
+                    <StackPanel>
+                        <TextBlock x:Name="txtWarningTitle"
+                                   Text="Warning"
                                    FontSize="14"
-                                   Foreground="#323130"
+                                   Foreground="#D13438"
                                    FontWeight="Bold"/>
-                        <TextBlock x:Name="txtEnableDesc"
-                                   Text="Allow AI to execute terminal commands"
-                                   Foreground="#605E5C"
+                        <TextBlock x:Name="txtWarningDesc"
+                                   Text="When enabled, AI can execute commands that may modify your system. Only enable if you can verify command safety."
+                                   Foreground="#323130"
                                    FontSize="12"
                                    TextWrapping="Wrap"
                                    Margin="0,5,0,0"/>
                     </StackPanel>
-                    <CheckBox x:Name="chkEnableTerminal"
-                              Grid.Column="1"
-                              VerticalAlignment="Center"
-                              Checked="ChkEnableTerminal_Changed"
-                              Unchecked="ChkEnableTerminal_Changed"/>
-                </Grid>
-            </Border>
-
-            <!-- Warning -->
-            <Border x:Name="borderWarning"
-                    Background="#FDE7E9"
-                    BorderBrush="#D13438"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="15"
-                    Visibility="Visible">
-                <StackPanel>
-                    <TextBlock x:Name="txtWarningTitle"
-                               Text="Warning"
-                               FontSize="14"
-                               Foreground="#D13438"
-                               FontWeight="Bold"/>
-                    <TextBlock x:Name="txtWarningDesc"
-                               Text="When enabled, AI can execute commands that may modify your system. Only enable if you can verify command safety."
-                               Foreground="#323130"
-                               FontSize="12"
-                               TextWrapping="Wrap"
-                               Margin="0,5,0,0"/>
-                </StackPanel>
-            </Border>
-        </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
 
         <!-- Buttons -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">

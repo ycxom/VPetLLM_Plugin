@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "description": "TerminalPlugin command safety ruleset. Rules are evaluated in order; the first matching rule wins. Editing this file changes what the AI is allowed to run without confirmation - do not relax it unless you understand the consequences.",
+
+  "wrappers": {
+    "transparent": [ "sudo", "gsudo", "doas" ],
+    "envPrefix": [ "env" ],
+    "elevation": [ "runas" ],
+    "cmdShell": [ "cmd" ],
+    "powerShell": [ "powershell", "pwsh" ],
+    "terminalHosts": [ "wt", "conhost", "wsl" ]
+  },
+
+  "readOnly": {
+    "commands": [
+      "select-object", "select", "where-object", "where", "sort-object", "sort", "group-object", "group",
+      "measure-object", "measure", "format-list", "format-table", "format-wide", "format-custom",
+      "out-string", "out-host", "compare-object", "resolve-path", "split-path", "join-path",
+      "convertto-json", "convertfrom-json", "convertto-csv", "convertfrom-csv", "convertto-html",
+      "select-string", "tee-object", "write-output", "write-host", "echo", "foreach-object", "foreach",
+      "get-help", "help", "man", "more",
+      "ls", "dir", "gci", "gc", "cat", "type", "pwd", "gl", "gp", "gm", "gsv", "ps", "cd", "chdir",
+      "hostname", "whoami", "ver", "vol", "date", "time", "chcp", "tree", "find", "findstr",
+      "ipconfig", "systeminfo", "tasklist", "nslookup", "tracert", "pathping", "arp", "netstat", "route",
+      "ping", "getmac", "driverquery", "query", "w32tm", "fc", "comp", "clip",
+      "git", "dotnet", "node", "npm", "python", "py", "java", "go", "cargo", "rustc", "pip"
+    ],
+    "noSubcommandCheck": [ "cd", "chdir" ],
+    "subcommands": {
+      "git": [ "status", "log", "diff", "show", "branch", "remote", "describe", "blame", "tag", "ls-files", "rev-parse", "shortlog" ],
+      "dotnet": [ "--info", "--version", "--list-sdks", "--list-runtimes" ],
+      "npm": [ "ls", "list", "view", "outdated", "-v", "--version" ],
+      "node": [ "-v", "--version" ],
+      "python": [ "-V", "--version" ],
+      "py": [ "-V", "--version", "--list" ],
+      "java": [ "-version", "--version" ],
+      "go": [ "version", "env", "list" ],
+      "cargo": [ "--version", "tree", "metadata" ],
+      "rustc": [ "--version", "-V" ],
+      "pip": [ "list", "show", "freeze", "--version" ]
+    },
+    "verbPrefixes": [ "get-", "test-", "show-" ],
+    "unsafeVerbExceptions": [ "get-credential", "get-clipboard" ]
+  },
+
+  "downloaders": [
+    "invoke-webrequest", "iwr", "wget", "curl", "invoke-restmethod", "irm",
+    "bitsadmin", "certutil", "start-bitstransfer"
+  ],
+  "downloadApiFragments": [ "downloadstring", "downloadfile", "downloaddata", "webclient", "httpclient" ],
+  "evaluators": [ "invoke-expression", "iex", "invoke-command", "icm" ],
+  "browsers": [ "chrome", "msedge", "firefox", "iexplore", "opera", "brave", "vivaldi" ],
+  "urlLaunchers": [ "start", "start-process", "saps", "invoke-item", "ii", "explorer", "mshta" ],
+
+  "urlLauncherFragments": {
+    "rundll32": [ "url.dll,fileprotocolhandler" ]
+  },
+
+  "protectedPaths": [
+    "c:\\windows", "c:\\program files", "c:\\program files (x86)",
+    "c:\\programdata", "%systemroot%", "%windir%", "$env:systemroot"
+  ],
+
+  "globalRules": [
+    {
+      "decision": "Forbidden",
+      "reason": "encoded_command",
+      "detail": "FromBase64String",
+      "when": { "anyTokenContains": [ "frombase64string" ] }
+    }
+  ],
+
+  "rules": [
+    { "keys": [ "format" ], "decision": "Forbidden", "reason": "disk_destruction",
+      "when": { "argMatches": "^[a-z]:\\\\?$" } },
+    { "keys": [ "format-volume", "clear-disk", "initialize-disk", "remove-partition", "diskpart" ],
+      "decision": "Forbidden", "reason": "disk_destruction" },
+    { "keys": [ "vssadmin", "wbadmin" ], "decision": "Forbidden", "reason": "backup_destruction",
+      "when": { "hasWord": [ "delete" ] } },
+    { "keys": [ "bcdedit" ], "decision": "Forbidden", "reason": "boot_config" },
+    { "keys": [ "cipher" ], "decision": "Forbidden", "reason": "disk_destruction", "detail": "cipher /w",
+      "when": { "argStartsWith": [ "/w" ] } },
+    { "keys": [ "rm", "remove-item", "ri", "del", "erase", "rd", "rmdir" ],
+      "decision": "Forbidden", "reason": "system_path_delete", "detailFromMatch": true,
+      "when": { "protectedPathArg": true } },
+
+    { "keys": [ "rm" ], "decision": "Dangerous", "reason": "recursive_delete",
+      "when": { "unixRmForced": true } },
+    { "keys": [ "remove-item", "ri" ], "decision": "Dangerous", "reason": "recursive_delete",
+      "when": { "psSwitch": [ "recurse", "force" ] } },
+    { "keys": [ "rd", "rmdir" ], "decision": "Dangerous", "reason": "recursive_delete",
+      "when": { "cmdFlag": [ "s" ] } },
+    { "keys": [ "del", "erase" ], "decision": "Dangerous", "reason": "force_delete",
+      "when": { "cmdFlag": [ "s", "q", "f" ] } },
+    { "keys": [ "reg" ], "decision": "Dangerous", "reason": "registry_write",
+      "when": { "hasWord": [ "delete", "import" ] } },
+    { "keys": [ "remove-itemproperty", "set-itemproperty", "new-itemproperty", "remove-item" ],
+      "decision": "Dangerous", "reason": "registry_write",
+      "when": { "registryHiveArg": true } },
+    { "keys": [ "shutdown", "restart-computer", "stop-computer", "logoff" ],
+      "decision": "Dangerous", "reason": "power_control" },
+    { "keys": [ "net", "net1" ], "decision": "Dangerous", "reason": "account_management",
+      "when": { "hasWord": [ "user", "localgroup" ] } },
+    { "keys": [ "new-localuser", "remove-localuser", "add-localgroupmember", "set-localuser" ],
+      "decision": "Dangerous", "reason": "account_management" },
+    { "keys": [ "icacls" ], "decision": "Dangerous", "reason": "permission_change",
+      "when": { "argStartsWith": [ "/grant", "/deny", "/reset", "/setowner" ] } },
+    { "keys": [ "cacls", "takeown", "set-acl" ], "decision": "Dangerous", "reason": "permission_change" },
+    { "keys": [ "set-executionpolicy" ], "decision": "Dangerous", "reason": "security_policy" },
+    { "keys": [ "add-mppreference", "set-mppreference", "remove-mppreference" ],
+      "decision": "Dangerous", "reason": "security_policy", "detail": "Windows Defender" },
+    { "keys": [ "netsh" ], "decision": "Dangerous", "reason": "security_policy", "detail": "netsh firewall",
+      "when": { "hasWord": [ "firewall", "advfirewall" ] } },
+    { "keys": [ "taskkill" ], "decision": "Dangerous", "reason": "force_kill",
+      "when": { "cmdFlag": [ "f" ] } },
+    { "keys": [ "stop-process" ], "decision": "Dangerous", "reason": "force_kill",
+      "when": { "psSwitch": [ "force" ] } },
+    { "keys": [ "sc" ], "decision": "Dangerous", "reason": "service_change",
+      "when": { "hasWord": [ "delete", "config" ] } },
+    { "keys": [ "set-service", "stop-service", "remove-service" ],
+      "decision": "Dangerous", "reason": "service_change" },
+    { "keys": [ "schtasks" ], "decision": "Dangerous", "reason": "scheduled_task",
+      "when": { "argStartsWith": [ "/create", "/delete" ] } },
+    { "keys": [ "register-scheduledtask", "unregister-scheduledtask" ],
+      "decision": "Dangerous", "reason": "scheduled_task" },
+    { "keys": [ "invoke-expression", "iex" ], "decision": "Dangerous", "reason": "dynamic_eval" },
+    { "keys": [ "certutil" ], "decision": "Dangerous", "reason": "stealth_download",
+      "when": { "argStartsWith": [ "-urlcache", "-decode" ] } },
+    { "keys": [ "bitsadmin" ], "decision": "Dangerous", "reason": "stealth_download" },
+    { "keys": [ "wmic" ], "decision": "Dangerous", "reason": "wmi_execution" },
+    { "keys": [ "fsutil", "mountvol", "label", "subst" ], "decision": "Dangerous", "reason": "volume_change" }
+  ]
+}

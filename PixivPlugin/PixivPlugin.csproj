@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <Compile Include="PixivPlugin.cs" />
+    <Compile Include="PixivPlugin.Schema.cs" />
     <Compile Include="PixivPlugin.Tab.cs" />
     <Compile Include="winPixivSetting.CloseHelper.cs" />
     <Compile Include="Models\PixivModels.cs" />

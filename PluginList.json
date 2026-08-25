@@ -9,7 +9,7 @@
       "en": "Give red envelopes to lolisi on holidays!"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MoneyManagerPlugin/plugin/MoneyManagerPlugin.dll",
-    "SHA256": "e99c8d13c3862538664ed6511ee04504111d5e958d9e08e60e26d64d66dcc052"
+    "SHA256": "0a9531fb1830e533de522f210cf3c6dcf143f98d3d6a46c62c7af2af71de899f"
   },
   "WaitPlugin": {
     "Name": "wait",
@@ -21,7 +21,7 @@
       "en": "Wait for the user to reply within N seconds without blocking."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WaitPlugin/plugin/WaitPlugin.dll",
-    "SHA256": "8e141b08000fefd585f275eb2be0954878d07afe224b0806f1faab58f9e13703"
+    "SHA256": "06fa55146f91174b421756e2da5ee8ebdb5aa9edacb6c818373e337517888a20"
   },
   "DiaryPlugin": {
     "Name": "Diary",
@@ -33,7 +33,7 @@
       "en": "Lets the AI review each day's interactions and automatically write a first-person diary. Supports vector search and a desktop viewer."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/DiaryPlugin/plugin/DiaryPlugin.dll",
-    "SHA256": "69a698c14fa4a2a91f4753e83c26d56dcd6a7d5f735c0acb97d05a5313cc2362"
+    "SHA256": "c2adaedb24161658b9d34f609410ea78181b81fa19fb0d20accfc2318301b84a"
   },
   "ReminderPlugin": {
     "Name": "reminder",
@@ -45,7 +45,7 @@
       "en": "Set a timed reminder."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ReminderPlugin/plugin/ReminderPlugin.dll",
-    "SHA256": "a87d280db52341ac42fa3e939124cacfce706869abf5d622f395262f6592aa82"
+    "SHA256": "f7d20d1a667c42f9bf1baaf581736232eca352c620560f995eb9e78abbc57853"
   },
   "SystemInfoPlugin": {
     "Name": "system_info",
@@ -57,7 +57,7 @@
       "en": "Get the current operating system's version information."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/SystemInfoPlugin/plugin/SystemInfoPlugin.dll",
-    "SHA256": "74bc4f681b693f2864e1e09fd18683ff8f2baf715e78d7e135c4fe26c3ddb5d2"
+    "SHA256": "236b72cbb8968d08203f4a21f68d2e1b330d9bdb73662fb888e4a0dcbce8b467"
   },
   "ForegroundAppPlugin": {
     "Name": "ForegroundAppWatcher",
@@ -70,7 +70,7 @@
       "ja": "フォアグラウンドアプリケーション（ウィンドウタイトルを含む）と Windows SMTC が報告する再生中のメディアを監視し、AI に提供します。キーワードと許可/拒否リストでプライベートなアプリを AI のコンテキストから除外できます。"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/ForegroundAppPlugin/plugin/ForegroundAppPlugin.dll",
-    "SHA256": "da2bd2af320a1a2bc3df06515b651d7cd74dfc005ec9d9897dc4f74218973666"
+    "SHA256": "3adffef419f61ee47beabab0f7790200cd1d7e8f3891fe312198d2d8ead7b907"
   },
   "AppLauncherPlugin": {
     "Name": "AppLauncher",
@@ -82,7 +82,7 @@
       "en": "Allows AI to launch applications with support for custom app paths and automatic system app recognition."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/AppLauncherPlugin/plugin/AppLauncherPlugin.dll",
-    "SHA256": "2913215b9d41a8c379ed61eab047d2534ce129d18bf53c1f3d876d3cdd897123"
+    "SHA256": "3dc9fec1bab6040acdbf643da57d2c43cc1924d48945a2c69642cc4704458459"
   },
   "MinecraftVersionPlugin": {
     "Name": "MinecraftVersionWatcher",
@@ -94,7 +94,7 @@
       "en": "Watches Minecraft (Java/Bedrock) versions and notifies AI only if it matches allowed versions."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MinecraftVersionPlugin/plugin/MinecraftVersionPlugin.dll",
-    "SHA256": "b07d7807ddfcfa9a40b89b196a409c7dfddab30ba5d79c24528313b5363c0da8"
+    "SHA256": "4d164d752382ffe0c2029d2d46754ee728b0181913fa307dbb1f27da39c5ca29"
   },
   "MarkdownViewerPlugin": {
     "Name": "MarkdownViewer",
@@ -106,7 +106,7 @@
       "en": "Render and display standard Markdown documents in a standalone window. Use standard Markdown format. Supports headings, lists, code blocks, tables, etc."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/MarkdownViewerPlugin/plugin/MarkdownViewerPlugin.dll",
-    "SHA256": "555c97656b6a6089723da861b7d03b2a55ef1617a808597207dff5ddefa4cf4e"
+    "SHA256": "61c19c9fc7245809629200d616f1689fa29c97f2eaab0a37f491347bdb12bfff"
   },
   "WebSearchPlugin": {
     "Name": "WebSearch",
@@ -118,7 +118,7 @@
       "en": "Search internet content or fetch webpage content (Markdown format)"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WebSearchPlugin/plugin/WebSearchPlugin.dll",
-    "SHA256": "2b31545f189c1eb45b2e559b18c86777b0c0ef123640b3709699003905af2a1e"
+    "SHA256": "321da011274308587456de096c7d36b9ea5eef9cfa159d03fa1369b87532acef"
   },
   "WeatherPlugin": {
     "Name": "Weather",
@@ -130,7 +130,7 @@
       "en": "Query weather information for China regions. Note: This API only supports China region data."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WeatherPlugin/plugin/WeatherPlugin.dll",
-    "SHA256": "58493fb68e1c51f6e63319e6ab2c1f79642c951e605c6fd5cfdfa83d7f0842f9"
+    "SHA256": "96539bfe7b98cc40bedde5285825715db7d4728f5fd598addc81786a43ffdf2f"
   },
   "PixivPlugin": {
     "Name": "Pixiv",
@@ -142,7 +142,7 @@
       "en": "Search Pixiv images or get random recommended images."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/PixivPlugin/plugin/PixivPlugin.dll",
-    "SHA256": "17dbb5174b29801426b6f705107f87a348fd4ba7997e016f863fc5c79a66e8b9"
+    "SHA256": "c8b64c70ad0821425755c7210b11c20fbaef4ce116be4877e9386f830778f6f8"
   },
   "StickerPlugin": {
     "Name": "Sticker",
@@ -154,7 +154,7 @@
       "en": "Search and send stickers."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/StickerPlugin/plugin/StickerPlugin.dll",
-    "SHA256": "123ccd41d47b51e00614a64cd8aad991878de4d59660c3b20661d1a96c2280c4"
+    "SHA256": "6ddace7bfefec222eb588ae2f4c6f09545347b2ff13826ec1a1784b0fa4bc093"
   },
   "TerminalPlugin": {
     "Name": "Terminal",
@@ -166,7 +166,15 @@
       "en": "Allows AI to execute terminal commands, supporting PowerShell and CMD."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/TerminalPlugin/plugin/TerminalPlugin.dll",
-    "SHA256": "ab576ada1c63c89769470908a4f02b87b4820b3bdc855f571b396476276a5a7c"
+    "SHA256": "214ebc5d25145263c0aeb21f3a1fe6c17201bdd4d2e0d3f21ca65421331d5980",
+    "Extra": [
+      {
+        "Name": "TerminalPlugin.rules.json",
+        "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/TerminalPlugin/plugin/TerminalPlugin.rules.json",
+        "SHA256": "2c5b9973cc6f09c04b07747d085f891a1129cee82385132c6e8052d68db6e39f"
+      }
+    ],
+  "Published": false
   },
   "OneBotPlugin": {
     "Name": "onebot",
@@ -178,6 +186,6 @@
       "en": "OneBot protocol plugin. Send and receive QQ messages via NapCat/Lagrange etc."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/OneBotPlugin/plugin/OneBotPlugin.dll",
-    "SHA256": "47be5f0133d65cd82641ec1e0df919f27ddc2da0a2fdba0ef8b4ed491a68b2b0"
+    "SHA256": "6edf0d99a5cf74cc9c22b85ddd12034214b163a747a38184af5d3acdb1c62693"
   }
 }

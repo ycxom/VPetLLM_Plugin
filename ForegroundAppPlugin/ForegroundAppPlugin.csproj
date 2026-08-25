@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <Compile Include="ForegroundAppPlugin.cs" />
+    <Compile Include="ForegroundAppPlugin.Schema.cs" />
     <Compile Include="Localization.cs" />
     <Compile Include="AppFilter.cs" />
     <Compile Include="SmtcInterop.cs" />

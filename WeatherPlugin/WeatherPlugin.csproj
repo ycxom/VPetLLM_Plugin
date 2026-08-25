@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <Compile Include="WeatherPlugin.cs" />
+    <Compile Include="WeatherPlugin.Schema.cs" />
     <Compile Include="WeatherPlugin.Tab.cs" />
     <Compile Include="winWeatherSetting.CloseHelper.cs" />
     <Compile Include="Models\WeatherResponse.cs" />

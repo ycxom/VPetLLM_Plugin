@@ -7,7 +7,7 @@ using VPetLLM.Core.RemoteChat;
 
 namespace RemoteChatPlugin;
 
-public sealed class RemoteChatPlugin : IActionPlugin, IPluginWithData, IPluginTab
+public sealed partial class RemoteChatPlugin : IActionPlugin, IPluginWithData, IPluginTab
 {
     private const string ConfigName = "RemoteChatPlugin";
 

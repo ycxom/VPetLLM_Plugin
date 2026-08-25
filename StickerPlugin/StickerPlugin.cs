@@ -5,21 +5,20 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using VPetLLM.Core.Abstractions.Interfaces.Plugin;
-using StickerPlugin.Models;
 using StickerPlugin.Services;
 
 namespace StickerPlugin
 {
     /// <summary>
-    /// VPetLLM 表情包插件
-    /// 支持 AI 搜索并发送表情包
-    /// 依赖 VPet.Plugin.Image 插件显示表情包
+    /// VPetLLM 表情包插件。
+    ///
+    /// 本插件只做两件事：把「发表情包」这个动作暴露给 LLM，以及在需要时引导用户安装、
+    /// 启用前置 MOD「LLM表情包」。表情包库本身（搜索、下载、缓存、显示、凭证、时长配置）
+    /// 由该 MOD 完整实现，本插件不再重复一套 —— 只通过 <see cref="ImagePluginBridge"/>
+    /// 唤起 MOD 的公开入口和读取它内部的参数。
     /// </summary>
-    public partial class StickerPlugin : IPluginTab, IActionPlugin, IPluginWithData, IDynamicInfoPlugin, IProcessingLifecyclePlugin
+    public partial class StickerPlugin : IPluginTab, IActionPlugin, IDynamicInfoPlugin, IProcessingLifecyclePlugin
     {
-        private const string ImagePluginName = "LLM表情包";
-        private const string ImagePluginWorkshopUrl = "https://steamcommunity.com/sharedfiles/filedetails/?id=3657291049";
-        
         public string Name => "Sticker";
         public string Author => "ycxom";
 
@@ -47,90 +46,67 @@ namespace StickerPlugin
 
         public bool Enabled { get; set; } = true;
         public string FilePath { get; set; } = string.Empty;
-        public string PluginDataDir { get; set; } = string.Empty;
 
         private VPetLLM.VPetLLM? _vpetLLM;
-        private PluginSettings _settings = new();
-        private ImageVectorService? _imageVectorService;
-        private ImagePluginCoordinator? _imagePluginCoordinator; // Image插件协调器
-        private bool _coordinatorInitAttempted = false; // 是否已尝试初始化协调器
-        private Random _random = new();
-        private ulong _steamId = 0;
+        private ImagePluginBridge? _bridge;
+        private readonly Random _random = new();
 
         public void Initialize(VPetLLM.VPetLLM plugin)
         {
             _vpetLLM = plugin;
             // 注意：不要覆盖 FilePath，PluginManager 已经正确设置了 DLL 文件路径
 
-            // 加载设置
-            LoadSettings();
+            // 这里不建桥：VPet 的插件加载顺序不保证，此刻「LLM表情包」可能还没加载。
+            // 首次使用时再解析，解析失败也允许后续重试。
+            Log("StickerPlugin 已初始化，将在首次使用时连接「LLM表情包」MOD");
+        }
 
-            // 获取 Steam ID
-            try
-            {
-                _steamId = plugin.MW?.SteamID ?? 0;
-            }
-            catch
-            {
-                _steamId = 0;
-            }
+        /// <summary>
+        /// 取调用桥。MOD 未加载时返回的桥仍然可用，只是所有调用都会返回失败状态，
+        /// 由面板负责把「去安装 / 去启用」的引导展示给用户。
+        /// </summary>
+        internal ImagePluginBridge? GetBridge()
+        {
+            if (_bridge is not null)
+                return _bridge;
 
-            // 初始化 API 服务
-            _imageVectorService = new ImageVectorService(
-                _settings.GetEffectiveServiceUrl(), 
-                _settings.GetEffectiveApiKey(), 
-                Log, 
-                _steamId,
-                async () => await (plugin.MW?.GenerateAuthKey() ?? Task.FromResult(0)),
-                _settings.UseBuiltInCredentials
-            );
+            if (_vpetLLM?.MW is null)
+                return null;
 
-            // 注意：不在这里初始化 ImagePluginCoordinator
-            // 因为此时其他插件可能还未加载完成
-            // 将在第一次使用时延迟初始化
-            Log("StickerPlugin 初始化完成，ImagePluginCoordinator 将在首次使用时初始化");
-
-            // 预加载标签
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    var cacheDuration = TimeSpan.FromMinutes(_settings.CacheDurationMinutes);
-                    await _imageVectorService.GetCachedTagsAsync(cacheDuration);
-                }
-                catch
-                {
-                    // 静默失败
-                }
-            });
+            _bridge = new ImagePluginBridge(_vpetLLM.MW, Log);
+            _bridge.Resolve();
+            return _bridge;
         }
 
         public async Task<string> Function(string arguments)
         {
             try
             {
-                // 解析 action 参数
                 var actionMatch = Regex.Match(arguments, @"action\((\w+)\)");
                 var action = actionMatch.Success ? actionMatch.Groups[1].Value.ToLower() : "send";
 
-                // 打开设置窗口
+                // 打开设置 = 直接唤起 MOD 自己的设置窗口，本插件不再有独立的配置项。
+                // MOD 没装/唤不起来时退回本插件的引导面板，那里会告诉用户该装什么、该开哪个开关。
                 if (action == "setting")
                 {
-                    OpenSettingsWindow();
+                    if (GetBridge()?.OpenModSettings() != true)
+                        OpenGuidePanel();
                     return string.Empty;
                 }
 
-                // 发送表情包
                 if (action == "send")
                 {
                     var tagsMatch = Regex.Match(arguments, @"tags\(([^)]+)\)");
-                    var tagsStr = tagsMatch.Success ? tagsMatch.Groups[1].Value.Trim() : "";
+                    var tags = tagsMatch.Success ? tagsMatch.Groups[1].Value.Trim() : "";
 
-                if (string.IsNullOrWhiteSpace(tagsStr))
-                    return string.Empty;
+                    if (string.IsNullOrWhiteSpace(tags))
+                        return string.Empty;
 
-                    // 使用生命周期管理的会话
-                    await SearchAndShowStickerAsync(tagsStr, GetOrInitializeCoordinator(), _lifecycleSessionId);
+                    var bridge = GetBridge();
+                    if (bridge is null)
+                        return string.Empty;
+
+                    await bridge.ShowStickerAsync(tags);
                     return string.Empty;
                 }
 
@@ -143,141 +119,45 @@ namespace StickerPlugin
             }
         }
 
-        /// <summary>
-        /// 获取或初始化 ImagePluginCoordinator（延迟初始化）
-        /// </summary>
-        private ImagePluginCoordinator? GetOrInitializeCoordinator()
+        /// <summary>MOD 不可用时，把本插件的状态/引导面板弹成一个独立窗口</summary>
+        private void OpenGuidePanel()
         {
-            // 如果已经有有效的协调器，检查它是否仍然可用
-            if (_imagePluginCoordinator != null)
+            Application.Current?.Dispatcher.Invoke(() =>
             {
-                // 简单检查：尝试调用 CanUseExclusiveMode
-                try
+                new Window
                 {
-                    // 如果协调器仍然有效，直接返回
-                    _imagePluginCoordinator.CanUseExclusiveMode();
-                    return _imagePluginCoordinator;
-                }
-                catch
-                {
-                    // 协调器已失效，需要重新初始化
-                    Log("检测到协调器已失效，尝试重新初始化...");
-                    _imagePluginCoordinator = null;
-                    _coordinatorInitAttempted = false; // 重置标志，允许重新初始化
-                }
-            }
-
-            // 如果之前尝试过但失败了，不再重试（避免重复错误提示）
-            if (_coordinatorInitAttempted)
-            {
-                return null;
-            }
-
-            _coordinatorInitAttempted = true;
-            
-            if (_vpetLLM?.MW == null)
-            {
-                Log("错误：MainWindow 未初始化");
-                return null;
-            }
-
-            Log("开始初始化 ImagePluginCoordinator...");
-            _imagePluginCoordinator = new ImagePluginCoordinator(_vpetLLM.MW, Log);
-            
-            var initResult = _imagePluginCoordinator.Initialize();
-            if (initResult)
-            {
-                Log("ImagePluginCoordinator 初始化成功");
-            }
-            else
-            {
-                Log($"警告：未找到 {ImagePluginName} 插件");
-                Log($"请从 Steam 创意工坊订阅: {ImagePluginWorkshopUrl}");
-                _imagePluginCoordinator = null;
-            }
-            
-            return _imagePluginCoordinator;
+                    Title = TabTitle,
+                    Width = 520,
+                    Height = 560,
+                    WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                    Content = CreatePanel()
+                }.Show();
+            });
         }
 
-        /// <summary>
-        /// 搜索并显示表情包
-        /// </summary>
-        private async Task SearchAndShowStickerAsync(string tags, ImagePluginCoordinator? coordinator, string? sessionId)
-        {
-            if (_imageVectorService is null)
-                return;
-
-            // 检查协调器和会话
-            if (coordinator == null || string.IsNullOrEmpty(sessionId))
-            {
-                Log($"错误：独占会话未启动");
-                return;
-            }
-
-            try
-            {
-                // 搜索表情包
-                var response = await _imageVectorService.SearchAsync(tags, limit: 1);
-
-                if (response is null || !response.Success || response.Results is null || response.Results.Count == 0)
-                {
-                    Log("未找到匹配的表情包");
-                    return;
-                }
-
-                // 选择最高分的结果
-                var bestResult = response.Results.OrderByDescending(r => r.Score).First();
-                Log($"找到表情包，相似度: {bestResult.Score:F2}");
-
-                // 显示表情包（通过 Image 插件）
-                if (!string.IsNullOrEmpty(bestResult.Base64))
-                {
-                    Log("显示表情包");
-                    await coordinator.ShowImageInSessionAsync(
-                        bestResult.Base64,
-                        _settings.DisplayDurationSeconds
-                    );
-                    Log("表情包显示完成");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log($"Sticker error: {ex.Message}");
-            }
-        }
+        #region IDynamicInfoPlugin
 
         /// <summary>
-        /// 获取要添加到系统提示词的标签信息
+        /// 往系统提示词里补一段可用标签。标签全集和「释放多少个」都取自 MOD 内部，
+        /// 但用法说明必须由本插件给出 —— MOD 自己那段说的是它的情感分析触发路径，
+        /// 和本插件的工具调用语法不是一回事。
         /// </summary>
         public async Task<string> GetSystemPromptAdditionAsync()
         {
-            if (_imageVectorService is null)
-            {
+            var bridge = GetBridge();
+            if (bridge is null || bridge.GetStatus() != ImagePluginStatus.Ready)
                 return string.Empty;
-            }
 
             try
             {
-                var cacheDuration = TimeSpan.FromMinutes(_settings.CacheDurationMinutes);
-                var allTags = await _imageVectorService.GetCachedTagsAsync(cacheDuration);
-
+                var allTags = await bridge.GetAvailableTagsAsync();
                 if (allTags.Count == 0)
-                {
                     return string.Empty;
-                }
 
-                // 验证设置
-                _settings.Validate(allTags.Count);
-
-                // 随机选择标签
-                var selectedTags = SelectRandomTags(allTags, _settings.TagCount);
-
+                var selectedTags = SelectRandomTags(allTags, Math.Min(bridge.TagCount, allTags.Count));
                 if (selectedTags.Count == 0)
-                {
                     return string.Empty;
-                }
 
-                // 格式化提示词
                 var tagsStr = string.Join(", ", selectedTags);
                 return $@"
 [表情包功能]
@@ -294,34 +174,6 @@ namespace StickerPlugin
             }
         }
 
-        /// <summary>
-        /// 随机选择指定数量的标签
-        /// </summary>
-        private List<string> SelectRandomTags(List<string> allTags, int count)
-        {
-            if (allTags.Count <= count)
-            {
-                return new List<string>(allTags);
-            }
-
-            var selected = new HashSet<string>();
-            var shuffled = allTags.OrderBy(_ => _random.Next()).ToList();
-
-            foreach (var tag in shuffled)
-            {
-                if (selected.Count >= count)
-                    break;
-                selected.Add(tag);
-            }
-
-            return selected.ToList();
-        }
-
-        #region IDynamicInfoPlugin
-
-        /// <summary>
-        /// 获取动态信息（同步版本，用于 IDynamicInfoPlugin 接口）
-        /// </summary>
         public string GetDynamicInfo()
         {
             try
@@ -337,58 +189,19 @@ namespace StickerPlugin
             }
         }
 
+        private List<string> SelectRandomTags(List<string> allTags, int count)
+        {
+            if (allTags.Count <= count)
+                return new List<string>(allTags);
+
+            return allTags.OrderBy(_ => _random.Next()).Take(count).ToList();
+        }
+
         #endregion
-
-        private void OpenSettingsWindow()
-        {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                new System.Windows.Window
-                {
-                    Title = TabTitle, Width = 520, Height = 620,
-                    WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen,
-                    Content = CreatePanel()
-                }.Show();
-            });
-        }
-
-        /// <summary>
-        /// 显示 Image 插件缺失提示
-        /// </summary>
-        private void ShowImagePluginMissingPrompt()
-        {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                var result = MessageBox.Show(
-                    $"表情包显示功能需要安装「{ImagePluginName}」插件。\n\n" +
-                    $"请从 Steam 创意工坊订阅后重启 VPet。\n\n" +
-                    $"点击「是」复制订阅链接到剪贴板。\n\n" +
-                    $"链接: {ImagePluginWorkshopUrl}",
-                    "缺少前置插件",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Information
-                );
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    try
-                    {
-                        Clipboard.SetText(ImagePluginWorkshopUrl);
-                        MessageBox.Show("链接已复制到剪贴板！", "复制成功", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    catch
-                    {
-                        // 忽略剪贴板错误
-                    }
-                }
-            });
-        }
 
         public void Unload()
         {
-            SaveSettings();
-            _imageVectorService?.Dispose();
-            _imagePluginCoordinator?.Dispose();
+            _bridge = null;
         }
 
         public void Log(string message)
@@ -396,78 +209,22 @@ namespace StickerPlugin
             _vpetLLM?.Log(message);
         }
 
-        #region Settings Management
-
-        public void LoadSettings()
-        {
-            _settings = PluginSettings.Load(PluginDataDir);
-        }
-
-        public void SaveSettings()
-        {
-            _settings.Save(PluginDataDir);
-        }
-
-        public PluginSettings GetSettings() => _settings;
-
-        public void UpdateSettings(PluginSettings settings)
-        {
-            _settings = settings;
-            _settings.Validate();
-            SaveSettings();
-
-            // 重新初始化服务
-            _imageVectorService?.Dispose();
-            _imageVectorService = new ImageVectorService(
-                _settings.GetEffectiveServiceUrl(), 
-                _settings.GetEffectiveApiKey(), 
-                Log, 
-                _steamId,
-                async () => await (_vpetLLM?.MW?.GenerateAuthKey() ?? Task.FromResult(0)),
-                _settings.UseBuiltInCredentials
-            );
-        }
-
-        /// <summary>
-        /// 测试服务连接
-        /// </summary>
-        public async Task<bool> TestConnectionAsync()
-        {
-            if (_imageVectorService is null)
-            {
-                return false;
-            }
-            return await _imageVectorService.HealthCheckAsync();
-        }
-
-        /// <summary>
-        /// 获取 VPet 的 MODPath 列表（已弃用，保留以兼容）
-        /// </summary>
-        [Obsolete("不再需要 MODPath，StickerPlugin 现在完全依赖 VPet.Plugin.Image")]
-        public IEnumerable<System.IO.DirectoryInfo>? GetModPaths()
-        {
-            return _vpetLLM?.MW?.MODPath;
-        }
-
-        #endregion
-
         #region IProcessingLifecyclePlugin
 
         private string? _lifecycleSessionId;
 
         /// <summary>
-        /// 在 VPetLLM 开始处理用户输入之前调用
-        /// 立即启动独占会话以屏蔽气泡触发
+        /// VPetLLM 开始处理用户输入时立即占住独占会话，让 MOD 在这一轮里停掉自己的
+        /// 气泡触发，免得它的情感表情和本插件即将推的表情包互相抢显示位。
         /// </summary>
         public async Task<object?> OnProcessingStartAsync(string userInput)
         {
             try
             {
-                var coordinator = GetOrInitializeCoordinator();
-                if (coordinator != null && coordinator.CanUseExclusiveMode())
+                var bridge = GetBridge();
+                if (bridge is not null && bridge.CanUseExclusiveMode())
                 {
-                    Log("VPetLLM 开始处理，立即启动独占会话以屏蔽气泡触发");
-                    _lifecycleSessionId = await coordinator.StartExclusiveSessionAsync();
+                    _lifecycleSessionId = await bridge.StartExclusiveSessionAsync();
                     Log($"独占会话已启动，会话 ID: {_lifecycleSessionId}");
                     return _lifecycleSessionId;
                 }
@@ -479,60 +236,37 @@ namespace StickerPlugin
             return null;
         }
 
-        /// <summary>
-        /// 在 LLM 开始返回响应时调用
-        /// </summary>
-        public Task OnResponseStartAsync(object? context)
-        {
-            // 不需要特殊处理
-            return Task.CompletedTask;
-        }
+        public Task OnResponseStartAsync(object? context) => Task.CompletedTask;
 
-        /// <summary>
-        /// 在 VPetLLM 完成处理后调用
-        /// 结束独占会话
-        /// </summary>
-        public async Task OnProcessingCompleteAsync(object? context)
+        public Task OnProcessingCompleteAsync(object? context) => EndLifecycleSessionAsync("生命周期");
+
+        public Task OnProcessingErrorAsync(object? context, Exception exception) => EndLifecycleSessionAsync("错误处理");
+
+        private async Task EndLifecycleSessionAsync(string reason)
         {
             try
             {
-                var coordinator = GetOrInitializeCoordinator();
-                if (coordinator != null && !string.IsNullOrEmpty(_lifecycleSessionId))
+                var sessionId = _lifecycleSessionId;
+                if (sessionId is null)
+                    return;
+
+                // 先清空再结束：结束过程里抛异常也不会把会话 ID 留成僵尸值，
+                // 否则下一轮 CanUseExclusiveMode 会一直判定为「已有活跃会话」而永久失效。
+                _lifecycleSessionId = null;
+
+                var bridge = GetBridge();
+                if (bridge is not null)
                 {
-                    await coordinator.EndExclusiveSessionAsync(_lifecycleSessionId);
-                    Log("独占会话已结束（生命周期）");
-                    _lifecycleSessionId = null;
+                    await bridge.EndExclusiveSessionAsync(sessionId);
+                    Log($"独占会话已结束（{reason}）");
                 }
             }
             catch (Exception ex)
             {
-                Log($"OnProcessingCompleteAsync 失败: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// 在处理过程中发生错误时调用
-        /// 确保结束独占会话
-        /// </summary>
-        public async Task OnProcessingErrorAsync(object? context, Exception exception)
-        {
-            try
-            {
-                var coordinator = GetOrInitializeCoordinator();
-                if (coordinator != null && !string.IsNullOrEmpty(_lifecycleSessionId))
-                {
-                    await coordinator.EndExclusiveSessionAsync(_lifecycleSessionId);
-                    Log("独占会话已结束（错误处理）");
-                    _lifecycleSessionId = null;
-                }
-            }
-            catch (Exception ex)
-            {
-                Log($"OnProcessingErrorAsync 失败: {ex.Message}");
+                Log($"结束独占会话失败（{reason}）: {ex.Message}");
             }
         }
 
         #endregion
     }
 }
-

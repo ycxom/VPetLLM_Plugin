@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using VPetLLM;
 using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 
-public class MoneyManagerPlugin : IActionPlugin
+public partial class MoneyManagerPlugin : IActionPlugin
 {
     public string Name => "money_manager";
     public string Author => "ycxom";

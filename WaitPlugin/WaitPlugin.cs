@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using VPetLLM;
 using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 
-public class WaitPlugin : IActionPlugin, IDynamicInfoPlugin
+public partial class WaitPlugin : IActionPlugin, IDynamicInfoPlugin
 {
     public string Name => "wait";
     public string Author => "ycxom";

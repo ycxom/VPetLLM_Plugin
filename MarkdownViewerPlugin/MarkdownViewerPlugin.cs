@@ -6,7 +6,7 @@ using VPetLLM.Core.Abstractions.Interfaces.Plugin;
 namespace MarkdownViewerPlugin
 {
     // 提供简单动作入口：传入内联 Markdown 文本
-    public class MarkdownViewerPlugin : IVPetLLMPlugin, IActionPlugin, IPluginTakeover
+    public partial class MarkdownViewerPlugin : IVPetLLMPlugin, IActionPlugin, IPluginTakeover
     {
         public string Name => "MarkdownViewer";
         public string Author => "ycxom";

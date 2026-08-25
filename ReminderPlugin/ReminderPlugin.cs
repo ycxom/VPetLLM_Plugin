@@ -3,8 +3,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using VPetLLM;
 using VPetLLM.Core.Abstractions.Interfaces.Plugin;
+using VPetLLM.Core.Abstractions.Models;
 
-public class ReminderPlugin : IActionPlugin
+public class ReminderPlugin : IActionPlugin, IToolSchemaPlugin
 {
     public string Name => "reminder";
     public string Author => "ycxom";
@@ -39,6 +40,69 @@ public class ReminderPlugin : IActionPlugin
     {
         _vpetLLM = plugin;
         VPetLLM.Utils.System.Logger.Log("Reminder Plugin Initialized!");
+    }
+
+    /// <summary>
+    /// 调用契约。这里有个容易踩的点：解析 event 的正则是 <c>event\(""(.*?)""\)</c>，
+    /// 也就是**值必须带一对英文双引号**（<c>event("study")</c>），漏了引号会直接匹配失败。
+    /// 示例里必须原样体现，否则模型写出 <c>event(study)</c> 就静默失效。
+    /// </summary>
+    public ToolSchema? GetToolSchema()
+    {
+        var lang = _vpetLLM?.Settings.Language ?? "en";
+
+        var (summary, form, timeDesc, unitDesc, eventDesc, remarks) = lang switch
+        {
+            "zh-hans" => (
+                "设置定时提醒（延迟执行）",
+                "在指定时长之后提醒你自己去做某事",
+                "延迟的时长，正整数",
+                "时间单位",
+                "简短的事件标签，注意值要用英文双引号包住",
+                "如果用户要求「到时间后再做某事」，本次回复不要调用其它插件去做那件事；提醒触发时系统会发来 reminder_finished，届时再执行。"),
+            "zh-hant" => (
+                "設置定時提醒（延遲執行）",
+                "在指定時長之後提醒你自己去做某事",
+                "延遲的時長，正整數",
+                "時間單位",
+                "簡短的事件標籤，注意值要用英文雙引號包住",
+                "如果用戶要求「到時間後再做某事」，本次回覆不要調用其它插件去做那件事；提醒觸發時系統會發來 reminder_finished，屆時再執行。"),
+            "ja" => (
+                "タイマーリマインダーを設定する（遅延実行）",
+                "指定した時間の経過後に自分自身へ通知する",
+                "遅延時間（正の整数）",
+                "時間の単位",
+                "短いイベントラベル。値は半角二重引用符で囲むこと",
+                "「時間になったら何かをする」と頼まれた場合、今回の返信ではそれを実行しないでください。リマインダー発火時に reminder_finished が届くので、そのときに実行します。"),
+            _ => (
+                "Set a timed reminder (deferred execution)",
+                "Remind yourself to do something after a delay",
+                "How long to wait, a positive integer",
+                "Time unit",
+                "A short event label; the value must be wrapped in double quotes",
+                "If the user asks you to do something AFTER the timer, do not do it in this response. The system sends reminder_finished when it fires; act then.")
+        };
+
+        return new ToolSchema
+        {
+            Summary = summary,
+            Remarks = remarks,
+            Forms = new[]
+            {
+                new ToolCallForm
+                {
+                    Summary = form,
+                    Parameters = new[]
+                    {
+                        ToolParameter.Int("time", timeDesc, sample: "10"),
+                        ToolParameter.Str("event", eventDesc, sample: "\"study\""),
+                        ToolParameter.Choice("unit", unitDesc, new[] { "seconds", "minutes" },
+                            required: false, @default: "minutes")
+                    },
+                    Example = "time(10), unit(minutes), event(\"study\")"
+                }
+            }
+        };
     }
 
     public Task<string> Function(string arguments)

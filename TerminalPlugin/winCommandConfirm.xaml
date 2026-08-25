@@ -69,6 +69,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -92,8 +93,32 @@
                    FontSize="12"
                    Margin="0,0,0,10"/>
 
+        <!-- 高危告警：只有安全评估判定为 Dangerous 时才显示 -->
+        <Border x:Name="borderDanger"
+                Grid.Row="2"
+                Background="#FDE7E9"
+                BorderBrush="#D13438"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="12"
+                Margin="0,0,0,10"
+                Visibility="Collapsed">
+            <StackPanel>
+                <TextBlock x:Name="txtDangerTitle"
+                           Text="High-risk command"
+                           FontSize="13"
+                           FontWeight="Bold"
+                           Foreground="#D13438"/>
+                <TextBlock x:Name="txtDangerReason"
+                           FontSize="12"
+                           Foreground="#323130"
+                           TextWrapping="Wrap"
+                           Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+
         <!-- Command Input -->
-        <Border Grid.Row="2"
+        <Border Grid.Row="3"
                 Background="#FFFFFF"
                 BorderBrush="#E1DFDD"
                 BorderThickness="1"
@@ -113,7 +138,7 @@
 
         <!-- Warning -->
         <TextBlock x:Name="txtWarning"
-                   Grid.Row="3"
+                   Grid.Row="4"
                    Text="Please verify the command before execution. You can modify it if needed."
                    Foreground="#D13438"
                    FontSize="12"
@@ -121,7 +146,7 @@
                    Margin="0,0,0,15"/>
 
         <!-- Buttons -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button x:Name="btnExecute"
                     Content="Execute"
                     Width="100" Height="35"
