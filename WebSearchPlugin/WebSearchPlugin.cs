@@ -40,7 +40,6 @@ namespace WebSearchPlugin
         private SearchEngine? _searchEngine;
         private WebSearchSettings _settings;
         private IContentFetcher? _contentFetcher;
-        private ulong _steamId;
 
         public WebSearchPlugin()
         {
@@ -50,8 +49,6 @@ namespace WebSearchPlugin
         public void Initialize(VPetLLM.VPetLLM plugin)
         {
             _vpetLLM = plugin;
-            
-            try { _steamId = plugin.MW?.SteamID ?? 0; } catch { _steamId = 0; }
             
             try
             {
@@ -135,7 +132,7 @@ namespace WebSearchPlugin
             if (_settings.Api.UseApiMode)
             {
                 _contentFetcher = new ApiContentFetcher(_httpClient, _settings.Api.GetEffectiveApiUrl(),
-                    _settings.Api.GetEffectiveToken(), _steamId, GetAuthKeyAsync, localFetcher, 
+                    _settings.Api.GetEffectiveToken(), SendAuthenticatedAsync, localFetcher,
                     _settings.Api.EnableFallback, _settings.Api.UseBuiltInCredentials);
             }
             else
@@ -144,10 +141,11 @@ namespace WebSearchPlugin
             }
         }
 
-        private async Task<int> GetAuthKeyAsync()
+        private Task<HttpResponseMessage> SendAuthenticatedAsync(HttpRequestMessage request)
         {
-            try { if (_vpetLLM?.MW is not null) return await _vpetLLM.MW.GenerateAuthKey(); } catch { }
-            return 0;
+            if (_vpetLLM is null || _httpClient is null)
+                throw new InvalidOperationException("VPetLLM secure service transport is unavailable.");
+            return _vpetLLM.SendAuthenticatedServiceRequestAsync(_httpClient, request);
         }
 
         private HttpClient CreateHttpClient(VPetLLM.Setting.ProxySetting proxySetting)

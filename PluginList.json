@@ -118,7 +118,7 @@
       "en": "Search internet content or fetch webpage content (Markdown format)"
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/WebSearchPlugin/plugin/WebSearchPlugin.dll",
-    "SHA256": "321da011274308587456de096c7d36b9ea5eef9cfa159d03fa1369b87532acef"
+    "SHA256": "d82b9739d6e60df89b80e3d99da46e6966d6eb201d34c580481e3069e42f3d0c"
   },
   "WeatherPlugin": {
     "Name": "Weather",
@@ -142,7 +142,7 @@
       "en": "Search Pixiv images or get random recommended images."
     },
     "File": "https://github.com/ycxom/VPetLLM_Plugin/raw/refs/heads/main/PixivPlugin/plugin/PixivPlugin.dll",
-    "SHA256": "c8b64c70ad0821425755c7210b11c20fbaef4ce116be4877e9386f830778f6f8"
+    "SHA256": "b11a77602d083c5c62eb50927c02ea4ce863448672bb735f35c0b6e04f7990ad"
   },
   "StickerPlugin": {
     "Name": "Sticker",

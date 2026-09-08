@@ -1,6 +1,4 @@
 using System.Net.Http;
-using System.Security.Cryptography;
-using System.Text;
 using Newtonsoft.Json;
 using PixivPlugin.Models;
 
@@ -14,13 +12,11 @@ namespace PixivPlugin.Services
 
         private readonly HttpClient _httpClient;
         private readonly Random _random = new();
-        private readonly ulong _steamId;
-        private readonly Func<Task<int>>? _getAuthKey;
+        private readonly VPetLLM.VPetLLM _host;
 
-        public PixivApiService(ulong steamId = 0, Func<Task<int>>? getAuthKey = null)
+        public PixivApiService(VPetLLM.VPetLLM host)
         {
-            _steamId = steamId;
-            _getAuthKey = getAuthKey;
+            _host = host ?? throw new ArgumentNullException(nameof(host));
             // 中转服务器可直连，显式禁用代理（避免 HttpClientHandler 默认静默走系统代理）
             _httpClient = new HttpClient(new HttpClientHandler { UseProxy = false, Proxy = null });
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {ApiKey}");
@@ -42,8 +38,7 @@ namespace PixivPlugin.Services
             try
             {
                 using var request = new HttpRequestMessage(HttpMethod.Get, url);
-                await AddAuthHeadersAsync(request);
-                var response = await _httpClient.SendAsync(request);
+                using var response = await _host.SendAuthenticatedServiceRequestAsync(_httpClient, request);
                 if (!response.IsSuccessStatusCode) return null;
                 var content = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<T>(content);
@@ -79,67 +74,5 @@ namespace PixivPlugin.Services
             return list[_random.Next(list.Count)];
         }
 
-
-        private async Task AddAuthHeadersAsync(HttpRequestMessage request)
-        {
-            var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            int ck = 0;
-            if (_getAuthKey is not null) { try { ck = await _getAuthKey(); } catch { } }
-            request.Headers.Add("X-Cache-Token", E(_steamId.ToString(), ts));
-            request.Headers.Add("X-Request-Signature", E(M(), ts));
-            request.Headers.Add("X-Check-Key", E(ck.ToString(), ts));
-            request.Headers.Add("X-Trace-Id", T(ts));
-        }
-
-        private static string M()
-        {
-            var a = 0x1A2B ^ 0x1A2B;
-            var p = new[] { (char)(51+a), (char)(53+a), (char)(54+a), (char)(49+a), (char)(57+a), (char)(51+a), (char)(50+a), (char)(52+a), (char)(49+a), (char)(53+a) };
-            return new string(p);
-        }
-
-        private static long F(long t)
-        {
-            var d = t.ToString();
-            long f = 0;
-            for (int i = 0; i < d.Length; i++) f += (d[i] - '0') * (i + 1);
-            return f % 60;
-        }
-
-        private static long O(long t) => (t ^ (F(t) * 0x5A5A)) + F(t);
-
-        private static string E(string p, long t)
-        {
-            try
-            {
-                var o = O(t);
-                using var s = SHA256.Create();
-                var k = s.ComputeHash(Encoding.UTF8.GetBytes(o.ToString() + "VPetLLM_"));
-                using var m = MD5.Create();
-                var iv = m.ComputeHash(Encoding.UTF8.GetBytes(t.ToString()));
-                using var a = Aes.Create();
-                a.Key = k; a.IV = iv; a.Mode = CipherMode.CBC; a.Padding = PaddingMode.PKCS7;
-                using var e = a.CreateEncryptor();
-                var b = Encoding.UTF8.GetBytes(p);
-                return Convert.ToBase64String(e.TransformFinalBlock(b, 0, b.Length));
-            }
-            catch { return p; }
-        }
-
-        private static string T(long t)
-        {
-            try
-            {
-                var r = new byte[16];
-                using (var rng = RandomNumberGenerator.Create()) rng.GetBytes(r);
-                var c = new byte[20];
-                Array.Copy(r, 0, c, 0, 16);
-                Array.Copy(BitConverter.GetBytes((int)(t % 10000)), 0, c, 16, 4);
-                var x = (byte)(O(t) & 0xFF);
-                for (int i = 0; i < 20; i++) c[i] ^= x;
-                return Convert.ToBase64String(c);
-            }
-            catch { return Convert.ToBase64String(Guid.NewGuid().ToByteArray()); }
-        }
     }
 }
